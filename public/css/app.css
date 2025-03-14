@@ -1,0 +1,119 @@
+/* 🔹 Estilo para la caja de alerta */
+.alert-box {
+    background-color: #fdf7f7;
+    border: 2px solid #a94442;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.alert-box.success {
+    background-color: #e6f7e6;
+    border: 2px solid #4caf50;
+    color: #2e7d32;
+}
+
+.alert-content {
+    font-weight: bold;
+}
+
+/* 🔹 Estilos generales para el carrusel */
+.comunicado-carousel-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 900px; /* Ajusta según tu diseño */
+    margin: 0 auto;
+    overflow: hidden; /* Oculta el contenido que se sale al mover el carrusel */
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    background-color: #ffffff;
+}
+
+.comunicado-carousel {
+    display: flex;
+    /* Se ajusta dinámicamente con JS para moverse en x */
+    transition: transform 0.5s ease-in-out;
+    cursor: grab; /* Para indicar que se puede arrastrar */
+}
+
+.comunicado-slide {
+    /* Cada "diapositiva" ocupa todo el ancho del contenedor */
+    min-width: 100%;
+    box-sizing: border-box;
+    padding: 20px;
+    overflow-y: auto; /* Para mostrar scroll si el contenido es muy largo */
+    max-height: 400px; /* Ajusta para forzar scroll vertical si el texto excede */
+}
+
+/* 🔹 Contenido de cada comunicado */
+.comunicado-image img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    margin: 0 auto;
+}
+
+.comunicado-content {
+    /* Para textos */
+}
+
+.comunicado-title {
+    font-size: 1.3rem;
+    font-weight: bold;
+    margin-bottom: 0.5rem;
+    color: #333;
+}
+
+.comunicado-date {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 1rem;
+}
+
+.comunicado-body {
+    font-size: 1rem;
+    line-height: 1.4;
+    color: #444;
+}
+
+/* 🔹 Botones de navegación */
+.carousel-control {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.2);
+    border: none;
+    color: #fff;
+    font-size: 1.5rem;
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    transition: background 0.3s;
+    border-radius: 50%;
+    z-index: 10;
+}
+
+    .carousel-control:hover {
+        background: rgba(0, 0, 0, 0.4);
+    }
+
+    .carousel-control.prev {
+        left: 10px;
+    }
+
+    .carousel-control.next {
+        right: 10px;
+    }
+
+/* 🔹 Ajustes para cursor en modo "arrastrar" */
+.grabbing {
+    cursor: grabbing !important;
+}
+
+/* 🔹 Ajustes responsive (opcional) */
+@media (max-width: 768px) {
+    .comunicado-slide {
+        padding: 10px;
+    }
+}
+
