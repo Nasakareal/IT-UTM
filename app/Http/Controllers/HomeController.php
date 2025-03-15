@@ -23,6 +23,8 @@ class HomeController extends Controller
         // Obtener los comunicados, ordenados del más reciente al más antiguo
         $comunicados = Comunicado::latest()->get();
 
-        return view('home', compact('documentosPendientes', 'comunicados'));
+        $secciones = \App\Models\Seccion::with('modulos')->get();
+
+        return view('home', compact('documentosPendientes', 'comunicados', 'secciones'));
     }
 }

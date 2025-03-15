@@ -11,7 +11,9 @@
                 <span>Se informa que con fecha de corte al <strong>{{ now()->format('Y-m-d') }}</strong>, la Universidad no ha recibido la siguiente documentación:</span>
                 <ul>
                     @foreach ($documentosPendientes as $documento)
-                        <li>📌 {{ $documento->nombre }} - Fecha límite: <span class="text-danger">{{ $documento->fecha_limite }}</span></li>
+                        <li>📌 {{ $documento->nombre }} - Fecha límite: 
+                            <span class="text-danger">{{ $documento->fecha_limite }}</span>
+                        </li>
                     @endforeach
                 </ul>
                 <p>Se recomienda entregar la documentación a la brevedad.</p>
@@ -28,37 +30,74 @@
 
     <!-- 🔹 Carrusel de comunicados -->
     @if($comunicados->isNotEmpty())
-    <div class="comunicado-carousel-wrapper">
-        <div class="comunicado-carousel" id="comunicadoCarousel">
-            @foreach($comunicados as $comunicado)
-                <div class="comunicado-slide">
-                    @if($comunicado->tipo === 'imagen')
-                        <!-- Si el comunicado es una imagen -->
-                        <div class="comunicado-image">
-                            <img src="{{ asset('storage/'.$comunicado->ruta_imagen) }}" alt="Imagen del comunicado">
-                        </div>
-                    @else
-                        <!-- Si el comunicado es de texto (o ambos) -->
-                        <div class="comunicado-content">
-                            <div class="comunicado-title">{{ $comunicado->titulo }}</div>
-                            <div class="comunicado-date">{{ $comunicado->fecha }}</div>
-                            <div class="comunicado-body">
-                                {!! $comunicado->contenido !!}
+        <div class="comunicado-carousel-wrapper">
+            <div class="comunicado-carousel" id="comunicadoCarousel">
+                @foreach($comunicados as $comunicado)
+                    <div class="comunicado-slide">
+                        @if($comunicado->tipo === 'imagen')
+                            <!-- Si el comunicado es una imagen -->
+                            <div class="comunicado-image">
+                                <img src="{{ asset('storage/'.$comunicado->ruta_imagen) }}" alt="Imagen del comunicado">
                             </div>
-                        </div>
-                    @endif
-                </div>
-            @endforeach
+                        @else
+                            <!-- Si el comunicado es de texto (o ambos) -->
+                            <div class="comunicado-content">
+                                <div class="comunicado-title">{{ $comunicado->titulo }}</div>
+                                <div class="comunicado-date">{{ $comunicado->fecha }}</div>
+                                <div class="comunicado-body">
+                                    {!! $comunicado->contenido !!}
+                                </div>
+                            </div>
+                        @endif
+                    </div>
+                @endforeach
+            </div>
+            <!-- Botones de navegación -->
+            <button class="carousel-control prev" id="prevBtn">&lt;</button>
+            <button class="carousel-control next" id="nextBtn">&gt;</button>
         </div>
-        <!-- Botones de navegación -->
-        <button class="carousel-control prev" id="prevBtn">&lt;</button>
-        <button class="carousel-control next" id="nextBtn">&gt;</button>
-    </div>
     @else
         <p>No hay comunicados por el momento.</p>
     @endif
-@endsection
 
+    <!-- 🔹 Secciones dinámicas (cada sección con sus módulos) -->
+    <div class="container my-4">
+        @foreach ($secciones as $seccion)
+            <h2 class="mb-4">{{ $seccion->nombre }}</h2>
+            <div class="row">
+                @forelse ($seccion->modulos as $modulo)
+                    <div class="col-md-4">
+                        <div class="card mb-3 shadow border-0">
+                            <!-- Usa el color del Módulo o, si lo deseas, el de la Sección -->
+                            <div class="card-header text-white" 
+                                 style="background-color: {{ $modulo->color ?? $seccion->color ?? '#009688' }}">
+                                <strong>{{ $modulo->anio }}</strong>
+                            </div>
+                            <div class="card-body">
+                                <!-- Ejemplo de etiqueta para la categoría -->
+                                <span class="badge bg-secondary">
+                                    {{ $modulo->categoria ?? 'Sin categoría' }}
+                                </span>
+                                <h5 class="card-title mt-2">{{ $modulo->titulo }}</h5>
+                                @if($modulo->descripcion)
+                                    <p class="card-text">{{ $modulo->descripcion }}</p>
+                                @endif
+                                <a href="{{ $modulo->link ?? '#' }}" class="btn btn-primary">
+                                    Ingresar
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                @empty
+                    <!-- Si la sección no tiene módulos -->
+                    <div class="col-12">
+                        <p>No hay módulos en esta sección.</p>
+                    </div>
+                @endforelse
+            </div>
+        @endforeach
+    </div>
+@endsection
 
 @section('scripts')
     <script>
@@ -68,20 +107,18 @@
         const prevBtn = document.getElementById('prevBtn');
         const nextBtn = document.getElementById('nextBtn');
 
-        let currentIndex = 0;          // Índice de la diapositiva actual
-        let intervalTime = 5000;       // Tiempo en ms para pasar de diapositiva (auto-rotación)
-        let autoSlide;                 // Variable para setInterval
-        let isDragging = false;        // Controla si se está arrastrando
-        let startPos = 0;             // Posición inicial (x) del ratón/touch
-        let currentTranslate = 0;     // Traslación actual
-        let prevTranslate = 0;        // Traslación previa (para restaurar en caso de no avanzar)
+        let currentIndex = 0;
+        let intervalTime = 5000;
+        let autoSlide;
+        let isDragging = false;
+        let startPos = 0;
+        let currentTranslate = 0;
+        let prevTranslate = 0;
 
-        // Función para actualizar la posición del carrusel
         function updateCarousel() {
             carousel.style.transform = `translateX(-${currentIndex * 100}%)`;
         }
 
-        // Funciones para ir a la diapositiva anterior/siguiente
         function showNextSlide() {
             currentIndex = (currentIndex + 1) % slides.length;
             updateCarousel();
@@ -91,7 +128,6 @@
             updateCarousel();
         }
 
-        // Auto-rotación
         function startAutoSlide() {
             autoSlide = setInterval(showNextSlide, intervalTime);
         }
@@ -99,7 +135,6 @@
             clearInterval(autoSlide);
         }
 
-        // Manejadores de eventos para arrastrar
         function touchStart(index) {
             return function(event) {
                 stopAutoSlide();
@@ -120,14 +155,10 @@
             isDragging = false;
             carousel.classList.remove('grabbing');
             const movedBy = currentTranslate - prevTranslate;
-
-            // Si se movió suficiente a la izquierda o derecha, cambiamos de slide
             if (movedBy < -100) {
-                // siguiente
                 currentIndex = (currentIndex + 1) % slides.length;
             }
             if (movedBy > 100) {
-                // anterior
                 currentIndex = (currentIndex - 1 + slides.length) % slides.length;
             }
             updateCarousel();
@@ -137,7 +168,6 @@
             return event.type.includes('mouse') ? event.pageX : event.touches[0].clientX;
         }
 
-        // Eventos de los botones
         prevBtn.addEventListener('click', () => {
             stopAutoSlide();
             showPrevSlide();
@@ -149,25 +179,16 @@
             startAutoSlide();
         });
 
-        // Configurar arrastre/touch para cada diapositiva
         slides.forEach((slide, index) => {
-            // Mousedown / touchstart
             slide.addEventListener('mousedown', touchStart(index));
             slide.addEventListener('touchstart', touchStart(index), { passive: true });
-
-            // Mousemove / touchmove
             slide.addEventListener('mousemove', touchMove);
             slide.addEventListener('touchmove', touchMove, { passive: true });
-
-            // Mouseup / touchend
             slide.addEventListener('mouseup', touchEnd);
             slide.addEventListener('touchend', touchEnd);
-
-            // Evitar arrastrar la imagen por defecto (para no interferir con el swipe)
             slide.addEventListener('dragstart', (e) => e.preventDefault());
         });
 
-        // Iniciamos el carrusel
         updateCarousel();
         startAutoSlide();
     </script>

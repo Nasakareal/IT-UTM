@@ -10,8 +10,9 @@
     "\\database\\seeders",
     "\\resources",
     "\\resources\\views",
-    "\\resources\\views\\layouts"
+    "\\resources\\views\\auth",
+    "\\routes"
   ],
-  "SelectedNode": "\\resources\\views\\layouts\\app.blade.php",
+  "SelectedNode": "\\database\\seeders\\ModuloSeeder.php",
   "PreviewInSolutionExplorer": false
 }
