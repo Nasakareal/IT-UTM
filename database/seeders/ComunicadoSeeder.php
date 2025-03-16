@@ -12,7 +12,7 @@ class ComunicadoSeeder extends Seeder
         // Comunicado solo de texto
         Comunicado::create([
             'titulo'    => 'Comunicado Solo de Texto',
-            'contenido' => 'Ola k ase.',
+            'contenido' => '¿Ya le hablaste?.',
             'tipo'      => 'texto',
             'fecha'     => now(),
         ]);

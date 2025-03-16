@@ -26,6 +26,16 @@ class RolesAndPermissionsSeeder extends Seeder
             'crear modulos',
             'editar modulos',
             'eliminar modulos',
+
+            'ver carpetas',
+            'crear carpetas',
+            'editar carpetas',
+            'eliminar carpetas',
+
+            'ver subsecciones',
+            'crear subsecciones',
+            'editar subsecciones',
+            'eliminar subsecciones',
         ];
 
         // Crear permisos si no existen

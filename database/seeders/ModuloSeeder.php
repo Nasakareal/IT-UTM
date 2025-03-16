@@ -13,13 +13,25 @@ class ModuloSeeder extends Seeder
         // 1. Creamos las secciones
         $academico = Seccion::create([
             'nombre' => 'Técnico Académico',
-            'slug'   => 'tecnico-academico',   // Opcional
-            'color'  => '#670D37',             // O #009688
+            'slug'   => 'tecnico-academico',
+            'color'  => '#670D37',
         ]);
 
         $administrativo = Seccion::create([
             'nombre' => 'Técnico Administrativo',
             'slug'   => 'tecnico-administrativo',
+            'color'  => '#009688', 
+        ]);
+
+        $Presupuestarios = Seccion::create([
+            'nombre' => 'Programas Presupuestarios',
+            'slug'   => 'Programas Presupuestarios',
+            'color'  => '#009688', 
+        ]);
+
+        $Materiales_y_Encuestas = Seccion::create([
+            'nombre' => 'Materiales y Encuestas',
+            'slug'   => 'Materiales y Encuestas',
             'color'  => '#009688', 
         ]);
 
@@ -31,7 +43,7 @@ class ModuloSeeder extends Seeder
             'color'       => '#009688',
             'descripcion' => 'Descripción breve para Técnico Académico.',
             'link'        => 'https://IT-UTM.COM/tecnico-academico',
-            'seccion_id'  => $academico->id,  // ← Referencia a la sección
+            'seccion_id'  => $academico->id,
         ]);
 
         Modulo::create([
@@ -41,7 +53,27 @@ class ModuloSeeder extends Seeder
             'color'       => '#009688',
             'descripcion' => 'Descripción breve para Técnico Administrativo.',
             'link'        => 'https://T-UTM.COM/tecnico-administrativo',
-            'seccion_id'  => $administrativo->id, // ← Referencia a la sección
+            'seccion_id'  => $administrativo->id,
+        ]);
+
+        Modulo::create([
+            'titulo'      => 'Programas Presupuestarios',
+            'anio'        => '2025',
+            'categoria'   => 'Programas Presupuestarios',
+            'color'       => '#009688',
+            'descripcion' => 'Descripción breve para Programas Presupuestarios.',
+            'link'        => 'https://T-UTM.COM/tecnico-administrativo',
+            'seccion_id'  => $Presupuestarios->id,
+        ]);
+
+        Modulo::create([
+            'titulo'      => 'Materiales y Encuestas',
+            'anio'        => '2025',
+            'categoria'   => 'Materiales y Encuestas',
+            'color'       => '#009688',
+            'descripcion' => 'Descripción breve para Materiales y Encuestas.',
+            'link'        => 'https://T-UTM.COM/tecnico-administrativo',
+            'seccion_id'  => $Materiales_y_Encuestas->id,
         ]);
     }
 }

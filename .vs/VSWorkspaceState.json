@@ -1,18 +1,9 @@
 {
   "ExpandedNodes": [
     "",
-    "\\app",
-    "\\app\\Http",
-    "\\app\\Http\\Controllers",
-    "\\app\\Models",
     "\\database",
-    "\\database\\migrations",
-    "\\database\\seeders",
-    "\\resources",
-    "\\resources\\views",
-    "\\resources\\views\\auth",
-    "\\routes"
+    "\\database\\seeders"
   ],
-  "SelectedNode": "\\database\\seeders\\ModuloSeeder.php",
+  "SelectedNode": "\\database\\seeders\\ComunicadoSeeder.php",
   "PreviewInSolutionExplorer": false
 }

@@ -15,11 +15,18 @@ class Modulo extends Model
         'categoria',
         'color',
         'descripcion',
-        'link'
+        'link',
+        'seccion_id'
     ];
 
     public function seccion()
     {
         return $this->belongsTo(Seccion::class);
     }
+
+    public function subsections()
+    {
+        return $this->hasMany(Subsection::class);
+    }
+
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Modulo;
+use App\Models\Subsection;
 use Illuminate\Http\Request;
 
 class ModuloController extends Controller
@@ -11,13 +12,14 @@ class ModuloController extends Controller
     public function index()
     {
         $modulos = Modulo::all();
-        return view('modulos.index', compact('modulos'));
+        return view('settings.modulos.index', compact('modulos'));
     }
 
     // Muestra el formulario para crear un nuevo módulo
     public function create()
     {
-        return view('modulos.create');
+        $secciones = \App\Models\Seccion::all();
+        return view('settings.modulos.create', compact('secciones'));
     }
 
     // Almacena un nuevo módulo en la base de datos
@@ -30,6 +32,7 @@ class ModuloController extends Controller
             'color'       => 'nullable|string|max:7',
             'descripcion' => 'nullable|string',
             'link'        => 'nullable|url',
+            'seccion_id'  => 'required|exists:seccions,id'
         ]);
 
         Modulo::create($data);
@@ -40,8 +43,14 @@ class ModuloController extends Controller
     // Muestra un módulo en detalle (opcional)
     public function show(Modulo $modulo)
     {
-        return view('modulos.show', compact('modulo'));
+        $subnivelesPrincipales = Subsection::where('modulo_id', $modulo->id)
+            ->whereNull('parent_id')
+            ->with(['carpetas', 'carpetas.children']) // Carga las carpetas y, opcionalmente, sus hijos
+            ->get();
+        return view('modulos.show', compact('modulo', 'subnivelesPrincipales'));
     }
+
+
 
     // Muestra el formulario para editar un módulo
     public function edit(Modulo $modulo)
@@ -59,6 +68,7 @@ class ModuloController extends Controller
             'color'       => 'nullable|string|max:7',
             'descripcion' => 'nullable|string',
             'link'        => 'nullable|url',
+            'seccion_id'  => 'required|exists:seccions,id'
         ]);
 
         $modulo->update($data);

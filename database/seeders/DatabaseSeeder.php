@@ -14,6 +14,8 @@ class DatabaseSeeder extends Seeder
             RequerimientoSeeder::class,
             ComunicadoSeeder::class,
             ModuloSeeder::class,
+            SubsectionSeeder::class,
+            CarpetaSeeder::class,
         ]);
     }
 }

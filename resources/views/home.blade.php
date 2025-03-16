@@ -82,9 +82,10 @@
                                 @if($modulo->descripcion)
                                     <p class="card-text">{{ $modulo->descripcion }}</p>
                                 @endif
-                                <a href="{{ $modulo->link ?? '#' }}" class="btn btn-primary">
+                                <a href="{{ route('modulos.show', $modulo->id) }}" class="btn btn-primary">
                                     Ingresar
                                 </a>
+
                             </div>
                         </div>
                     </div>
