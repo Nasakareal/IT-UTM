@@ -45,17 +45,25 @@ class ModuloController extends Controller
     {
         $subnivelesPrincipales = Subsection::where('modulo_id', $modulo->id)
             ->whereNull('parent_id')
-            ->with(['carpetas', 'carpetas.children']) // Carga las carpetas y, opcionalmente, sus hijos
+            ->with([
+                'carpetas' => function($query) {
+                    $query->whereNull('parent_id')
+                          ->with('children', 'archivos');
+                },
+            ])
             ->get();
+
         return view('modulos.show', compact('modulo', 'subnivelesPrincipales'));
     }
+
 
 
 
     // Muestra el formulario para editar un módulo
     public function edit(Modulo $modulo)
     {
-        return view('modulos.edit', compact('modulo'));
+        $secciones = \App\Models\Seccion::all();
+        return view('settings.modulos.edit', compact('modulo', 'secciones'));
     }
 
     // Actualiza el módulo en la base de datos

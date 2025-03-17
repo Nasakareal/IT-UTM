@@ -16,21 +16,23 @@ class CarpetaController extends Controller
         return view('settings.carpetas.index', compact('carpetas'));
     }
 
-    // 2. Formulario para crear una carpeta (opcionalmente con selección de carpeta padre)
+    // 2. Mostrar el formulario para crear una nueva carpeta
     public function create()
     {
-        // Listar todas las carpetas para elegir padre (opcional)
         $allCarpetas = Carpeta::all();
-        return view('settings.carpetas.create', compact('allCarpetas'));
+        $subsections = \App\Models\Subsection::all();
+        return view('settings.carpetas.create', compact('allCarpetas', 'subsections'));
     }
+
 
     // 3. Guardar la carpeta en la base de datos
     public function store(Request $request)
     {
         $data = $request->validate([
-            'nombre'    => 'required|string|max:255',
-            'color'     => 'nullable|string|max:7',
-            'parent_id' => 'nullable|exists:carpetas,id'
+            'nombre'         => 'required|string|max:255',
+            'color'          => 'nullable|string|max:7',
+            'parent_id'      => 'nullable|exists:carpetas,id',
+            'subsection_id'  => 'nullable|exists:subsections,id',
         ]);
 
         Carpeta::create($data);
@@ -38,31 +40,60 @@ class CarpetaController extends Controller
         return redirect()->route('carpetas.index')->with('success', 'Carpeta creada correctamente.');
     }
 
-    // 4. Mostrar una carpeta, junto con sus subcarpetas y archivos
+    // 4. Mostrar una carpeta junto con sus subcarpetas y archivos
     public function show(Carpeta $carpeta)
     {
-        // Cargar las subcarpetas hijas
         $subcarpetas = $carpeta->children;
-        // Cargar los archivos asociados a la carpeta
         $archivos = $carpeta->archivos;
         return view('carpetas.show', compact('carpeta', 'subcarpetas', 'archivos'));
     }
 
-    // 5. Guardar un archivo en la carpeta actual
+
+
+    // 5. Mostrar el formulario para editar una carpeta existente
+    public function edit(Carpeta $carpeta)
+    {
+        // Excluir la propia carpeta de la lista para seleccionar como padre
+        $allCarpetas = Carpeta::where('id', '!=', $carpeta->id)->get();
+        return view('settings.carpetas.edit', compact('carpeta', 'allCarpetas'));
+    }
+
+    // 6. Actualizar la carpeta en la base de datos
+    public function update(Request $request, Carpeta $carpeta)
+    {
+        $data = $request->validate([
+            'nombre'         => 'required|string|max:255',
+            'color'          => 'nullable|string|max:7',
+            'parent_id'      => 'nullable|exists:carpetas,id',
+            'subsection_id'  => 'nullable|exists:subsections,id',
+        ]);
+
+        $carpeta->update($data);
+
+        return redirect()->route('carpetas.index')->with('success', 'Carpeta actualizada correctamente.');
+    }
+
+    // 7. Eliminar una carpeta
+    public function destroy(Carpeta $carpeta)
+    {
+        $carpeta->delete();
+        return redirect()->route('carpetas.index')->with('success', 'Carpeta eliminada correctamente.');
+    }
+
+    // 8. Guardar un archivo en la carpeta actual
     public function storeArchivo(Request $request, Carpeta $carpeta)
     {
         $data = $request->validate([
             'nombre'  => 'required|string|max:255',
-            'archivo' => 'required|file|mimes:pdf,doc,docx,jpg,png'
+            'archivo' => 'required|file|mimes:pdf,doc,docx,jpg,png',
         ]);
 
-        // Subir el archivo a la carpeta "public/archivos"
         $ruta = $request->file('archivo')->store('public/archivos');
 
         Archivo::create([
             'nombre'     => $data['nombre'],
             'ruta'       => $ruta,
-            'carpeta_id' => $carpeta->id
+            'carpeta_id' => $carpeta->id,
         ]);
 
         return back()->with('success', 'Archivo subido correctamente.');

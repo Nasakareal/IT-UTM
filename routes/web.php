@@ -92,7 +92,7 @@ Route::prefix('settings')->middleware('can:ver configuraciones')->group(function
 
     // Gestión de Subsecciones (solo para administración)
     Route::prefix('subsections')->middleware('can:ver subsecciones')->group(function () {
-        Route::get('/', [App\Http\Controllers\SubsectionController::class, 'index'])->name('subsecciones.index');
+        Route::get('/', [App\Http\Controllers\SubsectionController::class, 'index'])->name('subsections.index');
         Route::get('/create', [App\Http\Controllers\SubsectionController::class, 'create'])->middleware('can:crear subsecciones')->name('subsections.create');
         Route::post('/', [App\Http\Controllers\SubsectionController::class, 'store'])->middleware('can:crear subsecciones')->name('subsections.store');
         Route::get('/{subsection}/edit', [App\Http\Controllers\SubsectionController::class, 'edit'])->middleware('can:editar subsecciones')->name('subsections.edit');

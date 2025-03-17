@@ -22,7 +22,7 @@ class SubsectionController extends Controller
         $modulos = Modulo::all();
         // Se obtienen las subsecciones existentes para, opcionalmente, seleccionar un padre
         $subsections = Subsection::all();
-        return view('subsections.create', compact('modulos', 'subsections'));
+        return view('settings.subsections.create', compact('modulos', 'subsections'));
     }
 
     // Almacena una nueva subsección en la base de datos
@@ -53,7 +53,7 @@ class SubsectionController extends Controller
         $modulos = Modulo::all();
         // Para evitar asignar la subsección como padre de sí misma, se excluye su propio id
         $subsections = Subsection::where('id', '!=', $subsection->id)->get();
-        return view('subsections.edit', compact('subsection', 'modulos', 'subsections'));
+        return view('settings.subsections.edit', compact('subsection', 'modulos', 'subsections'));
     }
 
     // Actualiza una subsección en la base de datos

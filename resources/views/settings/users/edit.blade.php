@@ -101,38 +101,38 @@
                             </div>
 
                             <!-- Contraseña -->
-<div class="col-md-4">
-    <div class="form-group mb-3">
-        <label for="password" class="fw-bold">Contraseña</label>
-        <input type="password"
-               name="password"
-               id="password"
-               class="form-control @error('password') is-invalid @enderror"
-               placeholder="Ingrese la contraseña"
-               pattern="^(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$"
-               title="La contraseña debe tener al menos 8 caracteres, incluir un dígito y un carácter especial.">
-        <small class="form-text text-muted mt-1">
-            La contraseña debe tener al menos 8 caracteres, un dígito y un carácter especial.
-        </small>
-        @error('password')
-            <span class="invalid-feedback" role="alert">
-                <strong>{{ $message }}</strong>
-            </span>
-        @enderror
-    </div>
-</div>
+                            <div class="col-md-4">
+                                <div class="form-group mb-3">
+                                    <label for="password" class="fw-bold">Contraseña</label>
+                                    <input type="password"
+                                           name="password"
+                                           id="password"
+                                           class="form-control @error('password') is-invalid @enderror"
+                                           placeholder="Ingrese la contraseña"
+                                           pattern="^(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$"
+                                           title="La contraseña debe tener al menos 8 caracteres, incluir un dígito y un carácter especial.">
+                                    <small class="form-text text-muted mt-1">
+                                        La contraseña debe tener al menos 8 caracteres, un dígito y un carácter especial.
+                                    </small>
+                                    @error('password')
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $message }}</strong>
+                                        </span>
+                                    @enderror
+                                </div>
+                            </div>
 
-<!-- Confirmar Contraseña -->
-<div class="col-md-4">
-    <div class="form-group mb-3">
-        <label for="password_confirmation" class="fw-bold">Repetir Contraseña</label>
-        <input type="password"
-               name="password_confirmation"
-               id="password_confirmation"
-               class="form-control"
-               placeholder="Confirme la contraseña">
-    </div>
-</div>
+                            <!-- Confirmar Contraseña -->
+                            <div class="col-md-4">
+                                <div class="form-group mb-3">
+                                    <label for="password_confirmation" class="fw-bold">Repetir Contraseña</label>
+                                    <input type="password"
+                                           name="password_confirmation"
+                                           id="password_confirmation"
+                                           class="form-control"
+                                           placeholder="Confirme la contraseña">
+                                </div>
+                            </div>
 
                         </div>
 
