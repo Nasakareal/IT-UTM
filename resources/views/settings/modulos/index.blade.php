@@ -119,7 +119,6 @@
 @section('scripts')
 <script>
 $(document).ready(function(){
-    // Inicialización de DataTables para la tabla de módulos
     $('#modulos').DataTable({
         dom: "<'row p-3'<'col-md-6 d-flex align-items-center'B l><'col-md-6 text-right'f>>" +
              "<'row'<'col-sm-12'tr>>" +

@@ -36,22 +36,6 @@
                                     @enderror
                                 </div>
                             </div>
-                            <!-- Color -->
-                            <div class="col-md-6">
-                                <div class="form-group mb-3">
-                                    <label for="color" class="fw-bold">Color</label>
-                                    <input type="color"
-                                           name="color"
-                                           id="color"
-                                           class="form-control @error('color') is-invalid @enderror"
-                                           value="{{ old('color', '#009688') }}">
-                                    @error('color')
-                                        <span class="invalid-feedback" role="alert">
-                                            <strong>{{ $message }}</strong>
-                                        </span>
-                                    @enderror
-                                </div>
-                            </div>
                         </div>
                         
                         <!-- Segunda fila: Carpeta Padre y Subsección -->

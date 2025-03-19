@@ -51,7 +51,7 @@ Route::prefix('settings')->middleware('can:ver configuraciones')->group(function
         Route::get('/', [App\Http\Controllers\RoleController::class, 'index'])->name('roles.index');
         Route::get('/create', [App\Http\Controllers\RoleController::class, 'create'])->middleware('can:crear roles')->name('roles.create');
         Route::post('/', [App\Http\Controllers\RoleController::class, 'store'])->middleware('can:crear roles')->name('roles.store');
-        Route::get('/{role}', [App\Http\Controllers\RoleController::class, 'show'])->name('roles.show');
+        Route::get('/{role}', [App\Http\Controllers\RoleController::class, 'show'])->middleware('can:ver roles')->name('roles.show');
         Route::get('/{role}/edit', [App\Http\Controllers\RoleController::class, 'edit'])->middleware('can:editar roles')->name('roles.edit');
         Route::put('/{role}', [App\Http\Controllers\RoleController::class, 'update'])->middleware('can:editar roles')->name('roles.update');
         Route::delete('/{role}', [App\Http\Controllers\RoleController::class, 'destroy'])->middleware('can:eliminar roles')->name('roles.destroy');
@@ -98,6 +98,17 @@ Route::prefix('settings')->middleware('can:ver configuraciones')->group(function
         Route::get('/{subsection}/edit', [App\Http\Controllers\SubsectionController::class, 'edit'])->middleware('can:editar subsecciones')->name('subsections.edit');
         Route::put('/{subsection}', [App\Http\Controllers\SubsectionController::class, 'update'])->middleware('can:editar subsecciones')->name('subsections.update');
         Route::delete('/{subsection}', [App\Http\Controllers\SubsectionController::class, 'destroy'])->middleware('can:eliminar subsecciones')->name('subsections.destroy');
+    });
+
+    // Comunicados
+    Route::prefix('comunicados')->middleware('can:ver comunicados')->group(function () {
+        Route::get('/', [App\Http\Controllers\ComunicadoController::class, 'index'])->name('comunicados.index');
+        Route::get('/create', [App\Http\Controllers\ComunicadoController::class, 'create'])->middleware('can:crear comunicados')->name('comunicados.create');
+        Route::post('/', [App\Http\Controllers\ComunicadoController::class, 'store'])->middleware('can:crear comunicados')->name('comunicados.store');
+        Route::get('/{comunicado}', [App\Http\Controllers\ComunicadoController::class, 'show'])->middleware('can:ver comunicados')->name('comunicados.show');
+        Route::get('/{comunicado}/edit', [App\Http\Controllers\ComunicadoController::class, 'edit'])->middleware('can:editar comunicados')->name('comunicados.edit');
+        Route::put('/{comunicado}', [App\Http\Controllers\ComunicadoController::class, 'update'])->middleware('can:editar comunicados')->name('comunicados.update');
+        Route::delete('/{comunicado}', [App\Http\Controllers\ComunicadoController::class, 'destroy'])->middleware('can:eliminar comunicados')->name('comunicados.destroy');
     });
 });
 

@@ -7,77 +7,61 @@ use Illuminate\Http\Request;
 
 class ComunicadoController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
     public function index()
     {
-        //
+        $comunicados = Comunicado::all();
+        return view('settings.comunicados.index', compact('comunicados'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
     public function create()
     {
-        //
+        $allComunicados = Comunicado::all();
+        return view('settings.comunicados.create', compact('allComunicados'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
     public function store(Request $request)
     {
-        //
+        $data = $request->validate([
+            'titulo' => 'required|string|max:255',
+            'contenido' => 'nullable|string',
+            'tipo' => 'nullable|string|max:125',
+            'ruta_imagen' => 'nullable|string|max:125',
+        ]);
+
+        $data['contenido'] = strip_tags($data['contenido'], '<b><strong><i><em><u><p><br><ul><ol><li>');
+
+        Comunicado::create($data);
+
+        return redirect()->route('comunicados.index')->with('success', 'Comunicado creado correctamente.');
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\Comunicado  $comunicado
-     * @return \Illuminate\Http\Response
-     */
     public function show(Comunicado $comunicado)
     {
         //
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\Comunicado  $comunicado
-     * @return \Illuminate\Http\Response
-     */
     public function edit(Comunicado $comunicado)
     {
-        //
+        return view('settings.comunicados.edit', compact('comunicado'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Comunicado  $comunicado
-     * @return \Illuminate\Http\Response
-     */
     public function update(Request $request, Comunicado $comunicado)
     {
-        //
+        $data = $request->validate([
+            'titulo' => 'required|string|max:255',
+            'contenido' => 'nullable|string',
+            'tipo' => 'nullable|string|max:125',
+            'ruta_imagen' => 'nullable|string|max:125',
+        ]);
+
+        $data['contenido'] = strip_tags($data['contenido'], '<b><strong><i><em><u><p><br><ul><ol><li>');
+
+        $comunicado->update($data);
+
+        return redirect()->route('comunicados.index')->with('success', 'Comunicado actualizado correctamente.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\Comunicado  $comunicado
-     * @return \Illuminate\Http\Response
-     */
+
     public function destroy(Comunicado $comunicado)
     {
         //

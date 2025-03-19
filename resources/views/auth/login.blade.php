@@ -42,17 +42,17 @@
 
         /* Recuadro amarillo que se ajusta al contenido */
         .info-box {
-            display: inline-block;           /* Se ajusta al ancho del texto */
+            display: inline-block;
             background-color: #F5EFE3;
             padding: 15px 20px;
             border-radius: 10px;
-            font-size: 28px;                 /* Ajusta el tamaño base */
+            font-size: 28px;
             font-weight: bold;
             box-sizing: border-box;
-            text-align: center;              /* Centra el texto dentro del recuadro */
+            text-align: center;
         }
         .info-box p {
-            margin: 0; /* Elimina márgenes extra dentro del <p> */
+            margin: 0;
         }
 
         .tiutm {
@@ -63,26 +63,29 @@
         .green { color: #FFD700; font-weight: bold; }
         .gold { color: #00B29E; font-weight: bold; }
 
-        /* Contenedor para el logo y el login en columna */
+        /* Contenedor para el logo y el login en fila */
         .login-container {
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
             align-items: center;
             justify-content: center;
-            gap: 1px; /* Espacio vertical entre el logo y el formulario */
+            gap: 20px; /* Espacio entre el logo y el formulario */
             margin-top: 20px;
         }
         /* Estilo para el logo */
         .login-logo img {
-            max-width: 250px; /* Tamaño máximo del logo */
+            max-width: 250px;
             height: auto;
         }
-        
+
         /* Media Queries para dispositivos móviles */
         @media (max-width: 768px) {
             .info-box {
-                font-size: 20px;   /* Reduce el tamaño en pantallas pequeñas */
+                font-size: 20px;
                 padding: 10px 15px;
+            }
+            .login-container {
+                flex-direction: column;
             }
         }
     </style>
@@ -109,9 +112,9 @@
         </div>
     </div>
 
-    <!-- Contenedor con Logo y Formulario -->
+    <!-- Contenedor con Logo y Formulario en fila -->
     <div class="login-container">
-        <!-- Logo encima -->
+        <!-- Logo a la izquierda -->
         <div class="login-logo">
             <img src="{{ asset('original.png') }}" alt="Logo TI-UTM">
         </div>
@@ -143,7 +146,7 @@
                             </div>
                         </div>
 
-                        <div class="input-group mb.3">
+                        <div class="input-group mb-3">
                             <input type="password" name="password" class="form-control" placeholder="Contraseña" required>
                             <div class="input-group-append">
                                 <div class="input-group-text">

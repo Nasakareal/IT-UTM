@@ -66,26 +66,43 @@
             <h2 class="mb-4">{{ $seccion->nombre }}</h2>
             <div class="row">
                 @forelse ($seccion->modulos as $modulo)
-                    <div class="col-md-4">
-                        <div class="card mb-3 shadow border-0">
-                            <!-- Usa el color del Módulo o, si lo deseas, el de la Sección -->
-                            <div class="card-header text-white" 
-                                 style="background-color: {{ $modulo->color ?? $seccion->color ?? '#009688' }}">
-                                <strong>{{ $modulo->anio }}</strong>
-                            </div>
-                            <div class="card-body">
-                                <!-- Ejemplo de etiqueta para la categoría -->
-                                <span class="badge bg-secondary">
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <!-- Tarjeta con barra de color a la izquierda -->
+                        <div class="d-flex module-card shadow" 
+                             style="border-radius: 10px; overflow: hidden; border: none;">
+                            <!-- Columna izquierda (color + imagen + badges) -->
+                            <div class="module-left d-flex flex-column justify-content-between align-items-center p-2"
+                                 style="width: 80px; background-color: {{ $modulo->color ?? $seccion->color ?? '#009688' }};">
+                                <!-- Categoría arriba -->
+                                <div class="text-white fw-bold mt-2" style="writing-mode: vertical-lr; transform: rotate(180deg);">
                                     {{ $modulo->categoria ?? 'Sin categoría' }}
-                                </span>
-                                <h5 class="card-title mt-2">{{ $modulo->titulo }}</h5>
+                                </div>
+
+                                <!-- Imagen en el centro (si existe) -->
+                                @if(!empty($modulo->imagen))
+                                    <img src="{{ asset('storage/'.$modulo->imagen) }}" 
+                                         alt="Ícono del módulo" 
+                                         style="max-width: 50px; max-height: 50px;" 
+                                         class="my-2">
+                                @endif
+
+                                <!-- Año abajo -->
+                                <div class="text-white fw-bold mb-2">
+                                    {{ $modulo->anio }}
+                                </div>
+                            </div>
+
+                            <!-- Columna derecha (contenido principal) -->
+                            <div class="module-right p-3 flex-grow-1">
+                                <h5 class="card-title">{{ $modulo->titulo }}</h5>
                                 @if($modulo->descripcion)
                                     <p class="card-text">{{ $modulo->descripcion }}</p>
                                 @endif
-                                <a href="{{ route('modulos.show', $modulo->id) }}" class="btn btn-primary">
+                                <a href="{{ route('modulos.show', $modulo->id) }}" 
+                                   class="btn text-white"
+                                   style="background-color: {{ $modulo->color ?? $seccion->color ?? '#009688' }};">
                                     Ingresar
                                 </a>
-
                             </div>
                         </div>
                     </div>

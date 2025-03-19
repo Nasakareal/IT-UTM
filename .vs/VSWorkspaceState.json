@@ -6,8 +6,11 @@
     "\\app\\Http\\Controllers",
     "\\resources",
     "\\resources\\views",
-    "\\resources\\views\\carpetas"
+    "\\resources\\views\\settings",
+    "\\resources\\views\\settings\\carpetas",
+    "\\resources\\views\\settings\\modulos",
+    "\\routes"
   ],
-  "SelectedNode": "\\app\\Http\\Controllers\\CarpetaController.php",
+  "SelectedNode": "\\resources\\views\\settings\\carpetas\\index.blade.php",
   "PreviewInSolutionExplorer": false
 }

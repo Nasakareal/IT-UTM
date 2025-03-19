@@ -9,12 +9,14 @@ use Illuminate\Support\Facades\Storage;
 
 class CarpetaController extends Controller
 {
-    // 1. Listar solo las carpetas raíz (donde parent_id es null)
+    // 1. Listar solo las carpetas raíz
     public function index()
     {
-        $carpetas = Carpeta::whereNull('parent_id')->get();
+        $carpetas = Carpeta::all();
+
         return view('settings.carpetas.index', compact('carpetas'));
     }
+
 
     // 2. Mostrar el formulario para crear una nueva carpeta
     public function create()
@@ -53,10 +55,12 @@ class CarpetaController extends Controller
     // 5. Mostrar el formulario para editar una carpeta existente
     public function edit(Carpeta $carpeta)
     {
-        // Excluir la propia carpeta de la lista para seleccionar como padre
         $allCarpetas = Carpeta::where('id', '!=', $carpeta->id)->get();
-        return view('settings.carpetas.edit', compact('carpeta', 'allCarpetas'));
+        $subsections = \App\Models\Subsection::all();
+
+        return view('settings.carpetas.edit', compact('carpeta', 'allCarpetas', 'subsections'));
     }
+
 
     // 6. Actualizar la carpeta en la base de datos
     public function update(Request $request, Carpeta $carpeta)

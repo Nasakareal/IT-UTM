@@ -36,6 +36,11 @@ class RolesAndPermissionsSeeder extends Seeder
             'crear subsecciones',
             'editar subsecciones',
             'eliminar subsecciones',
+
+            'ver comunicados',
+            'crear comunicados',
+            'editar comunicados',
+            'eliminar comunicados',
         ];
 
         // Crear permisos si no existen

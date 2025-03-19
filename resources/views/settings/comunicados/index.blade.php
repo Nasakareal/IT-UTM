@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'TI-UTM - Carpetas')
+@section('title', 'TI-UTM - Comunicados')
 
 @section('content')
 <!-- Fila para el botón Regresar, alineado a la derecha -->
@@ -12,61 +12,54 @@
     </div>
 </div>
 
-<!-- Fila principal con la tarjeta de Carpetas -->
+<!-- Fila principal con la tarjeta de Comunicados -->
 <div class="row">
     <div class="col-md-12">
         <!-- Tarjeta principal -->
         <div class="card" style="border-radius: 8px; overflow: hidden;">
             <!-- Cabecera con fondo azul (#1976d2) y texto blanco -->
             <div class="card-header d-flex justify-content-between align-items-center" style="background-color: #1976d2;">
-                <h3 class="card-title text-white mb-0">Carpetas Registradas</h3>
-                <!-- Botón "Crear Nueva Carpeta" -->
-                <a href="{{ route('carpetas.create') }}" class="btn btn-sm" style="background-color: #FFFFFF; color: #000;">
-                    <i class="fa-solid fa-plus"></i> Crear Nueva Carpeta
+                <h3 class="card-title text-white mb-0">Comunicados Registrados</h3>
+                <!-- Botón "Crear Nuevo Módulo" -->
+                <a href="{{ url('/settings/comunicados/create') }}" class="btn btn-sm" style="background-color: #FFFFFF; color: #000;">
+                    <i class="fa-solid fa-plus"></i> Crear Nuevo Comunicado
                 </a>
             </div>
 
             <!-- Contenido de la tarjeta -->
             <div class="card-body p-0">
                 <div class="table-responsive">
-                    <table id="carpetas" class="table table-bordered table-hover table-sm mb-0">
+                    <table id="comunicados" class="table table-bordered table-hover table-sm mb-0">
                         <!-- Encabezado de la tabla -->
                         <thead style="background-color: #1976d2; color: #fff;">
                             <tr>
-                                <th>Número</th>
-                                <th>Nombre</th>
-                                <th>Carpeta Padre</th>
-                                <th>Fecha de Creación</th>
-                                <th>Acciones</th>
+                                <th><center>Número</center></th>
+                                <th><center>Título</center></th>
+                                <th><center>Contenido</center></th>
+                                <th><center>Tipo</center></th>
+                                <th><center>Acciones</center></th>
                             </tr>
                         </thead>
                         <!-- Cuerpo de la tabla -->
                         <tbody style="background-color: #fff;">
-                            @foreach ($carpetas as $index => $carpeta)
+                            @foreach ($comunicados as $index => $comunicado)
                                 <tr>
-                                    <td>{{ $index + 1 }}</td>
-                                    <td>{{ $carpeta->nombre }}</td>
-                                    <td>
-                                        <!-- Si tiene carpeta padre, muestra su nombre -->
-                                        @if($carpeta->parent)
-                                            {{ $carpeta->parent->nombre }}
-                                        @else
-                                            Ninguna
-                                        @endif
-                                    </td>
-                                    <td>{{ $carpeta->created_at->format('d-m-Y') }}</td>
-                                    <td>
+                                    <td style="text-align: center">{{ $index + 1 }}</td>
+                                    <td style="text-align: center">{{ $comunicado->titulo }}</td>
+                                    <td style="text-align: center">{{ $comunicado->contenido }}</td>
+                                    <td style="text-align: center">{{ $comunicado->tipo }}</td>
+                                    <td style="text-align: center">
                                         <div class="btn-group" role="group">
-                                            <!-- Mostrar detalle de la carpeta (subcarpetas, archivos, etc.) -->
-                                            <a href="{{ route('carpetas.show', $carpeta->id) }}" class="btn btn-info btn-sm">
+                                            <!-- Vista pública (show) fuera del settings -->
+                                            <a href="{{ url('/comunicados/' . $comunicado->id) }}" class="btn btn-info btn-sm">
                                                 <i class="fa-regular fa-eye"></i>
                                             </a>
-                                            <!-- Editar carpeta -->
-                                            <a href="{{ route('carpetas.edit', $carpeta->id) }}" class="btn btn-success btn-sm">
+                                            <!-- Edición en el área de configuración -->
+                                            <a href="{{ url('/settings/comunicados/' . $comunicado->id . '/edit') }}" class="btn btn-success btn-sm">
                                                 <i class="fa-regular fa-pen-to-square"></i>
                                             </a>
-                                            <!-- Eliminar carpeta -->
-                                            <form action="{{ route('carpetas.destroy', $carpeta->id) }}" method="POST" style="display:inline-block;">
+                                            <!-- Formulario para eliminar -->
+                                            <form action="{{ url('/settings/comunicados/' . $comunicado->id) }}" method="POST" style="display:inline-block;">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="button" class="btn btn-danger btn-sm delete-btn">
@@ -124,18 +117,17 @@
 @section('scripts')
 <script>
 $(document).ready(function(){
-    // Inicialización de DataTables para la tabla de carpetas
-    $('#carpetas').DataTable({
+    $('#comunicados').DataTable({
         dom: "<'row p-3'<'col-md-6 d-flex align-items-center'B l><'col-md-6 text-right'f>>" +
              "<'row'<'col-sm-12'tr>>" +
              "<'row p-3'<'col-sm-5'i><'col-sm-7'p>>",
         pageLength: 10,
         language: {
             emptyTable: "No hay información",
-            info: "Mostrando _START_ a _END_ de _TOTAL_ Carpetas",
-            infoEmpty: "Mostrando 0 a 0 de 0 Carpetas",
-            infoFiltered: "(Filtrado de _MAX_ total Carpetas)",
-            lengthMenu: "Mostrar _MENU_ Carpetas",
+            info: "Mostrando _START_ a _END_ de _TOTAL_ Módulos",
+            infoEmpty: "Mostrando 0 a 0 de 0 Módulos",
+            infoFiltered: "(Filtrado de _MAX_ total Módulos)",
+            lengthMenu: "Mostrar _MENU_ Módulos",
             loadingRecords: "Cargando...",
             processing: "Procesando...",
             search: "Buscador:",
@@ -164,7 +156,7 @@ $(document).ready(function(){
             },
             { extend: 'colvis', text: 'Visor de columnas' }
         ],
-    }).buttons().container().appendTo('#carpetas_wrapper .col-md-6:eq(0)');
+    }).buttons().container().appendTo('#modulos_wrapper .col-md-6:eq(0)');
 
     // Mensaje de éxito con SweetAlert
     @if (session('success'))
@@ -182,7 +174,7 @@ $(document).ready(function(){
         e.preventDefault();
         let form = $(this).closest('form');
         Swal.fire({
-            title: '¿Estás seguro de eliminar esta carpeta?',
+            title: '¿Estás seguro de eliminar este módulo?',
             text: "¡No podrás revertir esta acción!",
             icon: 'warning',
             showCancelButton: true,
