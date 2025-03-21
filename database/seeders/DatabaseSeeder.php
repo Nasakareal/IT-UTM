@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
             ModuloSeeder::class,
             SubsectionSeeder::class,
             CarpetaSeeder::class,
+            SubmoduloSeeder::class,
         ]);
     }
 }

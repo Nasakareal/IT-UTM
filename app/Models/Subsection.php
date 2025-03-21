@@ -32,4 +32,10 @@ class Subsection extends Model
     {
         return $this->hasMany(Subsection::class, 'parent_id');
     }
+
+    public function submodulos()
+    {
+        return $this->hasMany(Submodulo::class);
+    }
+
 }

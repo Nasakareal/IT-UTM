@@ -102,4 +102,22 @@ class CarpetaController extends Controller
 
         return back()->with('success', 'Archivo subido correctamente.');
     }
+
+    public function upload(Request $request, Carpeta $carpeta)
+    {
+        $request->validate([
+            'archivo' => 'required|file|max:20480',
+        ]);
+
+        $path = $request->file('archivo')->store("carpetas/{$carpeta->id}", 'public');
+
+        Archivo::create([
+            'nombre' => $request->file('archivo')->getClientOriginalName(),
+            'ruta' => $path,
+            'carpeta_id' => $carpeta->id,
+        ]);
+
+        return redirect()->route('carpetas.index')->with('success', 'Archivo subido correctamente.');
+    }
+
 }

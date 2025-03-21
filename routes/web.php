@@ -17,7 +17,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/subsections/{subsection}', [App\Http\Controllers\SubsectionController::class, 'show'])->name('subsections.show');
 });
 
-
 // Rutas Públicas para Carpetas (visualización)
 Route::middleware('auth')->group(function () {
     // Mostrar carpeta (y subcarpetas, archivos)
@@ -28,6 +27,12 @@ Route::middleware('auth')->group(function () {
 Route::middleware('auth')->group(function () {
     // Mostrar individualmente el contenido de un módulo
     Route::get('/modulos/{modulo}', [App\Http\Controllers\ModuloController::class, 'show'])->name('modulos.show');
+});
+
+
+// Rutas públicas para subsecciones (visualización)
+Route::middleware('auth')->group(function () {
+    Route::get('/submodulos/{submodulo}', [App\Http\Controllers\SubmoduloController::class, 'show'])->name('submodulos.show');
 });
 
 // Rutas de Configuraciones Generales
@@ -88,7 +93,9 @@ Route::prefix('settings')->middleware('can:ver configuraciones')->group(function
         Route::get('/{carpeta}/edit', [App\Http\Controllers\CarpetaController::class, 'edit'])->middleware('can:editar carpetas')->name('carpetas.edit');
         Route::put('/{carpeta}', [App\Http\Controllers\CarpetaController::class, 'update'])->middleware('can:editar carpetas')->name('carpetas.update');
         Route::delete('/{carpeta}', [App\Http\Controllers\CarpetaController::class, 'destroy'])->middleware('can:eliminar carpetas')->name('carpetas.destroy');
+        Route::post('/{carpeta}/upload', [App\Http\Controllers\CarpetaController::class, 'upload'])->middleware('can:subir archivos')->name('carpetas.upload');
     });
+
 
     // Gestión de Subsecciones (solo para administración)
     Route::prefix('subsections')->middleware('can:ver subsecciones')->group(function () {
@@ -110,5 +117,15 @@ Route::prefix('settings')->middleware('can:ver configuraciones')->group(function
         Route::put('/{comunicado}', [App\Http\Controllers\ComunicadoController::class, 'update'])->middleware('can:editar comunicados')->name('comunicados.update');
         Route::delete('/{comunicado}', [App\Http\Controllers\ComunicadoController::class, 'destroy'])->middleware('can:eliminar comunicados')->name('comunicados.destroy');
     });
-});
 
+    // Submodulos
+    Route::prefix('submodulos')->middleware('can:ver submodulos')->group(function () {
+        Route::get('/', [App\Http\Controllers\SubmoduloController::class, 'index'])->name('submodulos.index');
+        Route::get('/create', [App\Http\Controllers\SubmoduloController::class, 'create'])->middleware('can:crear submodulos')->name('submodulos.create');
+        Route::post('/', [App\Http\Controllers\SubmoduloController::class, 'store'])->middleware('can:crear submodulos')->name('submodulos.store');
+        Route::get('/{submodulo}', [App\Http\Controllers\SubmoduloController::class, 'show'])->middleware('can:ver submodulos')->name('submodulos.show');
+        Route::get('/{submodulo}/edit', [App\Http\Controllers\SubmoduloController::class, 'edit'])->middleware('can:editar submodulos')->name('submodulos.edit');
+        Route::put('/{submodulo}', [App\Http\Controllers\SubmoduloController::class, 'update'])->middleware('can:editar submodulos')->name('submodulos.update');
+        Route::delete('/{submodulo}', [App\Http\Controllers\SubmoduloController::class, 'destroy'])->middleware('can:eliminar submodulos')->name('submodulos.destroy');
+    });
+});

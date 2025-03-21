@@ -122,6 +122,24 @@
             </div>
         </div>
 
+        <!-- SUBMODULOS -->
+        <div class="col-md-4">
+            <div class="card mb-3 shadow border-0">
+                <div class="card-header text-white" style="background-color: #624E88;">
+                    <h5 class="mb-0">
+                        <i class="bi bi-columns"></i> Submodulos
+                    </h5>
+                </div>
+                <div class="card-body text-center">
+                    <span class="badge bg-secondary">Submodulos</span>
+                    <p class="card-text mt-2">Listado de Submodulos, donde los profesores suben documentos</p>
+                    <a href="{{ url('settings/submodulos') }}" class="btn btn-primary btn-sm">
+                        Acceder
+                    </a>
+                </div>
+            </div>
+        </div>
+
         <!-- VACIAR BASE DE DATOS -->
         <div class="col-md-4">
             <div class="card mb-3 shadow border-0">

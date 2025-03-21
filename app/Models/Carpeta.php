@@ -28,4 +28,9 @@ class Carpeta extends Model
     {
         return $this->hasMany(Archivo::class);
     }
+    public function submodulos()
+    {
+        return $this->hasMany(Submodulo::class, 'subsection_id', 'subsection_id');
+    }
+
 }

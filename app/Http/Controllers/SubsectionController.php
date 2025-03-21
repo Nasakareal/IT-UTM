@@ -20,7 +20,7 @@ class SubsectionController extends Controller
     {
         // Se obtienen todos los módulos para elegir a cuál asignar la subsección
         $modulos = Modulo::all();
-        // Se obtienen las subsecciones existentes para, opcionalmente, seleccionar un padre
+        // Se obtienen las subsecciones existentes para
         $subsections = Subsection::all();
         return view('settings.subsections.create', compact('modulos', 'subsections'));
     }
@@ -39,7 +39,7 @@ class SubsectionController extends Controller
         return redirect()->route('subsections.index')->with('success', 'Subsección creada correctamente.');
     }
 
-    // Muestra el detalle de una subsección (podrías cargar sus hijos si existieran)
+    // Muestra el detalle de una subsección
     public function show(Subsection $subsection)
     {
         // Cargamos las subsecciones hijas si se tiene definida la relación "children"
@@ -51,7 +51,6 @@ class SubsectionController extends Controller
     public function edit(Subsection $subsection)
     {
         $modulos = Modulo::all();
-        // Para evitar asignar la subsección como padre de sí misma, se excluye su propio id
         $subsections = Subsection::where('id', '!=', $subsection->id)->get();
         return view('settings.subsections.edit', compact('subsection', 'modulos', 'subsections'));
     }

@@ -17,7 +17,7 @@
                 @foreach($carpeta->archivos as $archivo)
                     <li>
                         <i class="fa fa-file"></i>
-                        <a href="{{ Storage::url($archivo->ruta) }}" target="_blank">
+                        <a href="{{ asset('storage/' . $archivo->ruta) }}" target="_blank">
                             {{ $archivo->nombre }}
                         </a>
                     </li>

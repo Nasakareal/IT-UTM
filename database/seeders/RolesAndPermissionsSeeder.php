@@ -31,6 +31,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'crear carpetas',
             'editar carpetas',
             'eliminar carpetas',
+            'subir archivos',
 
             'ver subsecciones',
             'crear subsecciones',
@@ -41,6 +42,11 @@ class RolesAndPermissionsSeeder extends Seeder
             'crear comunicados',
             'editar comunicados',
             'eliminar comunicados',
+
+            'ver submodulos',
+            'crear submodulos',
+            'editar submodulos',
+            'eliminar submodulos',
         ];
 
         // Crear permisos si no existen

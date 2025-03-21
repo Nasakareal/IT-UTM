@@ -40,22 +40,25 @@ class ModuloController extends Controller
         return redirect()->route('modulos.index')->with('success', 'Módulo creado correctamente.');
     }
 
-    // Muestra un módulo en detalle (opcional)
+    // Muestra un módulo en detalle
     public function show(Modulo $modulo)
-    {
-        $subnivelesPrincipales = Subsection::where('modulo_id', $modulo->id)
-            ->whereNull('parent_id')
-            ->with([
-                'carpetas' => function($query) {
-                    $query->whereNull('parent_id')
-                          ->with('children', 'archivos');
-                },
-            ])
-            ->get();
+{
+    $subsections = Subsection::where('modulo_id', $modulo->id)
+        ->whereNull('parent_id')
+        ->with([
+            'carpetas' => function ($query) {
+                $query->whereNull('parent_id')
+                      ->with(['archivos', 'children']);
+            },
+            'submodulos'
+        ])
+        ->get();
 
-        return view('modulos.show', compact('modulo', 'subnivelesPrincipales'));
-    }
-
+    return view('modulos.show', [
+        'modulo' => $modulo,
+        'subnivelesPrincipales' => $subsections,
+    ]);
+}
 
 
 

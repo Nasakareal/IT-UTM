@@ -10,17 +10,35 @@ class UsersSeeder extends Seeder
 {
     public function run()
     {
-        // Crear el usuario
-        $user = User::firstOrCreate([
-            'email' => 'admin@admin.com',
-        ], [
-            'name' => 'Mario Bautista',
-            'password' => Hash::make('123'),
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        $users = [
+            [
+                'name' => 'Mario Bautista',
+                'email' => 'admin@admin.com',
+                'password' => Hash::make('123'),
+                'role' => 'Administrador'
+            ],
+            [
+                'name' => 'Alexei Rodriguez',
+                'email' => 'jorgerodriguez@ut-morelia.edu.mx',
+                'password' => Hash::make('12345'),
+                'role' => 'Administrador'
+            ],
+        ];
 
-        // Asignar el rol de "Administrador"
-        $user->assignRole('Administrador');
+        foreach ($users as $userData) {
+            $user = User::firstOrCreate(
+                ['email' => $userData['email']],
+                [
+                    'name' => $userData['name'],
+                    'password' => $userData['password'],
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]
+            );
+
+            if (isset($userData['role'])) {
+                $user->assignRole($userData['role']);
+            }
+        }
     }
 }

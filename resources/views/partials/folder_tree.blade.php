@@ -1,22 +1,21 @@
 @php
-    // Genera un ID único para el contenedor (si quieres mostrar archivos y subcarpetas de forma anidada)
     $collapseId = 'folder-' . $folder->id;
 @endphp
 
 <li>
-    <!-- Enlace para ir al show de la carpeta al hacer clic en el nombre -->
-    <a href="{{ route('carpetas.show', $folder->id) }}" class="folder-toggle text-primary" style="text-decoration: none;">
+    <!-- Enlace para abrir/cerrar la carpeta -->
+    <span class="folder-toggle text-primary" style="cursor: pointer; text-decoration: none;" onclick="toggleFolder('{{ $collapseId }}', this)">
         <i class="fa fa-folder"></i> {{ $folder->nombre }}
-    </a>
+    </span>
 
-    <!-- Opcional: Si deseas mostrar de forma anidada los archivos y subcarpetas (sin collapse), puedes hacerlo -->
+    <!-- Contenedor oculto de archivos y subcarpetas -->
     @if($folder->archivos->count() || $folder->children->count())
-        <ul class="list-unstyled ml-3">
+        <ul id="{{ $collapseId }}" class="list-unstyled ms-3 d-none">
             @if($folder->archivos->count())
                 @foreach($folder->archivos as $archivo)
                     <li>
                         <i class="fa fa-file"></i>
-                        <a href="{{ Storage::url($archivo->ruta) }}" target="_blank">
+                        <a href="{{ asset('storage/' . $archivo->ruta) }}" target="_blank">
                             {{ $archivo->nombre }}
                         </a>
                     </li>
@@ -30,3 +29,20 @@
         </ul>
     @endif
 </li>
+
+@push('scripts')
+<script>
+    function toggleFolder(folderId, element) {
+        let folderContent = document.getElementById(folderId);
+        if (folderContent) {
+            folderContent.classList.toggle('d-none');
+
+            let icon = element.querySelector('i');
+            if (icon) {
+                icon.classList.toggle('fa-folder');
+                icon.classList.toggle('fa-folder-open');
+            }
+        }
+    }
+</script>
+@endpush
