@@ -42,25 +42,27 @@ class ModuloController extends Controller
 
     // Muestra un módulo en detalle
     public function show(Modulo $modulo)
-{
-    $subsections = Subsection::where('modulo_id', $modulo->id)
-        ->whereNull('parent_id')
-        ->with([
-            'carpetas' => function ($query) {
-                $query->whereNull('parent_id')
-                      ->with(['archivos', 'children']);
-            },
-            'submodulos'
-        ])
-        ->get();
+    {
+        $subsections = Subsection::where('modulo_id', $modulo->id)
+            ->whereNull('parent_id')
+            ->with([
+                'carpetas' => function ($query) {
+                    $query->whereNull('parent_id')
+                          ->with(['archivos', 'children']);
+                },
+                'submodulos' => function ($query) {
+                    $query->with(['archivos' => function($q) {
+                        $q->where('user_id', auth()->id());
+                    }]);
+                }
+            ])
+            ->get();
 
-    return view('modulos.show', [
-        'modulo' => $modulo,
-        'subnivelesPrincipales' => $subsections,
-    ]);
-}
-
-
+        return view('modulos.show', [
+            'modulo' => $modulo,
+            'subnivelesPrincipales' => $subsections,
+        ]);
+    }
 
     // Muestra el formulario para editar un módulo
     public function edit(Modulo $modulo)

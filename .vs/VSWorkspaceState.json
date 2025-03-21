@@ -4,15 +4,12 @@
     "\\app",
     "\\app\\Http",
     "\\app\\Http\\Controllers",
+    "\\app\\Models",
     "\\resources",
     "\\resources\\views",
     "\\resources\\views\\layouts",
-    "\\resources\\views\\modulos",
-    "\\resources\\views\\settings",
-    "\\resources\\views\\settings\\modulos",
-    "\\resources\\views\\settings\\submodulos",
-    "\\resources\\views\\submodulos"
+    "\\routes"
   ],
-  "SelectedNode": "\\public",
+  "SelectedNode": "\\resources\\css",
   "PreviewInSolutionExplorer": false
 }

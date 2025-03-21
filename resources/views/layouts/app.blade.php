@@ -68,7 +68,7 @@
             <a href="{{ route('home') }}">Inicio</a>
         </div>
         <div class="menu">
-            <a href="#"><i class="bi bi-envelope"></i> Correspondencia</a>
+            <a href="{{ route('correspondencias.index') }}"><i class="bi bi-envelope"></i> Correspondencia</a>
             <a href="#"><i class="bi bi-chat-left-text"></i> Chat</a>
             <a href="{{ route('settings.index') }}"><i class="bi bi-gear"></i> Configurar</a>
             <a href="{{ route('logout') }}" class="text-danger"

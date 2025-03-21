@@ -23,4 +23,5 @@ class CreateSeccionsTable extends Migration
     {
         Schema::dropIfExists('seccions');
     }
+
 }

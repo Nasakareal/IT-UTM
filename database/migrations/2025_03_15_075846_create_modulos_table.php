@@ -23,7 +23,13 @@ class CreateModulosTable extends Migration
 
 
     public function down()
-    {
-        Schema::dropIfExists('modulos');
-    }
+{
+    Schema::table('modulos', function (Blueprint $table) {
+        $table->dropForeign(['seccion_id']);
+        $table->dropColumn('seccion_id');
+    });
+
+    Schema::dropIfExists('modulos');
+}
+
 }

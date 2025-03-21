@@ -29,10 +29,23 @@ Route::middleware('auth')->group(function () {
     Route::get('/modulos/{modulo}', [App\Http\Controllers\ModuloController::class, 'show'])->name('modulos.show');
 });
 
-
-// Rutas públicas para subsecciones (visualización)
+// Rutas de submódulos
 Route::middleware('auth')->group(function () {
     Route::get('/submodulos/{submodulo}', [App\Http\Controllers\SubmoduloController::class, 'show'])->name('submodulos.show');
+    Route::post('/submodulos/subir-archivos', [App\Http\Controllers\SubmoduloController::class, 'subirArchivos'])->name('submodulos.subirArchivos');
+    Route::get('/submodulos/{id}/archivos-usuario', [App\Http\Controllers\SubmoduloController::class, 'archivosUsuario'])->name('submodulos.archivosUsuario');
+    Route::get('/submodulos/{id}/generar-acuse', [App\Http\Controllers\AcuseController::class, 'generarAcuse'])->name('submodulos.generarAcuse');
+});
+
+// Correspondencias
+Route::prefix('correspondencias')->middleware('can:ver correspondencias')->group(function () {
+    Route::get('/', [App\Http\Controllers\CorrespondenciaController::class, 'index'])->name('correspondencias.index');
+    Route::get('/create', [App\Http\Controllers\CorrespondenciaController::class, 'create'])->middleware('can:crear correspondencias')->name('correspondencias.create');
+    Route::post('/', [App\Http\Controllers\CorrespondenciaController::class, 'store'])->middleware('can:crear correspondencias')->name('correspondencias.store');
+    Route::get('/{correspondencia}', [App\Http\Controllers\CorrespondenciaController::class, 'show'])->middleware('can:ver correspondencias')->name('correspondencias.show');
+    Route::get('/{correspondencia}/edit', [App\Http\Controllers\CorrespondenciaController::class, 'edit'])->middleware('can:editar correspondencias')->name('correspondencias.edit');
+    Route::put('/{correspondencia}', [App\Http\Controllers\CorrespondenciaController::class, 'update'])->middleware('can:editar correspondencias')->name('correspondencias.update');
+    Route::delete('/{correspondencia}', [App\Http\Controllers\CorrespondenciaController::class, 'destroy'])->middleware('can:eliminar correspondencias')->name('correspondencias.destroy');
 });
 
 // Rutas de Configuraciones Generales

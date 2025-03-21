@@ -73,10 +73,6 @@
                             <!-- Columna izquierda (color + imagen + badges) -->
                             <div class="module-left d-flex flex-column justify-content-between align-items-center p-2"
                                  style="width: 80px; background-color: {{ $modulo->color ?? $seccion->color ?? '#009688' }};">
-                                <!-- Categoría arriba -->
-                                <div class="text-white fw-bold mt-2" style="writing-mode: vertical-lr; transform: rotate(180deg);">
-                                    {{ $modulo->categoria ?? 'Sin categoría' }}
-                                </div>
 
                                 <!-- Imagen en el centro (si existe) -->
                                 @if(!empty($modulo->imagen))

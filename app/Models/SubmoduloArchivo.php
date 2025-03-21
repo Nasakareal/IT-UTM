@@ -10,7 +10,8 @@ class SubmoduloArchivo extends Model
     use HasFactory;
 
     protected $fillable = [
-        'submodulo_id', 
+        'submodulo_id',
+        'user_id',
         'nombre', 
         'ruta'
     ];
@@ -18,5 +19,10 @@ class SubmoduloArchivo extends Model
     public function submodulo()
     {
         return $this->belongsTo(Submodulo::class);
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 }
