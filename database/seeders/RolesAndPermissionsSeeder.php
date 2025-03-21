@@ -22,6 +22,11 @@ class RolesAndPermissionsSeeder extends Seeder
             'editar roles',
             'eliminar roles',
 
+            'ver secciones',
+            'crear secciones',
+            'editar secciones',
+            'eliminar secciones',
+
             'ver modulos',
             'crear modulos',
             'editar modulos',

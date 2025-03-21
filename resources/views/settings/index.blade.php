@@ -50,6 +50,24 @@
             </div>
         </div>
 
+        <!-- SECCIONES -->
+        <div class="col-md-4">
+            <div class="card mb-3 shadow border-0">
+                <div class="card-header text-white" style="background-color: #FDB7EA;">
+                    <h5 class="mb-0">
+                        <i class="bi bi-layout-text-window"></i> Secciones
+                    </h5>
+                </div>
+                <div class="card-body text-center">
+                    <span class="badge bg-secondary">Secciones</span>
+                    <p class="card-text mt-2">Asignar Secciones de inicio</p>
+                    <a href="{{ url('settings/secciones') }}" class="btn btn-primary btn-sm">
+                        Acceder
+                    </a>
+                </div>
+            </div>
+        </div>
+
         <!-- MÓDULOS -->
         <div class="col-md-4">
             <div class="card mb-3 shadow border-0">

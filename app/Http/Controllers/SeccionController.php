@@ -9,17 +9,27 @@ class SeccionController extends Controller
 {
     public function index()
     {
-        //
+        $secciones = Seccion::all();
+        return view('settings.secciones.index', compact('secciones'));
     }
 
     public function create()
     {
-        //
+        $secciones = \App\Models\Seccion::all();
+        return view('settings.secciones.create', compact('secciones'));
     }
 
     public function store(Request $request)
     {
-        //
+        $data = $request->validate([
+            'nombre' => 'required|string|max:255'
+        ]);
+
+        $data['slug'] = 'generico';
+
+        Seccion::create($data);
+
+        return redirect()->route('secciones.index')->with('success', 'Sección creado correctamente.');
     }
 
     public function show(Seccion $seccion)
@@ -29,16 +39,28 @@ class SeccionController extends Controller
 
     public function edit(Seccion $seccion)
     {
-        //
+        return view('settings.secciones.edit', compact('seccion'));
     }
+
 
     public function update(Request $request, Seccion $seccion)
     {
-        //
+        $data = $request->validate([
+            'nombre' => 'required|string|max:255'
+        ]);
+
+        $data['slug'] = 'generico';
+
+        $seccion->update($data);
+
+        return redirect()->route('secciones.index')->with('success', 'Sección actualizada correctamente.');
     }
+
 
     public function destroy(Seccion $seccion)
     {
-        //
+        $seccion->delete();
+
+        return redirect()->route('secciones.index')->with('success', 'Sección eliminada correctamente.');
     }
 }

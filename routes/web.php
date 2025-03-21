@@ -77,6 +77,16 @@ Route::prefix('settings')->middleware('can:ver configuraciones')->group(function
         Route::post('/{role}/permissions', [App\Http\Controllers\RoleController::class, 'assignPermissions'])->middleware('can:editar roles')->name('roles.assignPermissions');
     });
 
+    // Gestión de Secciones (solo para administración)
+    Route::prefix('secciones')->middleware('can:ver secciones')->group(function () {
+        Route::get('/', [App\Http\Controllers\SeccionController::class, 'index'])->name('secciones.index');
+        Route::get('/create', [App\Http\Controllers\SeccionController::class, 'create'])->middleware('can:crear secciones')->name('secciones.create');
+        Route::post('/', [App\Http\Controllers\SeccionController::class, 'store'])->middleware('can:crear secciones')->name('secciones.store');
+        Route::get('/{seccion}/edit', [App\Http\Controllers\SeccionController::class, 'edit'])->middleware('can:editar secciones')->name('secciones.edit');
+        Route::put('/{seccion}', [App\Http\Controllers\SeccionController::class, 'update'])->middleware('can:editar secciones')->name('secciones.update');
+        Route::delete('/{seccion}', [App\Http\Controllers\SeccionController::class, 'destroy'])->middleware('can:eliminar secciones')->name('secciones.destroy');
+    });
+
     // Actividad
     Route::prefix('actividad')->middleware('can:ver actividades')->group(function () {
         Route::get('/', [App\Http\Controllers\ActividadController::class, 'index'])->name('actividades.index');
