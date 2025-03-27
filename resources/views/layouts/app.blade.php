@@ -65,7 +65,7 @@
     <!-- 🔹 Barra superior -->
     <div class="top-bar">
         <div>
-            <a href="{{ route('home') }}">Inicio</a>
+            <a href="{{ route('home') }}"><i class="bi bi-house-door"></i>Inicio</a>
         </div>
         <div class="menu">
             <a href="{{ route('correspondencias.index') }}"><i class="bi bi-envelope"></i> Correspondencia</a>

@@ -29,6 +29,10 @@
                                 // Buscar si el usuario ya subió los archivos en este submódulo
                                 $archivoOficio = $submodulo->archivos->where('nombre', 'oficio_entrega')->first();
                                 $archivoPrograma = $submodulo->archivos->where('nombre', 'programa_austeridad')->first();
+                                // Obtener el registro en la tabla intermedia (submodulo_usuario) para el usuario actual
+                                $estadoUsuario = $submodulo->submoduloUsuarios->where('user_id', Auth::id())->first();
+                                // Si el usuario ya tiene registro, usamos su estatus; de lo contrario, usamos el global
+                                $estadoMostrar = $estadoUsuario ? $estadoUsuario->estatus : $submodulo->estatus;
                             @endphp
 
                             <div class="col-md-6 col-lg-4 mb-3">
@@ -45,8 +49,8 @@
                                         </p>
                                         <p class="mb-1 text-muted">
                                             <strong>Estatus:</strong>
-                                            <span class="{{ $submodulo->estatus == 'pendiente' ? 'text-warning' : ($submodulo->estatus == 'entregado' ? 'text-success' : 'text-danger') }}">
-                                                {{ ucfirst($submodulo->estatus) }}
+                                            <span class="{{ strtolower($estadoMostrar) == 'pendiente' ? 'text-warning' : (strtolower($estadoMostrar) == 'entregado' ? 'text-success' : 'text-danger') }}">
+                                                {{ ucfirst($estadoMostrar) }}
                                             </span>
                                         </p>
                                         @if($submodulo->fecha_limite)
@@ -65,14 +69,13 @@
                                             data-id="{{ $submodulo->id }}"
                                             data-titulo="{{ $submodulo->titulo }}"
                                             data-descripcion="{{ $submodulo->descripcion }}"
-                                            data-estatus="{{ ucfirst($submodulo->estatus) }}"
+                                            data-estatus="{{ ucfirst($estadoMostrar) }}"
                                             data-fecha="{{ $submodulo->fecha_limite ? \Carbon\Carbon::parse($submodulo->fecha_limite)->format('Y-m-d H:i:s') : 'No definida' }}"
                                             data-acuse="{{ route('submodulos.generarAcuse', $submodulo->id) }}"
                                             data-oficio="{{ $archivoOficio ? asset('storage/' . $archivoOficio->ruta) : '' }}"
                                             data-programa="{{ $archivoPrograma ? asset('storage/' . $archivoPrograma->ruta) : '' }}">
                                             <i class="fa fa-info-circle"></i> Detalles
                                         </button>
-
                                     </div>
                                 </div>
                             </div>

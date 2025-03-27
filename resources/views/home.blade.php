@@ -3,15 +3,18 @@
 @section('title', 'TI-UTM - Inicio')
 
 @section('content')
-    <!-- 🔹 Alerta dinámica -->
+    <!-- 🔹 Alerta dinámica de Documentos Pendientes -->
     @if($documentosPendientes->isNotEmpty())
         <div class="alert-box">
             <div class="alert-content">
                 <i class="fas fa-exclamation-triangle"></i>
-                <span>Se informa que con fecha de corte al <strong>{{ now()->format('Y-m-d') }}</strong>, la Universidad no ha recibido la siguiente documentación:</span>
+                <span>
+                    Se informa que con fecha de corte al <strong>{{ now()->format('Y-m-d') }}</strong>, la Universidad no ha recibido la siguiente documentación:
+                </span>
                 <ul>
                     @foreach ($documentosPendientes as $documento)
-                        <li>📌 {{ $documento->nombre }} - Fecha límite: 
+                        <li>
+                            📌 {{ $documento->titulo }} - Fecha límite: 
                             <span class="text-danger">{{ $documento->fecha_limite }}</span>
                         </li>
                     @endforeach
@@ -73,7 +76,6 @@
                             <!-- Columna izquierda (color + imagen + badges) -->
                             <div class="module-left d-flex flex-column justify-content-between align-items-center p-2"
                                  style="width: 80px; background-color: {{ $modulo->color ?? $seccion->color ?? '#009688' }};">
-
                                 <!-- Imagen en el centro (si existe) -->
                                 @if(!empty($modulo->imagen))
                                     <img src="{{ asset('storage/'.$modulo->imagen) }}" 
@@ -81,7 +83,6 @@
                                          style="max-width: 50px; max-height: 50px;" 
                                          class="my-2">
                                 @endif
-
                                 <!-- Año abajo -->
                                 <div class="text-white fw-bold mb-2">
                                     {{ $modulo->anio }}
@@ -122,7 +123,7 @@
         const nextBtn = document.getElementById('nextBtn');
 
         let currentIndex = 0;
-        let intervalTime = 5000;
+        let intervalTime = 500000;
         let autoSlide;
         let isDragging = false;
         let startPos = 0;

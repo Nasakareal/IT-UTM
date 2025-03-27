@@ -151,4 +151,15 @@ Route::prefix('settings')->middleware('can:ver configuraciones')->group(function
         Route::put('/{submodulo}', [App\Http\Controllers\SubmoduloController::class, 'update'])->middleware('can:editar submodulos')->name('submodulos.update');
         Route::delete('/{submodulo}', [App\Http\Controllers\SubmoduloController::class, 'destroy'])->middleware('can:eliminar submodulos')->name('submodulos.destroy');
     });
+
+    // Archivos
+    Route::prefix('archivos')->middleware('can:ver archivos')->group(function () {
+        Route::get('/', [App\Http\Controllers\ArchivoController::class, 'index'])->name('archivos.index');
+        Route::get('/create', [App\Http\Controllers\ArchivoController::class, 'create'])->middleware('can:crear archivos')->name('archivos.create');
+        Route::post('/', [App\Http\Controllers\ArchivoController::class, 'store'])->middleware('can:crear archivos')->name('archivos.store');
+        Route::get('/{archivo}', [App\Http\Controllers\ArchivoController::class, 'show'])->middleware('can:ver archivos')->name('archivos.show');
+        Route::get('/{archivo}/edit', [App\Http\Controllers\ArchivoController::class, 'edit'])->middleware('can:editar archivos')->name('archivos.edit');
+        Route::put('/{archivo}', [App\Http\Controllers\ArchivoController::class, 'update'])->middleware('can:editar archivos')->name('archivos.update');
+        Route::delete('/{archivo}', [App\Http\Controllers\ArchivoController::class, 'destroy'])->middleware('can:eliminar archivos')->name('archivos.destroy');
+    });
 });

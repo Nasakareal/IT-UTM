@@ -57,6 +57,11 @@ class RolesAndPermissionsSeeder extends Seeder
             'crear correspondencias',
             'editar correspondencias',
             'eliminar correspondencias',
+
+            'ver archivos',
+            'crear archivos',
+            'editar archivos',
+            'eliminar archivos',
         ];
 
         // Crear permisos si no existen

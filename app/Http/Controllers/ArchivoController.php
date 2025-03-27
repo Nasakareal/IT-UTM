@@ -3,83 +3,49 @@
 namespace App\Http\Controllers;
 
 use App\Models\Archivo;
+use App\Models\Carpeta;
 use Illuminate\Http\Request;
 
 class ArchivoController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
     public function index()
     {
-        //
-    }
+        $archivos = Archivo::all();
+        $carpetas = Carpeta::all();
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
+        return view('settings.archivos.index', compact('archivos', 'carpetas'));
+
+    }
+    
     public function create()
     {
         //
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
     public function store(Request $request)
     {
         //
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\Archivo  $archivo
-     * @return \Illuminate\Http\Response
-     */
     public function show(Archivo $archivo)
     {
         //
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\Archivo  $archivo
-     * @return \Illuminate\Http\Response
-     */
     public function edit(Archivo $archivo)
     {
         //
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Archivo  $archivo
-     * @return \Illuminate\Http\Response
-     */
     public function update(Request $request, Archivo $archivo)
     {
         //
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\Archivo  $archivo
-     * @return \Illuminate\Http\Response
-     */
     public function destroy(Archivo $archivo)
     {
-        //
+        $archivo->delete();
+
+        return redirect()->route('archivos.index')->with('success', 'Archivo eliminado correctamente.');
     }
 }

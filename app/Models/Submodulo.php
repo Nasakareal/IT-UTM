@@ -28,4 +28,10 @@ class Submodulo extends Model
     {
         return $this->hasMany(SubmoduloArchivo::class);
     }
+
+    public function submoduloUsuarios()
+    {
+        return $this->hasMany(\App\Models\SubmoduloUsuario::class);
+    }
+
 }

@@ -13,7 +13,7 @@
 
     <div class="row">
         <!-- Panel Izquierdo: Listado de Correspondencias -->
-        <div class="col-md-4">
+        <div class="col-md-3">
             <input type="text" class="form-control mb-3" placeholder="🔍 Filtrar...">
             <div class="list-group">
                 @foreach($correspondencias as $correspondencia)
@@ -36,7 +36,7 @@
         </div>
 
         <!-- Panel Derecho: Formulario de Nueva Correspondencia -->
-        <div class="col-md-8">
+        <div class="col-md-9">
             <div class="card">
                 <div class="card-header bg-warning text-dark">
                     <strong><i class="bi bi-pencil-square"></i> NUEVO CORREO</strong>
@@ -44,21 +44,26 @@
                 <div class="card-body">
                     <form method="POST" action="{{ route('correspondencias.store') }}" enctype="multipart/form-data">
                         @csrf
-                        <div class="mb-3">
-                            <label class="form-label"><strong>* Remitente (Nombre / Cargo)</strong></label>
-                            <input type="text" class="form-control" name="remitente" required>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label"><strong>* Clasificación</strong></label>
-                            <input type="text" class="form-control" name="clasificacion" required>
-                        </div>
-
                         <div class="row">
-                            <div class="col-md-6">
+                            <div class="col-md-4">
+                                <label class="form-label"><strong>* Remitente</strong></label>
+                                <input type="text" class="form-control" name="remitente" required>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label"><strong>* Clasificación</strong></label>
+                                <input type="text" class="form-control" name="clasificacion" required>
+                            </div>
+
+                            <div class="col-md-4">
                                 <label class="form-label"><strong>* Oficio</strong></label>
                                 <input type="text" class="form-control" name="oficio" required>
                             </div>
+                        </div>
+
+                        
+
+                        <div class="row">
                             <div class="col-md-6">
                                 <label class="form-label"><strong>* Tipo de documento</strong></label>
                                 <select class="form-control" name="tipo_documento" required>
@@ -68,12 +73,14 @@
                                     <option value="Otro">Otro</option>
                                 </select>
                             </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label"><strong>* Fecha de elaboración del documento</strong></label>
+                                <input type="date" class="form-control" name="fecha_elaboracion" required>
+                            </div>
                         </div>
 
-                        <div class="mb-3">
-                            <label class="form-label"><strong>* Fecha de elaboración del documento</strong></label>
-                            <input type="date" class="form-control" name="fecha_elaboracion" required>
-                        </div>
+                        
 
                         <div class="mb-3">
                             <label class="form-label"><strong>* Tema</strong> (250 máx.)</label>

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Submodulo;
 use App\Models\SubmoduloArchivo;
+use App\Models\SubmoduloUsuario;
 use App\Models\Subsection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -103,14 +104,23 @@ class SubmoduloController extends Controller
             ]);
         }
 
-        $submodulo->acuse_pdf = 'submodulos/acuse_ejemplo.pdf';
-        $submodulo->save();
+        $submoduloUsuario = SubmoduloUsuario::updateOrCreate(
+            [
+                'user_id'      => Auth::id(),
+                'submodulo_id' => $submodulo->id,
+            ],
+            [
+                'estatus' => 'Entregado'
+            ]
+        );
 
-        $acuseUrl = asset('storage/' . $submodulo->acuse_pdf);
+        $acuse_pdf = 'submodulos/acuse_ejemplo.pdf';
+        $acuseUrl = asset('storage/' . $acuse_pdf);
 
         return response()->json([
             'success'   => true,
             'acuse_url' => $acuseUrl,
+            'estatus'   => $submoduloUsuario->estatus,
         ]);
     }
 
