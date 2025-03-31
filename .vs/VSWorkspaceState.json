@@ -1,14 +1,10 @@
 {
   "ExpandedNodes": [
     "",
-    "\\app",
-    "\\app\\Http",
-    "\\app\\Http\\Controllers",
     "\\resources",
     "\\resources\\views",
-    "\\resources\\views\\settings",
-    "\\resources\\views\\settings\\comunicados"
+    "\\resources\\views\\partials"
   ],
-  "SelectedNode": "\\resources\\views\\settings\\comunicados\\index.blade.php",
+  "SelectedNode": "\\resources\\views\\partials\\folder_tree.blade.php",
   "PreviewInSolutionExplorer": false
 }

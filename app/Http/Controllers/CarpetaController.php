@@ -34,7 +34,7 @@ class CarpetaController extends Controller
             'nombre'         => 'required|string|max:255',
             'color'          => 'nullable|string|max:7',
             'parent_id'      => 'nullable|exists:carpetas,id',
-            'subsection_id'  => 'nullable|exists:subsections,id',
+            'subsection_id' => 'required|exists:subsections,id',
         ]);
 
         Carpeta::create($data);

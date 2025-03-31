@@ -3,7 +3,7 @@
 @section('title', 'TI-UTM - Ver Módulo')
 
 @section('head')
-    <link rel="icon" type="image/png" href="{{ asset('favicon.ico') }}">
+    <link rel="icon" href="{{ asset('favicons.ico') }}" type="image/x-icon">
 @endsection
 
 @section('content')
