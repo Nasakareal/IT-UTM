@@ -5,8 +5,10 @@
     "\\app\\Http",
     "\\app\\Http\\Controllers",
     "\\resources",
-    "\\resources\\views"
+    "\\resources\\views",
+    "\\resources\\views\\settings",
+    "\\resources\\views\\settings\\comunicados"
   ],
-  "SelectedNode": "\\app\\Http\\Controllers\\UserController.php",
+  "SelectedNode": "\\resources\\views\\settings\\comunicados\\index.blade.php",
   "PreviewInSolutionExplorer": false
 }

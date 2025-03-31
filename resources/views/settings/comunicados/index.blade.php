@@ -62,7 +62,7 @@
                                             <form action="{{ url('/settings/comunicados/' . $comunicado->id) }}" method="POST" style="display:inline-block;">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="button" class="btn btn-danger btn-sm delete-btn">
+                                                <button type="submit" class="btn btn-danger btn-sm delete-btn">
                                                     <i class="fa-regular fa-trash-can"></i>
                                                 </button>
                                             </form>

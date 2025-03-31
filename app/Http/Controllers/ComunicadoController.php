@@ -64,6 +64,9 @@ class ComunicadoController extends Controller
 
     public function destroy(Comunicado $comunicado)
     {
-        //
+        $comunicado->delete();
+
+        return redirect()->route('comunicados.index')->with('success', 'Comunicado eliminado correctamente.');
     }
+
 }
