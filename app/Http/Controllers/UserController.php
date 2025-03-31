@@ -69,24 +69,34 @@ class UserController extends Controller
 
     public function update(Request $request, $id)
     {
-        // Validar los datos
-        $validatedData = $request->validate([
+        $rules = [
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $id,
             'area' => 'nullable|string|max:30',
             'role' => 'required|exists:roles,name',
-        ]);
+        ];
+
+        if ($request->filled('password')) {
+            $rules['password'] = 'min:6|confirmed';
+        }
+
+        $validatedData = $request->validate($rules);
 
         try {
-            // Buscar y actualizar el usuario
             $user = User::findOrFail($id);
-            $user->update([
-                'name' => $validatedData['name'],
-                'email' => $validatedData['email'],
-                'area' => $validatedData['area'] ?? null,
-            ]);
 
-            // Actualizar los roles del usuario
+            $updateData = [
+                'name'  => $validatedData['name'],
+                'email' => $validatedData['email'],
+                'area'  => $validatedData['area'] ?? null,
+            ];
+
+            if ($request->filled('password')) {
+                $updateData['password'] = bcrypt($validatedData['password']);
+            }
+
+            $user->update($updateData);
+
             $user->syncRoles([$validatedData['role']]);
 
             Log::info("Usuario actualizado exitosamente: {$user->name}");
@@ -97,6 +107,7 @@ class UserController extends Controller
             return redirect()->back()->withErrors('Hubo un error al actualizar el usuario. Inténtelo nuevamente.');
         }
     }
+
 
     public function destroy($id)
     {

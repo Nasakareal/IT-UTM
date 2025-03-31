@@ -10,7 +10,8 @@
 
     <!-- Contenedor oculto de archivos y subcarpetas -->
     @if($folder->archivos->count() || $folder->children->count())
-        <ul id="{{ $collapseId }}" class="list-unstyled ms-3 d-none">
+        <!-- Ajusta aquí el margen: -->
+        <ul id="{{ $collapseId }}" class="list-unstyled d-none" style="margin-left: 20px;">
             @if($folder->archivos->count())
                 @foreach($folder->archivos as $archivo)
                     <li>
