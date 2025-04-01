@@ -12,12 +12,12 @@
 <style>
     .folder-parent,
     .folder-parent i {
-        color: #EEDC82 !important;
+        color: #5C7285 !important;
     }
 
     .folder-child,
     .folder-child i {
-        color: #659287 !important;
+        color: #818C78 !important;
     }
 </style>
 @endonce
