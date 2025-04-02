@@ -141,15 +141,15 @@
     <div class="welcome-container">
         <div class="overlay"></div>
         <div class="content">
-            <img src="{{ asset('img/Logo-aniversario-25-UTM-bco.png') }}" alt="UTM" class="utm-logo">
+            <img src="{{ asset('logo_2025.png') }}" alt="UTM" class="utm-logo">
             <h1 class="title">Bienvenidos a la Plataforma UTM</h1>
             <p class="subtitle">Seleccione el sistema al que desea ingresar</p>
             <div class="buttons-container">
                 <!-- Sistema de Inventarios -->
                 <div class="system-card">
-                    <img src="{{ asset('img/logo_inventarios.png') }}" alt="Sistema Inventarios" class="system-logo">
-                    <a href="{{ request()->getHost() === 'localhost' ? '/sistemaInventarios/public/login' : '/sistemaInventarios/public/login' }}">
-                        <i class="fa-solid fa-boxes-stacked"></i> Sistema de Inventarios
+                    <img src="{{ asset('UTM.png') }}" alt="cargaHoraria" class="system-logo">
+                    <a href="{{ request()->getHost() === 'localhost' ? '/cargaHoraria/login/' : '/cargaHoraria/login/' }}">
+                        <i class="fa-solid fa-boxes-stacked"></i> Carga Horaria
                     </a>
                 </div>
                 <!-- Sistema Contable -->

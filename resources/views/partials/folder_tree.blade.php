@@ -66,7 +66,7 @@
             @if($folder->archivos->count())
                 @foreach($folder->archivos as $archivo)
                     <li>
-                        <i class="fa fa-file"></i>
+                        <i class="bi bi-filetype-pdf"></i>
                         <a href="{{ asset('storage/' . $archivo->ruta) }}" target="_blank">
                             {{ $archivo->nombre }}
                         </a>

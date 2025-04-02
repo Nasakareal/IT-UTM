@@ -9,7 +9,7 @@
             <div class="alert-content">
                 <i class="fas fa-exclamation-triangle"></i>
                 <span>
-                    Se informa que con fecha de corte al <strong>{{ now()->format('Y-m-d') }}</strong>, la Universidad no ha recibido la siguiente documentación:
+                    Se informa que, la Universidad no ha recibido la siguiente documentación:
                 </span>
                 <ul>
                     @foreach ($documentosPendientes as $documento)
@@ -63,16 +63,46 @@
         <p>No hay comunicados por el momento.</p>
     @endif
 
+    <br>
+
+    <!-- 🔹 Botón "Crear Nueva Sección" (solo para Administrador) -->
+    @if(auth()->check() && auth()->user()->hasRole('Administrador'))
+        <div class="mb-4">
+            <a href="{{ url('/settings/secciones/create') }}" class="btn btn-sm" style="background-color: #FFFFFF; color: #000;">
+                <i class="fa-solid fa-plus"></i> Crear Nueva Sección
+            </a>
+        </div>
+    @endif
+
     <!-- 🔹 Secciones dinámicas (cada sección con sus módulos) -->
     <div class="container my-4">
         @foreach ($secciones as $seccion)
-            <h2 class="mb-4">{{ $seccion->nombre }}</h2>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">{{ $seccion->nombre }}</h2>
+                <!-- Botones de acción para Administrador -->
+                @if(auth()->check() && auth()->user()->hasRole('Administrador'))
+                    <div class="btn-group" role="group">
+                        <!-- Editar sección -->
+                        <a href="{{ route('secciones.edit', $seccion->id) }}" class="btn btn-success btn-sm">
+                            <i class="fa-regular fa-pen-to-square"></i>
+                        </a>
+                        <!-- Eliminar sección -->
+                        <form action="{{ route('secciones.destroy', $seccion->id) }}" method="POST" style="display:inline-block;">
+                            @csrf
+                            @method('DELETE')
+                            <button type="button" class="btn btn-danger btn-sm delete-btn">
+                                <i class="fa-regular fa-trash-can"></i>
+                            </button>
+                        </form>
+
+                    </div>
+                @endif
+            </div>
             <div class="row">
                 @forelse ($seccion->modulos as $modulo)
                     <div class="col-md-6 col-lg-4 mb-4">
                         <!-- Tarjeta con barra de color a la izquierda -->
-                        <div class="d-flex module-card shadow" 
-                             style="border-radius: 10px; overflow: hidden; border: none;">
+                        <div class="d-flex module-card shadow" style="border-radius: 10px; overflow: hidden; border: none;">
                             <!-- Columna izquierda (color + imagen + badges) -->
                             <div class="module-left d-flex flex-column justify-content-between align-items-center p-2"
                                  style="width: 80px; background-color: {{ $modulo->color ?? $seccion->color ?? '#009688' }};">
@@ -207,4 +237,31 @@
         updateCarousel();
         startAutoSlide();
     </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function(){
+            const deleteButtons = document.querySelectorAll('.delete-btn');
+            deleteButtons.forEach(function(button){
+                button.addEventListener('click', function(e){
+                    e.preventDefault();
+                    const form = this.closest('form');
+                    Swal.fire({
+                        title: '¿Estás seguro?',
+                        text: "Esta acción no se puede revertir",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#3085d6',
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: 'Sí, eliminar',
+                        cancelButtonText: 'Cancelar'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            form.submit();
+                        }
+                    });
+                });
+            });
+        });
+    </script>
+
 @endsection
