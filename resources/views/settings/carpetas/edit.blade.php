@@ -49,9 +49,9 @@
                                             id="parent_id"
                                             class="form-control @error('parent_id') is-invalid @enderror">
                                         <option value="" selected>Sin carpeta padre</option>
-                                        @foreach($allCarpetas as $carpeta)
-                                            <option value="{{ $carpeta->id }}" {{ old('parent_id', $carpeta->parent_id) == $carpeta->id ? 'selected' : '' }}>
-                                                {{ $carpeta->nombre }}
+                                        @foreach($allCarpetas as $item)
+                                            <option value="{{ $item->id }}" {{ old('parent_id', $carpeta->parent_id) == $item->id ? 'selected' : '' }}>
+                                                {{ $item->nombre }}
                                             </option>
                                         @endforeach
                                     </select>

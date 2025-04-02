@@ -112,12 +112,11 @@ class CarpetaController extends Controller
         $path = $request->file('archivo')->store("carpetas/{$carpeta->id}", 'public');
 
         Archivo::create([
-            'nombre' => $request->file('archivo')->getClientOriginalName(),
-            'ruta' => $path,
+            'nombre'     => $request->file('archivo')->getClientOriginalName(),
+            'ruta'       => $path,
             'carpeta_id' => $carpeta->id,
         ]);
 
-        return redirect()->route('carpetas.index')->with('success', 'Archivo subido correctamente.');
+        return redirect()->back()->with('success', 'Archivo subido correctamente.');
     }
-
 }

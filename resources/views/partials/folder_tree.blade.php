@@ -12,12 +12,11 @@
 <style>
     .folder-parent,
     .folder-parent i {
-        color: #5C7285 !important;
+        color: #618264 !important;
     }
-
     .folder-child,
     .folder-child i {
-        color: #818C78 !important;
+        color: #79AC78 !important;
     }
 </style>
 @endonce
@@ -29,6 +28,37 @@
           onclick="toggleFolder('{{ $collapseId }}', this)">
         <i class="fa fa-folder"></i> {{ $folder->nombre }}
     </span>
+
+    <!-- Botones de acción solo para usuarios con rol "Administrador" -->
+    @if(auth()->check() && auth()->user()->hasRole('Administrador'))
+        <div class="btn-group ml-2" role="group">
+            <!-- Editar carpeta -->
+            <form action="{{ route('carpetas.edit', $folder->id) }}" method="GET" style="display: inline;">
+                <button type="submit" class="btn btn-success btn-sm">
+                    <i class="fa-regular fa-pen-to-square"></i>
+                </button>
+            </form>
+
+            <!-- Subir archivos -->
+            <form action="{{ route('carpetas.upload', $folder->id) }}" method="POST" enctype="multipart/form-data" style="display: inline;">
+                @csrf
+                <input type="file" name="archivo" id="archivo_{{ $folder->id }}" style="display: none;" onchange="this.form.submit()">
+                <label for="archivo_{{ $folder->id }}" class="btn btn-warning btn-sm mb-0">
+                    <i class="bi bi-file-earmark-arrow-up"></i>
+                </label>
+            </form>
+
+            <!-- Eliminar carpeta -->
+            <form action="{{ route('carpetas.destroy', $folder->id) }}" method="POST" style="display:inline-block;">
+                @csrf
+                @method('DELETE')
+                <button type="button" class="btn btn-danger btn-sm delete-btn">
+                    <i class="fa-regular fa-trash-can"></i>
+                </button>
+            </form>
+        </div>
+    @endif
+
 
     <!-- Contenedor oculto de archivos y subcarpetas -->
     @if($folder->archivos->count() || $folder->children->count())
