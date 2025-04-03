@@ -18,7 +18,21 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.2.3/css/buttons.dataTables.min.css">
     
     <style>
-        /* 🔹 Barra superior FIJA */
+        /* 🔹 Imagen de fondo sin estirarse */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('{{ asset('utm_logo_copia.png') }}');
+            background-repeat: no-repeat;
+            background-position: center center;
+            background-size: 800px auto;
+            z-index: -1;
+        }
+
         .top-bar {
             width: 100%;
             background-color: #009688;
@@ -48,13 +62,18 @@
             align-items: center;
             gap: 15px;
         }
-        
-        /* 🔹 Contenedor Principal */
+
         .container-content {
             width: 80%;
             max-width: 1000px;
             margin: 80px auto 20px auto;
-            padding-top: 60px; /* Espacio para la barra */
+            padding-top: 60px;
+            background-color: rgba(255, 255, 255, 0.90);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+            position: relative;
+            z-index: 1;
         }
     </style>
     
@@ -62,7 +81,6 @@
 </head>
 <body class="hold-transition sidebar-mini">
     
-    <!-- 🔹 Barra superior -->
     <div class="top-bar">
         <div>
             <a href="{{ route('home') }}"><i class="bi bi-house-door"></i>Inicio</a>
@@ -81,16 +99,12 @@
         </div>
     </div>
 
-    <!-- 🔹 Contenido Dinámico -->
     <div class="container-content">
         @yield('content')
     </div>
 
-    <!-- 📌 Cargar jQuery ANTES que Bootstrap -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-    <!-- 📌 Scripts adicionales -->
     <script src="https://cdn.datatables.net/1.12.1/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.2.3/js/dataTables.buttons.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.1.3/jszip.min.js"></script>
