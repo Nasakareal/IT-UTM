@@ -17,11 +17,18 @@ class User extends Authenticatable
 
     protected $fillable = [
         'name',
-        'email',
+        'nombres',
+        'apellido_paterno',
+        'apellido_materno',
+        'curp',
+        'correo_institucional',
+        'correo_personal',
         'password',
         'estado',
         'foto_perfil',
         'area',
+        'categoria',
+        'caracter',
     ];
 
     protected $hidden = [
@@ -33,25 +40,27 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
-    /**
-     * Configuración para registrar la actividad.
-     *
-     * @return \Spatie\Activitylog\LogOptions
-     */
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['name', 'email', 'password', 'estado', 'foto_perfil', 'area'])
+            ->logOnly([
+                'name',
+                'nombres',
+                'apellido_paterno',
+                'apellido_materno',
+                'curp',
+                'correo_institucional',
+                'correo_personal',
+                'estado',
+                'foto_perfil',
+                'area',
+                'categoria',
+                'caracter'
+            ])
             ->setLogName('users')
             ->logOnlyDirty();
     }
 
-    /**
-     * Personaliza la descripción del evento.
-     *
-     * @param string $eventName
-     * @return string
-     */
     public function getDescriptionForEvent(string $eventName): string
     {
         return "El usuario ha sido {$eventName}";

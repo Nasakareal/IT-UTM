@@ -104,20 +104,31 @@
                         <!-- Tarjeta con barra de color a la izquierda -->
                         <div class="d-flex module-card shadow" style="border-radius: 10px; overflow: hidden; border: none;">
                             <!-- Columna izquierda (color + imagen + badges) -->
-                            <div class="module-left d-flex flex-column justify-content-between align-items-center p-2"
-                                 style="width: 80px; background-color: {{ $modulo->color ?? $seccion->color ?? '#009688' }};">
-                                <!-- Imagen en el centro (si existe) -->
-                                @if(!empty($modulo->imagen))
-                                    <img src="{{ asset('storage/'.$modulo->imagen) }}" 
-                                         alt="Ícono del módulo" 
-                                         style="max-width: 50px; max-height: 50px;" 
-                                         class="my-2">
-                                @endif
-                                <!-- Año abajo -->
-                                <div class="text-white fw-bold mb-2">
-                                    {{ $modulo->anio }}
+                                <div class="module-left d-flex flex-column justify-content-between align-items-center p-2"
+                                     style="width: 80px; background-color: {{ $modulo->color ?? $seccion->color ?? '#009688' }};">
+
+                                    <!-- Mostrar imagen si existe -->
+                                    @if(!empty($modulo->imagen))
+                                        <img src="{{ asset('storage/'.$modulo->imagen) }}" 
+                                             alt="Ícono del módulo" 
+                                             style="max-width: 50px; max-height: 50px;" 
+                                             class="my-2">
+             
+                                    <!-- Mostrar ícono si no hay imagen pero sí hay ícono -->
+                                    @elseif(!empty($modulo->icono))
+                                        <i class="fas {{ $modulo->icono }} fa-2x text-white my-2"></i>
+        
+                                    <!-- Ícono genérico de fallback -->
+                                    @else
+                                        <i class="fas fa-cube fa-2x text-white my-2"></i>
+                                    @endif
+
+                                    <!-- Año abajo -->
+                                    <div class="text-white fw-bold mb-2">
+                                        {{ $modulo->anio }}
+                                    </div>
                                 </div>
-                            </div>
+
 
                             <!-- Columna derecha (contenido principal) -->
                             <div class="module-right p-3 flex-grow-1">
@@ -143,6 +154,61 @@
         @endforeach
     </div>
 @endsection
+
+@section('styles')
+<style>
+    .module-card {
+        height: 150px; /* altura fija para todas las tarjetas */
+        display: flex;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .module-left {
+        width: 80px;
+        min-width: 80px;
+        background-color: #009688;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem;
+    }
+
+    .module-right {
+        padding: 1rem;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .card-title {
+        font-size: 1rem;
+        font-weight: bold;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .card-text {
+        flex-grow: 1;
+        font-size: 0.9rem;
+        color: #555;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 2; /* máximo 2 líneas */
+        -webkit-box-orient: vertical;
+    }
+
+    .btn-ingresar {
+        width: fit-content;
+        white-space: nowrap;
+    }
+</style>
+@endsection
+
 
 @section('scripts')
     <script>

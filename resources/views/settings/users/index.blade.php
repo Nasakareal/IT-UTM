@@ -41,9 +41,8 @@
                                 <th><center>Número</center></th>
                                 <th><center>Nombres del Usuario</center></th>
                                 <th><center>Rol</center></th>
-                                <th><center>Email</center></th>
+                                <th><center>Correo Institucional</center></th>
                                 <th><center>Área</center></th>
-                                <th><center>Fecha de Creación</center></th>
                                 <th><center>Estado</center></th>
                                 <th><center>Acciones</center></th>
                             </tr>
@@ -55,9 +54,8 @@
                                     <td style="text-align: center">{{ $index + 1 }}</td>
                                     <td style="text-align: center">{{ $user->name }}</td>
                                     <td style="text-align: center">{{ $user->roles->pluck('name')->join(', ') }}</td>
-                                    <td style="text-align: center">{{ $user->email }}</td>
+                                    <td style="text-align: center">{{ $user->correo_institucional }}</td>
                                     <td style="text-align: center">{{ $user->area }}</td>
-                                    <td style="text-align: center">{{ $user->created_at->format('d-m-Y') }}</td>
                                     <td style="text-align: center">{{ $user->estado }}</td>
                                     <td style="text-align: center">
                                         <div class="btn-group" role="group">

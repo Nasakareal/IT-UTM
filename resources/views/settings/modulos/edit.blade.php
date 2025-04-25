@@ -3,38 +3,30 @@
 @section('title', 'TI-UTM - Editar Módulo')
 
 @section('content_header')
-    <h1>Editar un Módulo</h1>
+    <h1>Edición del Módulo</h1>
 @stop
 
 @section('content')
     <div class="row justify-content-center">
-        <!-- col-md-10 offset-md-1 = más ancho del card -->
         <div class="col-md-10 offset-md-1"> 
             <div class="card card-outline card-primary mb-4">
                 <div class="card-header">
-                    <h3 class="card-title">Llene los Datos</h3>
+                    <h3 class="card-title">Modifique los Datos</h3>
                 </div>
                 <div class="card-body">
                     <form action="{{ route('modulos.update', $modulo->id) }}" method="POST">
                         @csrf
                         @method('PUT')
+
                         <!-- Primera fila: Título, Año, Categoría -->
                         <div class="row g-3">
                             <!-- Título -->
                             <div class="col-md-4">
                                 <div class="form-group mb-3">
                                     <label for="titulo" class="fw-bold">Título del Módulo</label>
-                                    <input type="text"
-                                           name="titulo"
-                                           id="titulo"
-                                           class="form-control @error('titulo') is-invalid @enderror"
-                                           value="{{ old('titulo', $modulo->titulo) }}"
-                                           placeholder="Ingrese el título"
-                                           required>
+                                    <input type="text" name="titulo" id="titulo" class="form-control @error('titulo') is-invalid @enderror" value="{{ old('titulo', $modulo->titulo) }}" placeholder="Ingrese el título" required>
                                     @error('titulo')
-                                        <span class="invalid-feedback" role="alert">
-                                            <strong>{{ $message }}</strong>
-                                        </span>
+                                        <span class="invalid-feedback"><strong>{{ $message }}</strong></span>
                                     @enderror
                                 </div>
                             </div>
@@ -43,16 +35,9 @@
                             <div class="col-md-4">
                                 <div class="form-group mb-3">
                                     <label for="anio" class="fw-bold">Año</label>
-                                    <input type="text"
-                                           name="anio"
-                                           id="anio"
-                                           class="form-control @error('anio') is-invalid @enderror"
-                                           value="{{ old('anio', $modulo->anio) }}"
-                                           placeholder="Ingrese el año">
+                                    <input type="text" name="anio" id="anio" class="form-control @error('anio') is-invalid @enderror" value="{{ old('anio', $modulo->anio) }}" placeholder="Ingrese el año">
                                     @error('anio')
-                                        <span class="invalid-feedback" role="alert">
-                                            <strong>{{ $message }}</strong>
-                                        </span>
+                                        <span class="invalid-feedback"><strong>{{ $message }}</strong></span>
                                     @enderror
                                 </div>
                             </div>
@@ -61,64 +46,67 @@
                             <div class="col-md-4">
                                 <div class="form-group mb-3">
                                     <label for="categoria" class="fw-bold">Categoría</label>
-                                    <input type="text"
-                                           name="categoria"
-                                           id="categoria"
-                                           class="form-control @error('categoria') is-invalid @enderror"
-                                           value="{{ old('categoria', $modulo->categoria) }}"
-                                           placeholder="Ingrese la categoría"
-                                           required>
+                                    <input type="text" name="categoria" id="categoria" class="form-control @error('categoria') is-invalid @enderror" value="{{ old('categoria', $modulo->categoria) }}" placeholder="Ingrese la categoría" required>
                                     @error('categoria')
-                                        <span class="invalid-feedback" role="alert">
-                                            <strong>{{ $message }}</strong>
-                                        </span>
+                                        <span class="invalid-feedback"><strong>{{ $message }}</strong></span>
                                     @enderror
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Segunda fila: Color, Sección (opcional) -->
+                        <!-- Segunda fila: Sección, Ícono -->
                         <div class="row g-3">
-                            
                             <!-- Sección -->
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <div class="form-group mb-3">
                                     <label for="seccion_id" class="fw-bold">Sección</label>
                                     <select name="seccion_id" id="seccion_id" class="form-control @error('seccion_id') is-invalid @enderror">
-                                        <option value="" disabled selected>Seleccione una sección</option>
+                                        <option value="" disabled>Seleccione una sección</option>
                                         @foreach($secciones as $seccion)
-                                            <option value="{{ $seccion->id }}" {{ old('seccion_id', $modulo->seccion_id) == $seccion->id ? 'selected' : '' }}>
+                                            <option value="{{ $seccion->id }}" 
+                                                {{ old('seccion_id', $modulo->seccion_id) == $seccion->id ? 'selected' : '' }}>
                                                 {{ $seccion->nombre }}
                                             </option>
                                         @endforeach
                                     </select>
                                     @error('seccion_id')
-                                        <span class="invalid-feedback" role="alert">
-                                            <strong>{{ $message }}</strong>
-                                        </span>
+                                        <span class="invalid-feedback"><strong>{{ $message }}</strong></span>
                                     @enderror
                                 </div>
                             </div>
-                             <!-- Descripción -->
-                            <div class="col-md-8">
+
+                            <!-- Ícono -->
+                            <div class="col-md-6">
                                 <div class="form-group mb-3">
-                                    <label for="descripcion" class="fw-bold">Descripción</label>
-                                    <textarea name="descripcion"
-                                              id="descripcion"
-                                              class="form-control @error('descripcion') is-invalid @enderror"
-                                              placeholder="Ingrese la descripción">{{ old('descripcion', $modulo->descripcion) }}</textarea>
-                                    @error('descripcion')
-                                        <span class="invalid-feedback" role="alert">
-                                            <strong>{{ $message }}</strong>
-                                        </span>
+                                    <label for="icono" class="fw-bold">Ícono del Módulo</label>
+                                    <select name="icono" id="icono" class="form-control @error('icono') is-invalid @enderror">
+                                        <option value="" disabled>Seleccione un ícono</option>
+                                        <option value="fa-lightbulb" {{ old('icono', $modulo->icono) == 'fa-lightbulb' ? 'selected' : '' }}>💡 Académico</option>
+                                        <option value="fa-briefcase" {{ old('icono', $modulo->icono) == 'fa-briefcase' ? 'selected' : '' }}>💼 Administrativo</option>
+                                        <option value="fa-chart-pie" {{ old('icono', $modulo->icono) == 'fa-chart-pie' ? 'selected' : '' }}>📊 Presupuestario</option>
+                                        <option value="fa-users" {{ old('icono', $modulo->icono) == 'fa-users' ? 'selected' : '' }}>👥 Estudiantil</option>
+                                        <option value="fa-flask" {{ old('icono', $modulo->icono) == 'fa-flask' ? 'selected' : '' }}>🧪 Laboratorio</option>
+                                        <option value="fa-graduation-cap" {{ old('icono', $modulo->icono) == 'fa-graduation-cap' ? 'selected' : '' }}>🎓 Docencia</option>
+                                        <option value="fa-building-columns" {{ old('icono', $modulo->icono) == 'fa-building-columns' ? 'selected' : '' }}>🏛️ Institucional</option>
+                                    </select>
+                                    @error('icono')
+                                        <span class="invalid-feedback"><strong>{{ $message }}</strong></span>
                                     @enderror
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Tercera fila: Descripción y Link -->
+                        <!-- Tercera fila: Descripción -->
                         <div class="row g-3">
-                           
+                            <div class="col-md-12">
+                                <div class="form-group mb-3">
+                                    <label for="descripcion" class="fw-bold">Descripción</label>
+                                    <textarea name="descripcion" id="descripcion" class="form-control @error('descripcion') is-invalid @enderror" placeholder="Ingrese la descripción">{{ old('descripcion', $modulo->descripcion) }}</textarea>
+                                    @error('descripcion')
+                                        <span class="invalid-feedback"><strong>{{ $message }}</strong></span>
+                                    @enderror
+                                </div>
+                            </div>
                         </div>
 
                         <hr>
@@ -127,7 +115,7 @@
                         <div class="row g-3">
                             <div class="col-md-12 text-end">
                                 <button type="submit" class="btn btn-primary me-2">
-                                    <i class="fa-solid fa-check"></i> Registrar
+                                    <i class="fa-solid fa-check"></i> Guardar Cambios
                                 </button>
                                 <a href="{{ route('modulos.index') }}" class="btn btn-secondary">
                                     <i class="fa-solid fa-ban"></i> Cancelar
@@ -140,6 +128,7 @@
         </div>
     </div>
 @stop
+
 
 @section('styles')
     <style>

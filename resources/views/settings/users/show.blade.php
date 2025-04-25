@@ -10,68 +10,89 @@
                     <h3 class="card-title">Datos Registrados</h3>
                 </div>
                 <div class="card-body">
-                    <div class="row">
-                        {{-- Nombre y Correo --}}
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="name">Nombre</label>
-                                <p class="form-control-static">{{ $user->name }}</p>
-                            </div>
+                    <div class="row g-3">
+                        <!-- Nombres y Apellidos -->
+                        <div class="col-md-4">
+                            <label class="fw-bold">Nombres</label>
+                            <p class="form-control-static">{{ $user->nombres }}</p>
                         </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="email">Correo Electrónico</label>
-                                <p class="form-control-static">{{ $user->email }}</p>
-                            </div>
+                        <div class="col-md-4">
+                            <label class="fw-bold">Apellido Paterno</label>
+                            <p class="form-control-static">{{ $user->apellido_paterno ?? 'No especificado' }}</p>
                         </div>
-                    </div>
-
-                    <div class="row">
-                        {{-- Área y Estado --}}
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="area">Área</label>
-                                <p class="form-control-static">{{ $user->area ?? 'No especificada' }}</p>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="estado">Estado</label>
-                                <p class="form-control-static">{{ $user->estado }}</p>
-                            </div>
+                        <div class="col-md-4">
+                            <label class="fw-bold">Apellido Materno</label>
+                            <p class="form-control-static">{{ $user->apellido_materno ?? 'No especificado' }}</p>
                         </div>
                     </div>
 
-                    <div class="row">
-                        {{-- Rol y Foto de Perfil --}}
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="role">Rol</label>
-                                <p class="form-control-static">{{ $user->roles->pluck('name')->join(', ') }}</p>
-                            </div>
+                    <div class="row g-3 mt-3">
+                        <!-- CURP y Categoría -->
+                        <div class="col-md-4">
+                            <label class="fw-bold">CURP</label>
+                            <p class="form-control-static">{{ $user->curp }}</p>
                         </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="foto_perfil">Foto de Perfil</label>
-                                @if ($user->foto_perfil)
-                                    <div>
-                                        <img src="{{ asset('storage/' . $user->foto_perfil) }}" alt="Foto de Perfil" style="max-width: 150px; max-height: 150px;" class="img-thumbnail">
-                                    </div>
-                                @else
-                                    <p class="form-control-static">No tiene foto de perfil.</p>
-                                @endif
-                            </div>
+                        <div class="col-md-4">
+                            <label class="fw-bold">Categoría</label>
+                            <p class="form-control-static">{{ $user->categoria }}</p>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="fw-bold">Carácter</label>
+                            <p class="form-control-static">{{ $user->caracter }}</p>
                         </div>
                     </div>
-                    <hr>
+
+                    <div class="row g-3 mt-3">
+                        <!-- Correos -->
+                        <div class="col-md-6">
+                            <label class="fw-bold">Correo Institucional</label>
+                            <p class="form-control-static">{{ $user->correo_institucional }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="fw-bold">Correo Personal</label>
+                            <p class="form-control-static">{{ $user->correo_personal }}</p>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mt-3">
+                        <!-- Área y Estado -->
+                        <div class="col-md-6">
+                            <label class="fw-bold">Área</label>
+                            <p class="form-control-static">{{ $user->area ?? 'No especificada' }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="fw-bold">Estado</label>
+                            <p class="form-control-static">{{ $user->estado }}</p>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mt-3">
+                        <!-- Rol y Foto de Perfil -->
+                        <div class="col-md-6">
+                            <label class="fw-bold">Rol</label>
+                            <p class="form-control-static">{{ $user->roles->pluck('name')->join(', ') }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="fw-bold">Foto de Perfil</label>
+                            @if ($user->foto_perfil)
+                                <div>
+                                    <img src="{{ asset('storage/' . $user->foto_perfil) }}" 
+                                         alt="Foto de Perfil" 
+                                         style="max-width: 150px; max-height: 150px;" 
+                                         class="img-thumbnail">
+                                </div>
+                            @else
+                                <p class="form-control-static">No tiene foto de perfil.</p>
+                            @endif
+                        </div>
+                    </div>
+
+                    <hr class="mt-4">
                     <div class="row">
-                        {{-- Botón de regreso --}}
-                        <div class="col-md-12 text-center">
-                            <div class="form-group">
-                                <a href="{{ route('users.index') }}" class="btn btn-secondary">
-                                    <i class="fa-solid fa-arrow-left"></i> Volver
-                                </a>
-                            </div>
+                        <div class="col text-center">
+                            <a href="{{ route('users.index') }}" class="btn btn-secondary">
+                                <i class="fa-solid fa-arrow-left"></i> Volver
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -79,6 +100,7 @@
         </div>
     </div>
 @stop
+
 
 @section('css')
 <style>

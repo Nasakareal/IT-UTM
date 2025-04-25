@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
@@ -18,38 +19,78 @@ class UserController extends Controller
     public function create()
     {
         $roles = Role::all();
-        return view('settings.users.create', compact('roles'));
+        $categorias = [
+            'Titular C', 'Titular B', 'Titular A',
+            'Asociado C', 'Técnico Académico C',
+            'Técnico Académico B', 'Técnico Académico A',
+            'Profesor de Asignatura B',
+        ];
+        $caracteres = ['Indeterminado', 'Determinado'];
+
+        return view('settings.users.create', compact('roles', 'categorias', 'caracteres'));
     }
 
     public function store(Request $request)
     {
-        // Validar los datos del formulario
-        $validatedData = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users',
-            'password' => 'required|min:6|confirmed',
-            'area' => 'nullable|string|max:30',
-            'role' => 'required|exists:roles,name',
+        // Validamos sin el campo 'name'
+        $validated = $request->validate([
+            'nombres'                => 'required|string|max:125',
+            'apellido_paterno'       => 'nullable|string|max:125',
+            'apellido_materno'       => 'nullable|string|max:125',
+            'curp'                   => 'required|string|size:18|unique:users,curp',
+            'correo_institucional'   => 'required|email|unique:users,correo_institucional',
+            'correo_personal'        => 'required|email',
+            'categoria'              => 'required|in:'.implode(',', [
+                'Titular C','Titular B','Titular A',
+                'Asociado C','Técnico Académico C',
+                'Técnico Académico B','Técnico Académico A',
+                'Profesor de Asignatura B',
+            ]),
+            'caracter'               => 'required|in:Indeterminado,Determinado',
+            'password'               => 'required|min:6|confirmed',
+            'area'                   => 'nullable|string|max:125',
+            'foto_perfil'            => 'nullable|image|max:2048',
+            'role'                   => 'required|exists:roles,name',
         ]);
 
         try {
-            // Crear el usuario
+            // Construimos el campo 'name' uniendo los apellidos y nombres
+            $fullName = trim(
+                $validated['nombres']
+                .' '.($validated['apellido_paterno'] ?? '')
+                .' '.($validated['apellido_materno'] ?? '')
+            );
+
+            // Guardamos la foto si llegó
+            if ($request->hasFile('foto_perfil')) {
+                $validated['foto_perfil'] = $request
+                    ->file('foto_perfil')
+                    ->store('perfiles', 'public');
+            }
+
             $user = User::create([
-                'name' => $validatedData['name'],
-                'email' => $validatedData['email'],
-                'password' => bcrypt($validatedData['password']),
-                'estado' => 'Activo',
-                'area' => $validatedData['area'] ?? null,
+                'name'                   => $fullName,
+                'nombres'                => $validated['nombres'],
+                'apellido_paterno'       => $validated['apellido_paterno'],
+                'apellido_materno'       => $validated['apellido_materno'],
+                'curp'                   => $validated['curp'],
+                'correo_institucional'   => $validated['correo_institucional'],
+                'correo_personal'        => $validated['correo_personal'],
+                'categoria'              => $validated['categoria'],
+                'caracter'               => $validated['caracter'],
+                'password'               => Hash::make($validated['password']),
+                'area'                   => $validated['area'] ?? null,
+                'foto_perfil'            => $validated['foto_perfil'] ?? null,
+                'estado'                 => 'Activo',
             ]);
 
-            $user->assignRole($validatedData['role']);
+            $user->assignRole($validated['role']);
 
-            Log::info("Usuario creado exitosamente: {$user->name}");
-
+            Log::info("Usuario creado: {$user->correo_institucional}");
             return redirect()->route('users.index')->with('success', 'Usuario creado correctamente.');
         } catch (\Exception $e) {
-            Log::error("Error al crear el usuario: " . $e->getMessage());
-            return redirect()->back()->withErrors('Hubo un error al crear el usuario. Inténtelo nuevamente.');
+            Log::error("Error creando usuario: {$e->getMessage()}");
+            return redirect()->back()->withInput()->withErrors('Ocurrió un error al crear el usuario.');
         }
     }
 
@@ -63,51 +104,88 @@ class UserController extends Controller
     {
         $user = User::findOrFail($id);
         $roles = Role::all();
+        $categorias = [
+            'Titular C', 'Titular B', 'Titular A',
+            'Asociado C', 'Técnico Académico C',
+            'Técnico Académico B', 'Técnico Académico A',
+            'Profesor de Asignatura B',
+        ];
+        $caracteres = ['Indeterminado', 'Determinado'];
 
-        return view('settings.users.edit', compact('user', 'roles'));
+        return view('settings.users.edit', compact('user', 'roles', 'categorias', 'caracteres'));
     }
 
     public function update(Request $request, $id)
     {
         $rules = [
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $id,
-            'area' => 'nullable|string|max:30',
-            'role' => 'required|exists:roles,name',
+            'nombres'                => 'required|string|max:125',
+            'apellido_paterno'       => 'nullable|string|max:125',
+            'apellido_materno'       => 'nullable|string|max:125',
+            'curp'                   => 'required|string|size:18|unique:users,curp,'.$id,
+            'correo_institucional'   => 'required|email|unique:users,correo_institucional,'.$id,
+            'correo_personal'        => 'required|email',
+            'categoria'              => 'required|in:'.implode(',', [
+                'Titular C','Titular B','Titular A',
+                'Asociado C','Técnico Académico C',
+                'Técnico Académico B','Técnico Académico A',
+                'Profesor de Asignatura B',
+            ]),
+            'caracter'               => 'required|in:Indeterminado,Determinado',
+            'area'                   => 'nullable|string|max:125',
+            'foto_perfil'            => 'nullable|image|max:2048',
+            'role'                   => 'required|exists:roles,name',
         ];
-
         if ($request->filled('password')) {
             $rules['password'] = 'min:6|confirmed';
         }
 
-        $validatedData = $request->validate($rules);
+        $validated = $request->validate($rules);
 
         try {
             $user = User::findOrFail($id);
 
-            $updateData = [
-                'name'  => $validatedData['name'],
-                'email' => $validatedData['email'],
-                'area'  => $validatedData['area'] ?? null,
+            // Generamos el nombre completo de nuevo
+            $fullName = trim(
+                $validated['nombres']
+                .' '.($validated['apellido_paterno'] ?? '')
+                .' '.($validated['apellido_materno'] ?? '')
+            );
+
+            if ($request->hasFile('foto_perfil')) {
+                $validated['foto_perfil'] = $request
+                    ->file('foto_perfil')
+                    ->store('perfiles', 'public');
+            }
+
+            $data = [
+                'name'                   => $fullName,
+                'nombres'                => $validated['nombres'],
+                'apellido_paterno'       => $validated['apellido_paterno'],
+                'apellido_materno'       => $validated['apellido_materno'],
+                'curp'                   => $validated['curp'],
+                'correo_institucional'   => $validated['correo_institucional'],
+                'correo_personal'        => $validated['correo_personal'],
+                'categoria'              => $validated['categoria'],
+                'caracter'               => $validated['caracter'],
+                'area'                   => $validated['area'] ?? null,
+                'foto_perfil'            => $validated['foto_perfil'] ?? $user->foto_perfil,
+                'estado'                 => 'Activo',
             ];
 
             if ($request->filled('password')) {
-                $updateData['password'] = bcrypt($validatedData['password']);
+                $data['password'] = Hash::make($validated['password']);
             }
 
-            $user->update($updateData);
+            $user->update($data);
+            $user->syncRoles([$validated['role']]);
 
-            $user->syncRoles([$validatedData['role']]);
-
-            Log::info("Usuario actualizado exitosamente: {$user->name}");
-
+            Log::info("Usuario actualizado: {$user->correo_institucional}");
             return redirect()->route('users.index')->with('success', 'Usuario actualizado correctamente.');
         } catch (\Exception $e) {
-            Log::error("Error al actualizar el usuario: " . $e->getMessage());
-            return redirect()->back()->withErrors('Hubo un error al actualizar el usuario. Inténtelo nuevamente.');
+            Log::error("Error actualizando usuario: {$e->getMessage()}");
+            return redirect()->back()->withInput()->withErrors('Ocurrió un error al actualizar el usuario.');
         }
     }
-
 
     public function destroy($id)
     {
@@ -115,12 +193,11 @@ class UserController extends Controller
             $user = User::findOrFail($id);
             $user->delete();
 
-            Log::info("Usuario eliminado exitosamente: {$user->name}");
-
+            Log::info("Usuario eliminado: {$user->correo_institucional}");
             return redirect()->route('users.index')->with('success', 'Usuario eliminado correctamente.');
         } catch (\Exception $e) {
-            Log::error("Error al eliminar el usuario: " . $e->getMessage());
-            return redirect()->back()->withErrors('Hubo un error al eliminar el usuario. Inténtelo nuevamente.');
+            Log::error("Error eliminando usuario: {$e->getMessage()}");
+            return redirect()->back()->withErrors('Ocurrió un error al eliminar el usuario.');
         }
     }
 }

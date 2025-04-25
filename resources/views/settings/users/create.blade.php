@@ -8,144 +8,158 @@
 
 @section('content')
     <div class="row justify-content-center">
-        <!-- col-md-10 offset-md-1 = más ancho del card -->
         <div class="col-md-10 offset-md-1"> 
             <div class="card card-outline card-primary mb-4">
                 <div class="card-header">
                     <h3 class="card-title">Llene los Datos</h3>
                 </div>
                 <div class="card-body">
-                    <form action="{{ route('users.store') }}" method="POST">
+                    <form action="{{ route('users.store') }}" method="POST" enctype="multipart/form-data">
                         @csrf
-                        <!-- Primera fila: Nombre, Email, Área -->
+
+                        <!-- Primera fila: Nombres, Apellido Paterno, Apellido Materno -->
                         <div class="row g-3">
-                            <!-- Nombre -->
                             <div class="col-md-4">
-                                <div class="form-group mb-3">
-                                    <label for="name" class="fw-bold">Nombre del Usuario</label>
-                                    <input type="text"
-                                           name="name"
-                                           id="name"
-                                           class="form-control @error('name') is-invalid @enderror"
-                                           value="{{ old('name') }}"
-                                           placeholder="Ingrese el nombre"
-                                           required>
-                                    @error('name')
-                                        <span class="invalid-feedback" role="alert">
-                                            <strong>{{ $message }}</strong>
-                                        </span>
-                                    @enderror
-                                </div>
+                                <label for="nombres" class="fw-bold">Nombres</label>
+                                <input type="text" name="nombres" id="nombres"
+                                       class="form-control @error('nombres') is-invalid @enderror"
+                                       value="{{ old('nombres') }}" required>
+                                @error('nombres')<span class="invalid-feedback"><strong>{{ $message }}</strong></span>@enderror
                             </div>
-
-                            <!-- Email -->
                             <div class="col-md-4">
-                                <div class="form-group mb-3">
-                                    <label for="email" class="fw-bold">Email</label>
-                                    <input type="email"
-                                           name="email"
-                                           id="email"
-                                           class="form-control @error('email') is-invalid @enderror"
-                                           value="{{ old('email') }}"
-                                           placeholder="Ingrese el correo electrónico"
-                                           required>
-                                    @error('email')
-                                        <span class="invalid-feedback" role="alert">
-                                            <strong>{{ $message }}</strong>
-                                        </span>
-                                    @enderror
-                                </div>
+                                <label for="apellido_paterno" class="fw-bold">Apellido Paterno</label>
+                                <input type="text" name="apellido_paterno" id="apellido_paterno"
+                                       class="form-control @error('apellido_paterno') is-invalid @enderror"
+                                       value="{{ old('apellido_paterno') }}">
+                                @error('apellido_paterno')<span class="invalid-feedback"><strong>{{ $message }}</strong></span>@enderror
                             </div>
-
-                            <!-- Área -->
                             <div class="col-md-4">
-                                <div class="form-group mb-3">
-                                    <label for="area" class="fw-bold">Área</label>
-                                    <input type="text"
-                                           name="area"
-                                           id="area"
-                                           class="form-control @error('area') is-invalid @enderror"
-                                           value="{{ old('area') }}"
-                                           placeholder="Ingrese el área"
-                                           required>
-                                    @error('area')
-                                        <span class="invalid-feedback" role="alert">
-                                            <strong>{{ $message }}</strong>
-                                        </span>
-                                    @enderror
-                                </div>
+                                <label for="apellido_materno" class="fw-bold">Apellido Materno</label>
+                                <input type="text" name="apellido_materno" id="apellido_materno"
+                                       class="form-control @error('apellido_materno') is-invalid @enderror"
+                                       value="{{ old('apellido_materno') }}">
+                                @error('apellido_materno')<span class="invalid-feedback"><strong>{{ $message }}</strong></span>@enderror
                             </div>
                         </div>
 
-                        <!-- Segunda fila: Rol, Contraseña, Confirmación -->
-                        <div class="row g-3">
-                            <!-- Rol -->
+                        <!-- Segunda fila: CURP, Correo Institucional, Correo Personal -->
+                        <div class="row g-3 mt-3">
                             <div class="col-md-4">
-                                <div class="form-group mb-3">
-                                    <label for="role" class="fw-bold">Rol</label>
-                                    <select name="role"
-                                            id="role"
-                                            class="form-control @error('role') is-invalid @enderror"
-                                            required>
-                                        <option value="" disabled selected>Seleccione un rol</option>
-                                        @foreach ($roles as $role)
-                                            <option value="{{ $role->name }}"
-                                                {{ old('role') == $role->name ? 'selected' : '' }}>
-                                                {{ $role->name }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    @error('role')
-                                        <span class="invalid-feedback" role="alert">
-                                            <strong>{{ $message }}</strong>
-                                        </span>
-                                    @enderror
-                                </div>
+                                <label for="curp" class="fw-bold">CURP</label>
+                                <input type="text" name="curp" id="curp"
+                                       class="form-control @error('curp') is-invalid @enderror"
+                                       value="{{ old('curp') }}" maxlength="18" required>
+                                @error('curp')<span class="invalid-feedback"><strong>{{ $message }}</strong></span>@enderror
+                            </div>
+                            <div class="col-md-4">
+                                <label for="correo_institucional" class="fw-bold">Correo Institucional</label>
+                                <input type="email" name="correo_institucional" id="correo_institucional"
+                                       class="form-control @error('correo_institucional') is-invalid @enderror"
+                                       value="{{ old('correo_institucional') }}" required>
+                                @error('correo_institucional')<span class="invalid-feedback"><strong>{{ $message }}</strong></span>@enderror
+                            </div>
+                            <div class="col-md-4">
+                                <label for="correo_personal" class="fw-bold">Correo Personal</label>
+                                <input type="email" name="correo_personal" id="correo_personal"
+                                       class="form-control @error('correo_personal') is-invalid @enderror"
+                                       value="{{ old('correo_personal') }}" required>
+                                @error('correo_personal')<span class="invalid-feedback"><strong>{{ $message }}</strong></span>@enderror
+                            </div>
+                        </div>
+
+                        <!-- Tercera fila: Categoría, Carácter, Estado -->
+                        <div class="row g-3 mt-3">
+                            <div class="col-md-4">
+                                <label for="categoria" class="fw-bold">Categoría</label>
+                                <select name="categoria" id="categoria"
+                                        class="form-control @error('categoria') is-invalid @enderror" required>
+                                    <option value="" disabled selected>Seleccione categoría</option>
+                                    @foreach($categorias as $cat)
+                                        <option value="{{ $cat }}" {{ old('categoria') == $cat ? 'selected' : '' }}>
+                                            {{ $cat }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('categoria')<span class="invalid-feedback"><strong>{{ $message }}</strong></span>@enderror
+                            </div>
+                            <div class="col-md-4">
+                                <label for="caracter" class="fw-bold">Carácter</label>
+                                <select name="caracter" id="caracter"
+                                        class="form-control @error('caracter') is-invalid @enderror" required>
+                                    <option value="" disabled selected>Seleccione carácter</option>
+                                    @foreach($caracteres as $car)
+                                        <option value="{{ $car }}" {{ old('caracter') == $car ? 'selected' : '' }}>
+                                            {{ $car }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('caracter')<span class="invalid-feedback"><strong>{{ $message }}</strong></span>@enderror
                             </div>
 
-                            <!-- Contraseña -->
+                            {{-- Rol SIN CAMBIOS --}}
                             <div class="col-md-4">
-                                <div class="form-group mb-3">
-                                    <label for="password" class="fw-bold">Contraseña</label>
-                                    <input type="password"
-                                           name="password"
-                                           id="password"
+                                <label for="role" class="fw-bold">Rol</label>
+                                <select name="role" id="role"
+                                        class="form-control @error('role') is-invalid @enderror" required>
+                                    <option value="" disabled selected>Seleccione un rol</option>
+                                    @foreach ($roles as $role)
+                                        <option value="{{ $role->name }}" {{ old('role') == $role->name ? 'selected' : '' }}>
+                                            {{ $role->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('role')<span class="invalid-feedback"><strong>{{ $message }}</strong></span>@enderror
+                            </div>
+                        </div>
+
+                        <!-- Cuarta fila: Área, Foto de Perfil -->
+                        <div class="row g-3 mt-3">
+                            <div class="col-md-6">
+                                <label for="area" class="fw-bold">Área</label>
+                                <input type="text" name="area" id="area"
+                                       class="form-control @error('area') is-invalid @enderror"
+                                       value="{{ old('area') }}">
+                                @error('area')<span class="invalid-feedback"><strong>{{ $message }}</strong></span>@enderror
+                            </div>
+                            <div class="col-md-6">
+                                <label for="foto_perfil" class="fw-bold">Foto de Perfil</label>
+                                <input type="file" name="foto_perfil" id="foto_perfil"
+                                       class="form-control @error('foto_perfil') is-invalid @enderror">
+                                @error('foto_perfil')<span class="invalid-feedback"><strong>{{ $message }}</strong></span>@enderror
+                            </div>
+                        </div>
+
+                        <!-- Quinta fila: Rol, Contraseña, Confirmación -->
+                        <div class="row g-3 mt-3">
+                            
+                            {{-- NUEVO input-group con botón Generar --}}
+                            <div class="col-md-6">
+                                <label class="fw-bold">Contraseña</label>
+                                <div class="input-group">
+                                    <input type="password" name="password" id="password"
                                            class="form-control @error('password') is-invalid @enderror"
-                                           placeholder="Ingrese la contraseña"
-                                           required
-                                           pattern="^(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$"
-                                           title="La contraseña debe tener al menos 8 caracteres, incluir un dígito y un carácter especial.">
-                                    <small class="form-text text-muted mt-1">
-                                        La contraseña debe tener al menos 8 caracteres, un dígito y un carácter especial.
-                                    </small>
-
-                                    @error('password')
-                                        <span class="invalid-feedback" role="alert">
-                                            <strong>{{ $message }}</strong>
-                                        </span>
-                                    @enderror
+                                           placeholder="Ingrese o genere una contraseña" required>
+                                    <button type="button" class="btn btn-outline-secondary" id="btnGenerate">
+                                        <i class="fa-solid fa-key"></i>
+                                    </button>
                                 </div>
+                                @error('password')<span class="invalid-feedback"><strong>{{ $message }}</strong></span>@enderror
                             </div>
 
-                            <!-- Confirmar Contraseña -->
-                            <div class="col-md-4">
-                                <div class="form-group mb-3">
-                                    <label for="password_confirmation" class="fw-bold">Repetir Contraseña</label>
-                                    <input type="password"
-                                           name="password_confirmation"
-                                           id="password_confirmation"
-                                           class="form-control"
-                                           placeholder="Confirme la contraseña"
-                                           required>
-                                </div>
+                            {{-- Confirmación SIN CAMBIOS --}}
+                            <div class="col-md-6">
+                                <label for="password_confirmation" class="fw-bold">Repetir Contraseña</label>
+                                <input type="password" name="password_confirmation" id="password_confirmation"
+                                       class="form-control" required>
                             </div>
                         </div>
 
-                        <hr>
+
+                        <hr class="mt-4">
 
                         <!-- Botones -->
-                        <div class="row g-3">
-                            <div class="col-md-12 text-end">
+                        <div class="row">
+                            <div class="col text-end">
                                 <button type="submit" class="btn btn-primary me-2">
                                     <i class="fa-solid fa-check"></i> Registrar
                                 </button>
@@ -155,11 +169,13 @@
                             </div>
                         </div>
                     </form>
+
                 </div>
             </div>
         </div>
     </div>
 @stop
+
 
 @section('styles')
     <style>
@@ -174,6 +190,37 @@
 @stop
 
 @section('scripts')
+    <script>
+        function genPass(len = 12) {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+~';
+            let pass = '';
+            const arr = new Uint32Array(len);
+            crypto.getRandomValues(arr);
+            for (let i = 0; i < len; i++) pass += chars[arr[i] % chars.length];
+            return pass;
+        }
+
+        document.getElementById('btnGenerate').addEventListener('click', () => {
+            const p = genPass(12);
+            document.getElementById('password').value = p;
+            document.getElementById('password_confirmation').value = p;
+
+            Swal.fire({
+                icon: 'info',
+                title: 'Contraseña generada',
+                html: `<code style="user-select:all">${p}</code>`,
+                showCancelButton: true,
+                confirmButtonText: 'Copiar',
+                cancelButtonText: 'Cerrar'
+            }).then(r => {
+                if (r.isConfirmed) {
+                    navigator.clipboard.writeText(p);
+                    Swal.fire({ icon: 'success', title: '¡Copiada!' });
+                }
+            });
+        });
+    </script>
+
     <script>
         $(document).ready(function(){
             @if ($errors->any())

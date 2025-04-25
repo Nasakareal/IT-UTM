@@ -2,9 +2,9 @@
   "ExpandedNodes": [
     "",
     "\\resources",
-    "\\resources\\views",
-    "\\resources\\views\\layouts"
+    "\\resources\\css",
+    "\\resources\\views"
   ],
-  "SelectedNode": "\\resources\\views\\layouts\\app.blade.php",
+  "SelectedNode": "\\resources\\css\\app.css",
   "PreviewInSolutionExplorer": false
 }

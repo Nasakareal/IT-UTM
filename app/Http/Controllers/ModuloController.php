@@ -32,13 +32,15 @@ class ModuloController extends Controller
             'color'       => 'nullable|string|max:7',
             'descripcion' => 'nullable|string',
             'link'        => 'nullable|url',
-            'seccion_id'  => 'required|exists:seccions,id'
+            'seccion_id'  => 'required|exists:seccions,id',
+            'icono'       => 'nullable|string|max:125',
         ]);
 
         Modulo::create($data);
 
         return redirect()->route('modulos.index')->with('success', 'Módulo creado correctamente.');
     }
+
 
     // Muestra un módulo en detalle
     public function show(Modulo $modulo)
@@ -81,13 +83,15 @@ class ModuloController extends Controller
             'color'       => 'nullable|string|max:7',
             'descripcion' => 'nullable|string',
             'link'        => 'nullable|url',
-            'seccion_id'  => 'required|exists:seccions,id'
+            'seccion_id'  => 'required|exists:seccions,id',
+            'icono'       => 'nullable|string|max:125',
         ]);
 
         $modulo->update($data);
 
         return redirect()->route('modulos.index')->with('success', 'Módulo actualizado correctamente.');
     }
+
 
     // Elimina el módulo de la base de datos
     public function destroy(Modulo $modulo)

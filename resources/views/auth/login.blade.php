@@ -125,40 +125,58 @@
                 <div class="card-body login-card-body">
                     <p class="login-box-msg">Inicia sesión</p>
 
-                    @if ($errors->any())
+                    @if ($errors->has('correo_institucional'))
                         <div class="alert alert-danger">
-                            <ul>
-                                @foreach ($errors->all() as $error)
-                                    <li>{{ $error }}</li>
-                                @endforeach
-                            </ul>
+                            {{ $errors->first('correo_institucional') }}
+                        </div>
+                    @endif
+                    @if ($errors->has('password'))
+                        <div class="alert alert-danger">
+                            {{ $errors->first('password') }}
                         </div>
                     @endif
 
                     <form action="{{ route('login') }}" method="POST">
                         @csrf
                         <div class="input-group mb-3">
-                            <input type="email" name="email" class="form-control" placeholder="Correo electrónico" required>
+                            <input
+                                type="email"
+                                name="correo_institucional"
+                                class="form-control @error('correo_institucional') is-invalid @enderror"
+                                placeholder="Correo Institucional"
+                                value="{{ old('correo_institucional') }}"
+                                required>
                             <div class="input-group-append">
                                 <div class="input-group-text">
                                     <span class="fas fa-envelope"></span>
                                 </div>
                             </div>
+                            @error('correo_institucional')
+                                <span class="invalid-feedback"><strong>{{ $message }}</strong></span>
+                            @enderror
                         </div>
 
                         <div class="input-group mb-3">
-                            <input type="password" name="password" class="form-control" placeholder="Contraseña" required>
+                            <input
+                                type="password"
+                                name="password"
+                                class="form-control @error('password') is-invalid @enderror"
+                                placeholder="Contraseña"
+                                required>
                             <div class="input-group-append">
                                 <div class="input-group-text">
                                     <span class="fas fa-lock"></span>
                                 </div>
                             </div>
+                            @error('password')
+                                <span class="invalid-feedback"><strong>{{ $message }}</strong></span>
+                            @enderror
                         </div>
 
                         <div class="row">
                             <div class="col-8">
                                 <div class="icheck-primary">
-                                    <input type="checkbox" name="remember" id="remember">
+                                    <input type="checkbox" name="remember" id="remember" {{ old('remember') ? 'checked' : '' }}>
                                     <label for="remember">Recordarme</label>
                                 </div>
                             </div>

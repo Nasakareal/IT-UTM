@@ -8,7 +8,6 @@
 
 @section('content')
     <div class="row justify-content-center">
-        <!-- col-md-10 offset-md-1 = más ancho del card -->
         <div class="col-md-10 offset-md-1"> 
             <div class="card card-outline card-primary mb-4">
                 <div class="card-header">
@@ -17,23 +16,16 @@
                 <div class="card-body">
                     <form action="{{ route('modulos.store') }}" method="POST">
                         @csrf
+                        
                         <!-- Primera fila: Título, Año, Categoría -->
                         <div class="row g-3">
                             <!-- Título -->
                             <div class="col-md-4">
                                 <div class="form-group mb-3">
                                     <label for="titulo" class="fw-bold">Título del Módulo</label>
-                                    <input type="text"
-                                           name="titulo"
-                                           id="titulo"
-                                           class="form-control @error('titulo') is-invalid @enderror"
-                                           value="{{ old('titulo') }}"
-                                           placeholder="Ingrese el título"
-                                           required>
+                                    <input type="text" name="titulo" id="titulo" class="form-control @error('titulo') is-invalid @enderror" value="{{ old('titulo') }}" placeholder="Ingrese el título" required>
                                     @error('titulo')
-                                        <span class="invalid-feedback" role="alert">
-                                            <strong>{{ $message }}</strong>
-                                        </span>
+                                        <span class="invalid-feedback"><strong>{{ $message }}</strong></span>
                                     @enderror
                                 </div>
                             </div>
@@ -42,16 +34,9 @@
                             <div class="col-md-4">
                                 <div class="form-group mb-3">
                                     <label for="anio" class="fw-bold">Año</label>
-                                    <input type="text"
-                                           name="anio"
-                                           id="anio"
-                                           class="form-control @error('anio') is-invalid @enderror"
-                                           value="{{ old('anio') }}"
-                                           placeholder="Ingrese el año">
+                                    <input type="text" name="anio" id="anio" class="form-control @error('anio') is-invalid @enderror" value="{{ old('anio') }}" placeholder="Ingrese el año">
                                     @error('anio')
-                                        <span class="invalid-feedback" role="alert">
-                                            <strong>{{ $message }}</strong>
-                                        </span>
+                                        <span class="invalid-feedback"><strong>{{ $message }}</strong></span>
                                     @enderror
                                 </div>
                             </div>
@@ -60,27 +45,18 @@
                             <div class="col-md-4">
                                 <div class="form-group mb-3">
                                     <label for="categoria" class="fw-bold">Categoría</label>
-                                    <input type="text"
-                                           name="categoria"
-                                           id="categoria"
-                                           class="form-control @error('categoria') is-invalid @enderror"
-                                           value="{{ old('categoria') }}"
-                                           placeholder="Ingrese la categoría"
-                                           required>
+                                    <input type="text" name="categoria" id="categoria" class="form-control @error('categoria') is-invalid @enderror" value="{{ old('categoria') }}" placeholder="Ingrese la categoría" required>
                                     @error('categoria')
-                                        <span class="invalid-feedback" role="alert">
-                                            <strong>{{ $message }}</strong>
-                                        </span>
+                                        <span class="invalid-feedback"><strong>{{ $message }}</strong></span>
                                     @enderror
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Segunda fila: Color, Sección (opcional) -->
+                        <!-- Segunda fila: Sección, Descripción -->
                         <div class="row g-3">
-                            
                             <!-- Sección -->
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <div class="form-group mb-3">
                                     <label for="seccion_id" class="fw-bold">Sección</label>
                                     <select name="seccion_id" id="seccion_id" class="form-control @error('seccion_id') is-invalid @enderror">
@@ -92,32 +68,43 @@
                                         @endforeach
                                     </select>
                                     @error('seccion_id')
-                                        <span class="invalid-feedback" role="alert">
-                                            <strong>{{ $message }}</strong>
-                                        </span>
+                                        <span class="invalid-feedback"><strong>{{ $message }}</strong></span>
                                     @enderror
                                 </div>
                             </div>
-                             <!-- Descripción -->
-                            <div class="col-md-8">
+
+                            <div class="col-md-6">
                                 <div class="form-group mb-3">
-                                    <label for="descripcion" class="fw-bold">Descripción</label>
-                                    <textarea name="descripcion"
-                                              id="descripcion"
-                                              class="form-control @error('descripcion') is-invalid @enderror"
-                                              placeholder="Ingrese la descripción">{{ old('descripcion') }}</textarea>
-                                    @error('descripcion')
-                                        <span class="invalid-feedback" role="alert">
-                                            <strong>{{ $message }}</strong>
-                                        </span>
+                                    <label for="icono" class="fw-bold">Ícono del Módulo</label>
+                                    <select name="icono" id="icono" class="form-control @error('icono') is-invalid @enderror">
+                                        <option value="" disabled selected>Seleccione un ícono</option>
+                                        <option value="fa-lightbulb" {{ old('icono') == 'fa-lightbulb' ? 'selected' : '' }}>💡 Académico</option>
+                                        <option value="fa-briefcase" {{ old('icono') == 'fa-briefcase' ? 'selected' : '' }}>💼 Administrativo</option>
+                                        <option value="fa-chart-pie" {{ old('icono') == 'fa-chart-pie' ? 'selected' : '' }}>📊 Presupuestario</option>
+                                        <option value="fa-users" {{ old('icono') == 'fa-users' ? 'selected' : '' }}>👥 Estudiantil</option>
+                                        <option value="fa-flask" {{ old('icono') == 'fa-flask' ? 'selected' : '' }}>🧪 Laboratorio</option>
+                                        <option value="fa-graduation-cap" {{ old('icono') == 'fa-graduation-cap' ? 'selected' : '' }}>🎓 Docencia</option>
+                                        <option value="fa-building-columns" {{ old('icono') == 'fa-building-columns' ? 'selected' : '' }}>🏛️ Institucional</option>
+                                    </select>
+                                    @error('icono')
+                                        <span class="invalid-feedback"><strong>{{ $message }}</strong></span>
                                     @enderror
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Tercera fila: Descripción y Link -->
+                        <!-- Tercera fila: Color, Link, Icono -->
                         <div class="row g-3">
-                           
+
+                        <div class="col-md-12">
+                                <div class="form-group mb-3">
+                                    <label for="descripcion" class="fw-bold">Descripción</label>
+                                    <textarea name="descripcion" id="descripcion" class="form-control @error('descripcion') is-invalid @enderror" placeholder="Ingrese la descripción">{{ old('descripcion') }}</textarea>
+                                    @error('descripcion')
+                                        <span class="invalid-feedback"><strong>{{ $message }}</strong></span>
+                                    @enderror
+                                </div>
+                            </div>
                         </div>
 
                         <hr>
@@ -139,6 +126,7 @@
         </div>
     </div>
 @stop
+
 
 @section('styles')
     <style>

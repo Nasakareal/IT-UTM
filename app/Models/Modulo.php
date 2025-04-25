@@ -16,7 +16,8 @@ class Modulo extends Model
         'color',
         'descripcion',
         'link',
-        'seccion_id'
+        'seccion_id',
+        'icono'
     ];
 
     public function seccion()

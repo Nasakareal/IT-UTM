@@ -15,25 +15,41 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        // Validar los datos ingresados
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required'
+        // Validar el formulario
+        $data = $request->validate([
+            'correo_institucional' => 'required|email',
+            'password'             => 'required|string',
         ]);
 
-        // Intentar autenticar al usuario
-        if (Auth::attempt(['email' => $request->email, 'password' => $request->password], $request->remember)) {
+        // Intentar autenticar
+        if (Auth::attempt([
+                'correo_institucional' => $data['correo_institucional'],
+                'password'             => $data['password'],
+            ], $request->filled('remember'))
+        ) {
+            // Regenera sesión para evitar fijación de sesión
+            $request->session()->regenerate();
+
             return redirect()->intended('/home');
         }
 
+        // Si falla, lanza excepción con mensaje
         throw ValidationException::withMessages([
-            'email' => ['Las credenciales no coinciden con nuestros registros.']
+            'correo_institucional' => ['Las credenciales no coinciden con nuestros registros.'],
         ]);
     }
 
-    public function logout()
+    /**
+     * Cierra la sesión del usuario.
+     */
+    public function logout(Request $request)
     {
         Auth::logout();
-        return redirect('/login');
+
+        // Invalidar y regenerar token CSRF
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('login.form');
     }
 }
