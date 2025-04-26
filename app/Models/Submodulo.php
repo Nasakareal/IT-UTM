@@ -13,7 +13,10 @@ class Submodulo extends Model
         'subsection_id', 
         'titulo', 
         'descripcion', 
+        'documento_solicitado',
+        'fecha_apertura',
         'fecha_limite', 
+        'fecha_cierre',
         'estatus', 
         'acuse_pdf', 
         'documento_url'
@@ -33,5 +36,4 @@ class Submodulo extends Model
     {
         return $this->hasMany(\App\Models\SubmoduloUsuario::class);
     }
-
 }

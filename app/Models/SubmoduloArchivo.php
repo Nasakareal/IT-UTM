@@ -12,8 +12,10 @@ class SubmoduloArchivo extends Model
     protected $fillable = [
         'submodulo_id',
         'user_id',
-        'nombre', 
-        'ruta'
+        'nombre',
+        'ruta',
+        'firma_sat',
+        'fecha_firma'
     ];
 
     public function submodulo()

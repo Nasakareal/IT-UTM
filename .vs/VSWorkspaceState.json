@@ -1,10 +1,16 @@
 {
   "ExpandedNodes": [
     "",
+    "\\app",
+    "\\app\\Http",
+    "\\app\\Http\\Controllers",
+    "\\app\\Models",
     "\\resources",
-    "\\resources\\css",
-    "\\resources\\views"
+    "\\resources\\views",
+    "\\resources\\views\\modulos",
+    "\\resources\\views\\settings",
+    "\\resources\\views\\settings\\submodulos"
   ],
-  "SelectedNode": "\\resources\\css\\app.css",
+  "SelectedNode": "\\resources\\views\\settings\\submodulos\\index.blade.php",
   "PreviewInSolutionExplorer": false
 }

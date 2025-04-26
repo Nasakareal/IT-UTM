@@ -37,7 +37,6 @@
                                 <th><center>Título</center></th>
                                 <th><center>Subsección</center></th>
                                 <th><center>Fecha Límite</center></th>
-                                <th><center>Estado</center></th>
                                 <th><center>Fecha de Creación</center></th>
                                 <th><center>Acciones</center></th>
                             </tr>
@@ -51,15 +50,6 @@
                                     <td style="text-align: center">{{ $submodulo->subsection->nombre ?? 'Sin subsección' }}</td>
                                     <td style="text-align: center" class="{{ now()->gt($submodulo->fecha_limite) ? 'text-danger' : '' }}">
                                         {{ $submodulo->fecha_limite ? \Carbon\Carbon::parse($submodulo->fecha_limite)->format('d-m-Y') : 'Sin fecha' }}
-                                    </td>
-                                    <td style="text-align: center">
-                                        <span class="badge 
-                                            @if($submodulo->estatus == 'pendiente') bg-warning
-                                            @elseif($submodulo->estatus == 'entregado') bg-success
-                                            @else bg-danger
-                                            @endif">
-                                            {{ ucfirst($submodulo->estatus) }}
-                                        </span>
                                     </td>
                                     <td style="text-align: center">{{ $submodulo->created_at->format('d-m-Y') }}</td>
                                     <td style="text-align: center">

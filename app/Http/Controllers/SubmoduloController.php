@@ -8,12 +8,20 @@ use App\Models\SubmoduloUsuario;
 use App\Models\Subsection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class SubmoduloController extends Controller
 {
     public function index()
     {
+        Submodulo::whereNotNull('fecha_cierre')
+                  ->where('fecha_cierre', '<', Carbon::now())
+                  ->where('estatus', '!=', 'Incumplimiento')
+                  ->update(['estatus' => 'Incumplimiento']);
+
+        // 2) Carga la lista
         $submodulos = Submodulo::with('subsection')->get();
+
         return view('settings.submodulos.index', compact('submodulos'));
     }
 
@@ -26,21 +34,43 @@ class SubmoduloController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'titulo'        => 'required|string|max:255',
-            'descripcion'   => 'nullable|string',
-            'fecha_limite'  => 'nullable|date',
-            'subsection_id' => 'required|exists:subsections,id'
+            'subsection_id'        => 'required|exists:subsections,id',
+            'titulo'               => 'required|string|max:125',
+            'descripcion'          => 'nullable|string',
+            'documento_solicitado' => 'required|file|mimes:pdf,doc,docx|max:2048',
+            'fecha_apertura'       => 'nullable|date|before_or_equal:fecha_cierre',
+            'fecha_limite'         => 'nullable|date',
+            'fecha_cierre'         => 'nullable|date|after_or_equal:fecha_apertura',
         ]);
 
-        Submodulo::create($data);
+        // guarda el archivo en disco y sobreescribe el campo con la ruta
+        if ($request->hasFile('documento_solicitado')) {
+            $ruta = $request->file('documento_solicitado')
+                            ->store('plantillas', 'public');
+            $data['documento_solicitado'] = $ruta;
+        }
 
-        return redirect()->route('submodulos.index')
-                         ->with('success', 'Submódulo creado correctamente.');
+        // inyecta estatus por defecto
+        $data['estatus']   = 'pendiente';
+        $data['acuse_pdf'] = null;
+
+        $submodulo = Submodulo::create($data);
+
+        // chequeo de vencimiento
+        if ($submodulo->fecha_cierre && now()->gt($submodulo->fecha_cierre)) {
+            $submodulo->update(['estatus' => 'Incumplimiento']);
+        }
+
+        return redirect()
+            ->route('submodulos.index')
+            ->with('success', 'Submódulo creado correctamente.');
     }
+
+
 
     public function show(Submodulo $submodulo)
     {
-        return view('submodulos.show', compact('submodulo'));
+        return view('settings.submodulos.show', compact('submodulo'));
     }
 
     public function edit(Submodulo $submodulo)
@@ -52,70 +82,82 @@ class SubmoduloController extends Controller
     public function update(Request $request, Submodulo $submodulo)
     {
         $data = $request->validate([
-            'titulo'        => 'required|string|max:255',
-            'descripcion'   => 'nullable|string',
-            'fecha_limite'  => 'nullable|date',
-            'subsection_id' => 'required|exists:subsections,id'
+            'subsection_id'        => 'required|exists:subsections,id',
+            'titulo'               => 'required|string|max:125',
+            'descripcion'          => 'nullable|string',
+            'documento_solicitado' => 'nullable|string|max:125',
+            'fecha_apertura'       => 'nullable|date|before_or_equal:fecha_cierre',
+            'fecha_limite'         => 'nullable|date',
+            'fecha_cierre'         => 'nullable|date|after_or_equal:fecha_apertura',
         ]);
 
         $submodulo->update($data);
 
-        return redirect()->route('submodulos.index')
-                         ->with('success', 'Submódulo actualizado correctamente.');
-    }
+        if ($submodulo->fecha_cierre && now()->gt($submodulo->fecha_cierre)) {
+            $submodulo->update(['estatus' => 'Incumplimiento']);
+        }
+
+        return redirect()
+            ->route('submodulos.index')
+            ->with('success', 'Submódulo actualizado correctamente.');
+}
+
 
     public function destroy(Submodulo $submodulo)
     {
         $submodulo->delete();
-
-        return redirect()->route('submodulos.index')
-                         ->with('success', 'Submódulo eliminado correctamente.');
+        return redirect()
+            ->route('submodulos.index')
+            ->with('success', 'Submódulo eliminado correctamente.');
     }
 
     public function subirArchivos(Request $request)
     {
         $request->validate([
-            'submodulo_id'         => 'required|exists:submodulos,id',
-            'oficio_entrega'       => 'required|file|mimes:pdf|max:2048',
-            'programa_austeridad'  => 'required|file|mimes:pdf|max:12288',
+            'submodulo_id'        => 'required|exists:submodulos,id',
+            'oficio_entrega'      => 'nullable|file|mimes:pdf|max:2048',
+            'programa_austeridad' => 'nullable|file|mimes:pdf|max:12288',
         ]);
 
         $submodulo = Submodulo::findOrFail($request->submodulo_id);
 
+        // Oficio de entrega
         if ($request->hasFile('oficio_entrega')) {
-            $pathOficio = $request->file('oficio_entrega')->store('submodulos', 'public');
-
+            $path = $request->file('oficio_entrega')->store('submodulos', 'public');
             SubmoduloArchivo::create([
                 'submodulo_id' => $submodulo->id,
                 'user_id'      => Auth::id(),
                 'nombre'       => 'oficio_entrega',
-                'ruta'         => $pathOficio,
+                'ruta'         => $path,
             ]);
         }
 
+        // Programa de austeridad
         if ($request->hasFile('programa_austeridad')) {
-            $pathPrograma = $request->file('programa_austeridad')->store('submodulos', 'public');
-
+            $path = $request->file('programa_austeridad')->store('submodulos', 'public');
             SubmoduloArchivo::create([
                 'submodulo_id' => $submodulo->id,
                 'user_id'      => Auth::id(),
                 'nombre'       => 'programa_austeridad',
-                'ruta'         => $pathPrograma,
+                'ruta'         => $path,
             ]);
         }
 
+        // Marca usuario como “Entregado”
         $submoduloUsuario = SubmoduloUsuario::updateOrCreate(
             [
                 'user_id'      => Auth::id(),
                 'submodulo_id' => $submodulo->id,
             ],
             [
-                'estatus' => 'Entregado'
+                'estatus' => 'Entregado',
             ]
         );
 
-        $acuse_pdf = 'submodulos/acuse_ejemplo.pdf';
-        $acuseUrl = asset('storage/' . $acuse_pdf);
+        // Devuelve JSON con URLs
+        $acuseUrl = $submodulo->acuse_pdf
+            ? asset('storage/' . $submodulo->acuse_pdf)
+            : null;
 
         return response()->json([
             'success'   => true,
@@ -130,20 +172,15 @@ class SubmoduloController extends Controller
             $q->where('user_id', Auth::id());
         }])->findOrFail($id);
 
-        $oficio = $submodulo->archivos->where('nombre', 'oficio_entrega')->first();
-        $programa = $submodulo->archivos->where('nombre', 'programa_austeridad')->first();
+        $oficio   = $submodulo->archivos->firstWhere('nombre', 'oficio_entrega');
+        $programa = $submodulo->archivos->firstWhere('nombre', 'programa_austeridad');
 
-        if (!$oficio && $submodulo->oficio_pdf) {
-            $oficio = (object)[ 'ruta' => $submodulo->oficio_pdf ];
-        }
-        if (!$programa && $submodulo->programa_pdf) {
-            $programa = (object)[ 'ruta' => $submodulo->programa_pdf ];
-        }
-
-        $acuseUrl = $submodulo->acuse_pdf ? asset('storage/' . $submodulo->acuse_pdf) : null;
+        $acuseUrl = $submodulo->acuse_pdf
+            ? asset('storage/' . $submodulo->acuse_pdf)
+            : null;
 
         return response()->json([
-            'oficio_url'   => $oficio ? asset('storage/' . $oficio->ruta) : null,
+            'oficio_url'   => $oficio   ? asset('storage/' . $oficio->ruta)   : null,
             'programa_url' => $programa ? asset('storage/' . $programa->ruta) : null,
             'acuse_url'    => $acuseUrl,
         ]);

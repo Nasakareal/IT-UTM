@@ -6,40 +6,46 @@ use Illuminate\Http\Request;
 use App\Models\SubmoduloArchivo;
 use App\Models\Submodulo;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class SubmoduloArchivoController extends Controller
 {
-    // Almacena un nuevo archivo asociado a un submódulo
     public function store(Request $request, $submodulo_id)
     {
         $request->validate([
-            'archivo' => 'required|file|mimes:pdf,doc,docx,xls,xlsx|max:2048'
+            'archivo'     => 'required|file|mimes:pdf,doc,docx,xls,xlsx|max:2048',
+            'firma_sat'   => 'nullable|string',
         ]);
 
         $submodulo = Submodulo::findOrFail($submodulo_id);
-
-        // Guardar el archivo en storage
         $path = $request->file('archivo')->store('submodulos', 'public');
 
-        // Guardar en la base de datos
-        SubmoduloArchivo::create([
+        $data = [
             'submodulo_id' => $submodulo->id,
-            'nombre' => $request->file('archivo')->getClientOriginalName(),
-            'ruta' => $path
-        ]);
+            'user_id'      => Auth::id(),
+            'nombre'       => $request->file('archivo')->getClientOriginalName(),
+            'ruta'         => $path,
+        ];
 
-        return redirect()->route('submodulos.show', $submodulo_id)
+        if ($request->filled('firma_sat')) {
+            $data['firma_sat']  = $request->input('firma_sat');
+            $data['fecha_firma'] = Carbon::now();
+        }
+
+        SubmoduloArchivo::create($data);
+
+        return redirect()
+            ->route('submodulos.show', $submodulo_id)
             ->with('success', 'Archivo subido correctamente.');
     }
 
-    // Descarga un archivo
     public function download($id)
     {
         $archivo = SubmoduloArchivo::findOrFail($id);
         return Storage::download('public/' . $archivo->ruta, $archivo->nombre);
     }
 
-    // Elimina un archivo
     public function destroy($id)
     {
         $archivo = SubmoduloArchivo::findOrFail($id);
