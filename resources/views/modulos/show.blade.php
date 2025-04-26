@@ -18,7 +18,8 @@
         <!-- Iteramos subsecciones -->
         @foreach($subnivelesPrincipales as $subsec)
             <div class="mb-5">
-                <h2 class="p-2 mb-3 text-white" style="background-color: {{ $modulo->color ?? '#1976d2' }};">
+                <h2 class="p-2 mb-3 text-white"
+                    style="background-color: {{ $modulo->color ?? '#1976d2' }};">
                     {{ strtoupper($subsec->nombre) }}
                 </h2>
 
@@ -26,19 +27,18 @@
                     <div class="row ms-2 mb-4">
                         @foreach($subsec->submodulos as $submodulo)
                             @php
-                                // Buscar si el usuario ya subió los archivos en este submódulo
-                                $archivoOficio = $submodulo->archivos->where('nombre', 'oficio_entrega')->first();
+                                $archivoOficio   = $submodulo->archivos->where('nombre', 'oficio_entrega')->first();
                                 $archivoPrograma = $submodulo->archivos->where('nombre', 'programa_austeridad')->first();
-                                // Obtener el registro en la tabla intermedia (submodulo_usuario) para el usuario actual
-                                $estadoUsuario = $submodulo->submoduloUsuarios->where('user_id', Auth::id())->first();
-                                // Si el usuario ya tiene registro, usamos su estatus; de lo contrario, usamos el global
-                                $estadoMostrar = $estadoUsuario ? $estadoUsuario->estatus : $submodulo->estatus;
+                                $estadoUsuario   = $submodulo->submoduloUsuarios->where('user_id', Auth::id())->first();
+                                $estadoMostrar   = $estadoUsuario ? $estadoUsuario->estatus : $submodulo->estatus;
                             @endphp
 
                             <div class="col-md-6 col-lg-4 mb-3">
-                                <div class="card shadow-sm border-0" style="border-radius: 10px; overflow: hidden;">
+                                <div class="card shadow-sm border-0"
+                                     style="border-radius: 10px; overflow: hidden;">
                                     <!-- Encabezado -->
-                                    <div class="card-header text-white text-center fw-bold" style="background-color: #009688;">
+                                    <div class="card-header text-white text-center fw-bold"
+                                         style="background-color: {{ $modulo->color ?? '#009688' }};">
                                         {{ $submodulo->titulo }}
                                     </div>
 
@@ -49,14 +49,39 @@
                                         </p>
                                         <p class="mb-1 text-muted">
                                             <strong>Estatus:</strong>
-                                            <span class="{{ strtolower($estadoMostrar) == 'pendiente' ? 'text-warning' : (strtolower($estadoMostrar) == 'entregado' ? 'text-success' : 'text-danger') }}">
+                                            <span class="
+                                                {{ strtolower($estadoMostrar)=='pendiente'   ? 'text-warning'
+                                                  : (strtolower($estadoMostrar)=='entregado' ? 'text-success'
+                                                  : 'text-danger') }}
+                                            ">
                                                 {{ ucfirst($estadoMostrar) }}
                                             </span>
                                         </p>
+
+                                        @if($submodulo->fecha_apertura)
+                                            <p class="mb-1 text-muted">
+                                                <strong>Fecha Apertura:</strong>
+                                                {{ $submodulo->fecha_apertura->format('Y-m-d H:i') }}
+                                            </p>
+                                        @endif
                                         @if($submodulo->fecha_limite)
-                                            <p class="mb-2 text-muted">
-                                                <strong>Fecha de entrega:</strong>
-                                                {{ \Carbon\Carbon::parse($submodulo->fecha_limite)->format('Y-m-d H:i:s') }}
+                                            <p class="mb-1 text-muted">
+                                                <strong>Fecha Límite:</strong>
+                                                {{ $submodulo->fecha_limite->format('Y-m-d H:i') }}
+                                            </p>
+                                        @endif
+                                        @if($submodulo->fecha_cierre)
+                                            <p class="mb-1 text-muted">
+                                                <strong>Fecha Cierre:</strong>
+                                                {{ $submodulo->fecha_cierre->format('Y-m-d H:i') }}
+                                            </p>
+                                        @endif
+
+                                        @if($submodulo->documento_solicitado)
+                                            <p class="mb-2">
+                                                <strong>Plantilla base:</strong>
+                                                <a href="{{ asset('storage/' . $submodulo->documento_solicitado) }}"
+                                                   target="_blank">Descargar plantilla</a>
                                             </p>
                                         @endif
                                     </div>
@@ -64,16 +89,19 @@
                                     <!-- Pie con botón de acción -->
                                     <div class="card-footer text-center bg-light">
                                         <button class="btn btn-info text-white ver-detalle-submodulo"
-                                            data-bs-toggle="modal" 
+                                            data-bs-toggle="modal"
                                             data-bs-target="#detalleSubmoduloModal"
                                             data-id="{{ $submodulo->id }}"
                                             data-titulo="{{ $submodulo->titulo }}"
                                             data-descripcion="{{ $submodulo->descripcion }}"
                                             data-estatus="{{ ucfirst($estadoMostrar) }}"
-                                            data-fecha="{{ $submodulo->fecha_limite ? \Carbon\Carbon::parse($submodulo->fecha_limite)->format('Y-m-d H:i:s') : 'No definida' }}"
+                                            data-fecha-apertura="{{ $submodulo->fecha_apertura? $submodulo->fecha_apertura->format('Y-m-d H:i') : '' }}"
+                                            data-fecha-limite="{{ $submodulo->fecha_limite? $submodulo->fecha_limite->format('Y-m-d H:i') : '' }}"
+                                            data-fecha-cierre="{{ $submodulo->fecha_cierre? $submodulo->fecha_cierre->format('Y-m-d H:i') : '' }}"
+                                            data-base="{{ $submodulo->documento_solicitado? asset('storage/' . $submodulo->documento_solicitado) : '' }}"
                                             data-acuse="{{ route('submodulos.generarAcuse', $submodulo->id) }}"
-                                            data-oficio="{{ $archivoOficio ? asset('storage/' . $archivoOficio->ruta) : '' }}"
-                                            data-programa="{{ $archivoPrograma ? asset('storage/' . $archivoPrograma->ruta) : '' }}">
+                                            data-oficio="{{ $archivoOficio? asset('storage/' . $archivoOficio->ruta) : '' }}"
+                                            data-programa="{{ $archivoPrograma? asset('storage/' . $archivoPrograma->ruta) : '' }}">
                                             <i class="fa fa-info-circle"></i> Detalles
                                         </button>
                                     </div>
@@ -106,21 +134,32 @@
 @endsection
 
 <!-- Modal para ver detalles del submódulo -->
-<div class="modal fade" id="detalleSubmoduloModal" tabindex="-1" aria-labelledby="detalleSubmoduloModalLabel" style="display: none;">
+<div class="modal fade" id="detalleSubmoduloModal" tabindex="-1"
+     aria-labelledby="detalleSubmoduloModalLabel" style="display: none;">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <!-- Encabezado -->
             <div class="modal-header">
                 <h5 class="modal-title" id="detalleSubmoduloModalLabel"></h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                <button type="button" class="btn-close"
+                        data-bs-dismiss="modal" aria-label="Cerrar"></button>
             </div>
 
             <!-- Cuerpo -->
             <div class="modal-body">
                 <p><strong>Estatus:</strong> <span id="modalEstatus"></span></p>
-                <p><strong>Fecha de entrega:</strong> <span id="modalFecha"></span></p>
+                <p><strong>Fecha Apertura:</strong> <span id="modalFechaApertura"></span></p>
+                <p><strong>Fecha Límite:</strong> <span id="modalFechaLimite"></span></p>
+                <p><strong>Fecha Cierre:</strong> <span id="modalFechaCierre"></span></p>
                 <p><strong>Descripción:</strong></p>
                 <p id="modalDescripcion"></p>
+
+                <!-- Enlace plantilla base -->
+                <div id="plantillaContainer" style="display:none;">
+                    <p><strong>Plantilla base:</strong>
+                        <a id="linkPlantilla" href="#" target="_blank">Descargar plantilla</a>
+                    </p>
+                </div>
 
                 <!-- Área para mostrar archivos ya subidos (descarga) -->
                 <div id="archivosExistentes" style="display:none;">
@@ -133,27 +172,52 @@
                 </div>
 
                 <!-- FORMULARIO PARA SUBIR LOS DOS PDFs -->
-                <form id="formSubirArchivos" action="{{ route('submodulos.subirArchivos') }}" method="POST" enctype="multipart/form-data" style="display:none;">
+                <form id="formSubirArchivos"
+                      action="{{ route('submodulos.subirArchivos') }}"
+                      method="POST"
+                      enctype="multipart/form-data"
+                      style="display:none;">
                     @csrf
                     <input type="hidden" name="submodulo_id" id="submodulo_id">
-                    <div id="inputOficio" class="mb-3">
+
+                    <div class="mb-3">
                         <label for="oficio_entrega" class="form-label">
                             1. Oficio de entrega (PDF máx. 2Mb):
                         </label>
                         <input type="file" class="form-control" id="oficio_entrega" name="oficio_entrega" accept=".pdf">
                     </div>
-                    <div id="inputPrograma" class="mb-3">
+
+                    <div class="mb-3">
                         <label for="programa_austeridad" class="form-label">
                             2. Programa de Austeridad y Ahorro (PDF máx. 12Mb):
                         </label>
                         <input type="file" class="form-control" id="programa_austeridad" name="programa_austeridad" accept=".pdf">
                     </div>
-                    <button type="submit" class="btn btn-primary" id="btnEnviarArchivos">Enviar</button>
+
+                    <!-- NUEVOS CAMPOS PARA E.FIRMA -->
+                    <div class="mb-3">
+                        <label for="efirma_p12" class="form-label">
+                            3. Certificado e.firma (.p12):
+                        </label>
+                        <input type="file" class="form-control" id="efirma_p12" name="efirma_p12" accept=".p12" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="efirma_pass" class="form-label">
+                            Contraseña e.firma:
+                        </label>
+                        <input type="password" class="form-control" id="efirma_pass" name="efirma_pass" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" id="btnEnviarArchivos">
+                        Enviar y Firmar
+                    </button>
                 </form>
+
 
                 <!-- ACUSE: se muestra si existe -->
                 <div class="mt-3" id="acuseContainer" style="display: none;">
-                    <a id="modalAcuse" href="#" target="_blank" class="btn btn-outline-secondary">
+                    <a id="modalAcuse" href="#" target="_blank"
+                       class="btn btn-outline-secondary">
                         <i class="fa fa-file-pdf"></i> Ver Acuse
                     </a>
                 </div>
@@ -161,7 +225,8 @@
 
             <!-- Pie del modal -->
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-secondary"
+                        data-bs-dismiss="modal">Cerrar</button>
             </div>
         </div>
     </div>
@@ -169,15 +234,9 @@
 
 @section('css')
 <style>
-    ul.list-unstyled {
-        font-size: 1.1rem;
-    }
-    ul.list-unstyled li {
-        margin-bottom: 0.5rem;
-    }
-    .folder-toggle {
-        cursor: pointer;
-    }
+    ul.list-unstyled { font-size: 1.1rem; }
+    ul.list-unstyled li { margin-bottom: 0.5rem; }
+    .folder-toggle { cursor: pointer; }
     .card {
         transition: transform 0.2s, box-shadow 0.3s;
     }
@@ -192,37 +251,48 @@
 <script>
     $(document).ready(function() {
         $('.ver-detalle-submodulo').on('click', function() {
-            let submoduloId = $(this).data('id');
-            let titulo      = $(this).data('titulo');
-            let descripcion = $(this).data('descripcion');
-            let estatus     = $(this).data('estatus');
-            let fecha       = $(this).data('fecha');
-            let acuse       = $(this).data('acuse');
-            let oficio      = $(this).data('oficio');
-            let programa    = $(this).data('programa');
+            let titulo      = $(this).data('titulo'),
+                descripcion = $(this).data('descripcion'),
+                estatus     = $(this).data('estatus'),
+                fechaA      = $(this).data('fecha-apertura'),
+                fechaL      = $(this).data('fecha-limite'),
+                fechaC      = $(this).data('fecha-cierre'),
+                base        = $(this).data('base'),
+                acuse       = $(this).data('acuse'),
+                oficio      = $(this).data('oficio'),
+                programa    = $(this).data('programa'),
+                id          = $(this).data('id');
 
             $('#detalleSubmoduloModalLabel').text(titulo);
-            $('#modalDescripcion').text(descripcion ? descripcion : 'No hay descripción.');
+            $('#modalDescripcion').text(descripcion || 'No hay descripción.');
             $('#modalEstatus').text(estatus);
-            $('#modalFecha').text(fecha);
-            $('#submodulo_id').val(submoduloId);
+            $('#modalFechaApertura').text(fechaA || 'No definida');
+            $('#modalFechaLimite').text(fechaL || 'No definida');
+            $('#modalFechaCierre').text(fechaC || 'No definida');
+            $('#submodulo_id').val(id);
 
-            if (acuse && acuse.trim() !== '') {
+            // Plantilla base
+            if (base) {
+                $('#linkPlantilla').attr('href', base);
+                $('#plantillaContainer').show();
+            } else {
+                $('#plantillaContainer').hide();
+            }
+
+            // Acuse
+            if (acuse) {
                 $('#modalAcuse').attr('href', acuse);
                 $('#acuseContainer').show();
             } else {
                 $('#acuseContainer').hide();
             }
 
+            // Archivos entregados
             if (oficio || programa) {
                 $('#formSubirArchivos').hide();
                 $('#archivosExistentes').show();
-                if (oficio) {
-                    $('#linkOficio').attr('href', oficio);
-                }
-                if (programa) {
-                    $('#linkPrograma').attr('href', programa);
-                }
+                if (oficio)   $('#linkOficio').attr('href', oficio);
+                if (programa) $('#linkPrograma').attr('href', programa);
             } else {
                 $('#archivosExistentes').hide();
                 $('#formSubirArchivos').show();
@@ -231,7 +301,8 @@
             $('#detalleSubmoduloModal').modal('show');
         });
 
-        $('#detalleSubmoduloModal .btn-close, #detalleSubmoduloModal .btn-secondary').on('click', function() {
+        $('#detalleSubmoduloModal .btn-close, #detalleSubmoduloModal .btn-secondary')
+          .on('click', function() {
             $('#detalleSubmoduloModal').modal('hide');
         });
 
@@ -246,19 +317,16 @@
                 processData: false,
                 contentType: false,
                 success: function(response) {
-                    if(response.success) {
-                        $('#modalAcuse').attr('href', response.acuse_url);
-                        $('#acuseContainer').show();
-                        $('#formSubirArchivos').hide();
-                        $('#archivosExistentes').show();
-
+                    if (response.success) {
+                        // refrescar modal para mostrar acuse y ocultar form
+                        $('.ver-detalle-submodulo[data-id="'+ response.submodulo_id +'"]').click();
                         alert('Archivos subidos correctamente.');
                     } else {
-                        alert('Ocurrió un error al subir los archivos.');
+                        alert('Error al subir archivos.');
                     }
                 },
-                error: function(xhr, status, error) {
-                    alert('Error al subir los archivos: ' + error);
+                error: function(xhr) {
+                    alert('Error: ' + xhr.responseText);
                 }
             });
         });

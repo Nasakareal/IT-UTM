@@ -5,12 +5,12 @@
     "\\app\\Http",
     "\\app\\Http\\Controllers",
     "\\app\\Models",
+    "\\database",
+    "\\database\\migrations",
     "\\resources",
     "\\resources\\views",
-    "\\resources\\views\\modulos",
-    "\\resources\\views\\settings",
-    "\\resources\\views\\settings\\submodulos"
+    "\\resources\\views\\modulos"
   ],
-  "SelectedNode": "\\resources\\views\\settings\\submodulos\\index.blade.php",
+  "SelectedNode": "\\app\\Http\\Controllers\\SubmoduloController.php",
   "PreviewInSolutionExplorer": false
 }

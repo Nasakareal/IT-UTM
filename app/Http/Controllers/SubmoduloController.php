@@ -8,20 +8,20 @@ use App\Models\SubmoduloUsuario;
 use App\Models\Subsection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
 
 class SubmoduloController extends Controller
 {
     public function index()
     {
+        // Vence automáticamente los submódulos pasados de fecha_cierre
         Submodulo::whereNotNull('fecha_cierre')
-                  ->where('fecha_cierre', '<', Carbon::now())
-                  ->where('estatus', '!=', 'Incumplimiento')
-                  ->update(['estatus' => 'Incumplimiento']);
+            ->where('fecha_cierre', '<', Carbon::now())
+            ->where('estatus', '!=', 'Incumplimiento')
+            ->update(['estatus' => 'Incumplimiento']);
 
-        // 2) Carga la lista
         $submodulos = Submodulo::with('subsection')->get();
-
         return view('settings.submodulos.index', compact('submodulos'));
     }
 
@@ -43,20 +43,19 @@ class SubmoduloController extends Controller
             'fecha_cierre'         => 'nullable|date|after_or_equal:fecha_apertura',
         ]);
 
-        // guarda el archivo en disco y sobreescribe el campo con la ruta
+        // Guarda la plantilla base y almacena la ruta
         if ($request->hasFile('documento_solicitado')) {
-            $ruta = $request->file('documento_solicitado')
-                            ->store('plantillas', 'public');
-            $data['documento_solicitado'] = $ruta;
+            $data['documento_solicitado'] = $request->file('documento_solicitado')
+                ->store('plantillas', 'public');
         }
 
-        // inyecta estatus por defecto
+        // Inyecta valores por defecto
         $data['estatus']   = 'pendiente';
         $data['acuse_pdf'] = null;
 
         $submodulo = Submodulo::create($data);
 
-        // chequeo de vencimiento
+        // Forzar Incumplimiento si ya venció
         if ($submodulo->fecha_cierre && now()->gt($submodulo->fecha_cierre)) {
             $submodulo->update(['estatus' => 'Incumplimiento']);
         }
@@ -65,8 +64,6 @@ class SubmoduloController extends Controller
             ->route('submodulos.index')
             ->with('success', 'Submódulo creado correctamente.');
     }
-
-
 
     public function show(Submodulo $submodulo)
     {
@@ -93,6 +90,7 @@ class SubmoduloController extends Controller
 
         $submodulo->update($data);
 
+        // Revisa vencimiento tras actualización
         if ($submodulo->fecha_cierre && now()->gt($submodulo->fecha_cierre)) {
             $submodulo->update(['estatus' => 'Incumplimiento']);
         }
@@ -100,8 +98,7 @@ class SubmoduloController extends Controller
         return redirect()
             ->route('submodulos.index')
             ->with('success', 'Submódulo actualizado correctamente.');
-}
-
+    }
 
     public function destroy(Submodulo $submodulo)
     {
@@ -111,17 +108,22 @@ class SubmoduloController extends Controller
             ->with('success', 'Submódulo eliminado correctamente.');
     }
 
+    /**
+     * Sube oficio, programa y realiza firma electrónica con e.firma SAT.
+     */
     public function subirArchivos(Request $request)
     {
         $request->validate([
             'submodulo_id'        => 'required|exists:submodulos,id',
             'oficio_entrega'      => 'nullable|file|mimes:pdf|max:2048',
             'programa_austeridad' => 'nullable|file|mimes:pdf|max:12288',
+            'efirma_p12'          => 'required|file|mimes:p12|max:1024',
+            'efirma_pass'         => 'required|string',
         ]);
 
         $submodulo = Submodulo::findOrFail($request->submodulo_id);
 
-        // Oficio de entrega
+        // 1) Guarda los PDFs
         if ($request->hasFile('oficio_entrega')) {
             $path = $request->file('oficio_entrega')->store('submodulos', 'public');
             SubmoduloArchivo::create([
@@ -131,8 +133,6 @@ class SubmoduloController extends Controller
                 'ruta'         => $path,
             ]);
         }
-
-        // Programa de austeridad
         if ($request->hasFile('programa_austeridad')) {
             $path = $request->file('programa_austeridad')->store('submodulos', 'public');
             SubmoduloArchivo::create([
@@ -143,29 +143,68 @@ class SubmoduloController extends Controller
             ]);
         }
 
-        // Marca usuario como “Entregado”
+        // 2) Procesa e.firma SAT (.p12 + pass) y firma el último oficio_entrega
+        $p12Contents = file_get_contents($request->file('efirma_p12')->getRealPath());
+        if (! openssl_pkcs12_read($p12Contents, $certs, $request->efirma_pass)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Certificado e.firma inválido o contraseña incorrecta.'
+            ], 422);
+        }
+
+        $privKey = $certs['pkey'];
+        $cert    = $certs['cert'];
+
+        $archivo = SubmoduloArchivo::where('submodulo_id', $submodulo->id)
+            ->where('nombre', 'oficio_entrega')
+            ->latest()
+            ->first();
+
+        if ($archivo) {
+            $origPath   = storage_path('app/public/' . $archivo->ruta);
+            $signedPath = storage_path('app/public/submodulos/signed_' . $archivo->id . '.pdf');
+
+            // Crea firma PKCS7 (DETACHED) en nuevo archivo
+            openssl_pkcs7_sign(
+                $origPath,
+                $signedPath,
+                $cert,
+                $privKey,
+                [], // headers
+                PKCS7_DETACHED
+            );
+
+            // Guarda la firma en base64 y timestamp
+            $firmaSat   = base64_encode(file_get_contents($signedPath));
+            $fechaFirma = Carbon::now();
+
+            $archivo->update([
+                'firma_sat'  => $firmaSat,
+                'fecha_firma'=> $fechaFirma,
+            ]);
+        }
+
+        // 3) Marca usuario como “Entregado”
         $submoduloUsuario = SubmoduloUsuario::updateOrCreate(
             [
                 'user_id'      => Auth::id(),
                 'submodulo_id' => $submodulo->id,
             ],
-            [
-                'estatus' => 'Entregado',
-            ]
+            ['estatus' => 'Entregado']
         );
 
-        // Devuelve JSON con URLs
-        $acuseUrl = $submodulo->acuse_pdf
-            ? asset('storage/' . $submodulo->acuse_pdf)
-            : null;
-
+        // 4) Respuesta JSON
         return response()->json([
-            'success'   => true,
-            'acuse_url' => $acuseUrl,
-            'estatus'   => $submoduloUsuario->estatus,
+            'success'       => true,
+            'submodulo_id'  => $submodulo->id,
+            'fecha_firma'   => isset($fechaFirma) ? $fechaFirma->toDateTimeString() : null,
+            'estatus'       => $submoduloUsuario->estatus,
         ]);
     }
 
+    /**
+     * Devuelve URLs de los archivos subidos por el usuario en este submódulo.
+     */
     public function archivosUsuario($id)
     {
         $submodulo = Submodulo::with(['archivos' => function($q) {
@@ -175,14 +214,12 @@ class SubmoduloController extends Controller
         $oficio   = $submodulo->archivos->firstWhere('nombre', 'oficio_entrega');
         $programa = $submodulo->archivos->firstWhere('nombre', 'programa_austeridad');
 
-        $acuseUrl = $submodulo->acuse_pdf
-            ? asset('storage/' . $submodulo->acuse_pdf)
-            : null;
-
         return response()->json([
             'oficio_url'   => $oficio   ? asset('storage/' . $oficio->ruta)   : null,
             'programa_url' => $programa ? asset('storage/' . $programa->ruta) : null,
-            'acuse_url'    => $acuseUrl,
+            'acuse_url'    => $submodulo->acuse_pdf
+                            ? asset('storage/' . $submodulo->acuse_pdf)
+                            : null,
         ]);
     }
 }

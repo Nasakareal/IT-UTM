@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Modulo;
 use App\Models\Subsection;
 use Illuminate\Http\Request;
+use Carbon\Carbon;
 
 class ModuloController extends Controller
 {
@@ -53,12 +54,34 @@ class ModuloController extends Controller
                           ->with(['archivos', 'children']);
                 },
                 'submodulos' => function ($query) {
-                    $query->with(['archivos' => function($q) {
-                        $q->where('user_id', auth()->id());
-                    }]);
-                }
+                    $query->with([
+                        'archivos' => function($q) {
+                            $q->where('user_id', auth()->id());
+                        },
+                        // asegúrate también de cargar la relación usuario→estatus si la usas en la vista
+                        'submoduloUsuarios' => function($q) {
+                            $q->where('user_id', auth()->id());
+                        },
+                    ]);
+                },
             ])
             ->get();
+
+        //  ↓ Aquí convertimos cada fecha en Carbon:
+        $subsections->each(function ($subsec) {
+            $subsec->submodulos->transform(function ($sm) {
+                $sm->fecha_apertura = $sm->fecha_apertura 
+                    ? Carbon::parse($sm->fecha_apertura) 
+                    : null;
+                $sm->fecha_limite = $sm->fecha_limite
+                    ? Carbon::parse($sm->fecha_limite)
+                    : null;
+                $sm->fecha_cierre = $sm->fecha_cierre
+                    ? Carbon::parse($sm->fecha_cierre)
+                    : null;
+                return $sm;
+            });
+        });
 
         return view('modulos.show', [
             'modulo' => $modulo,
