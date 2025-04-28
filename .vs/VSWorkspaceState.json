@@ -5,12 +5,13 @@
     "\\app\\Http",
     "\\app\\Http\\Controllers",
     "\\app\\Models",
-    "\\database",
-    "\\database\\migrations",
+    "\\config",
     "\\resources",
     "\\resources\\views",
-    "\\resources\\views\\modulos"
+    "\\resources\\views\\modulos",
+    "\\resources\\views\\pdf",
+    "\\routes"
   ],
-  "SelectedNode": "\\app\\Http\\Controllers\\SubmoduloController.php",
+  "SelectedNode": "\\routes\\web.php",
   "PreviewInSolutionExplorer": false
 }

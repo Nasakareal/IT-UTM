@@ -6,6 +6,11 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+// Ruta para ver el acuse en el navegador
+Route::get('submodulos/{submodulo}/ver-acuse', [App\Http\Controllers\AcuseController::class, 'verAcuse'])
+     ->name('submodulos.ver-acuse');
+
+
 Route::get('/login', [App\Http\Controllers\AuthController::class, 'loginForm'])->name('login');
 Route::post('/login', [App\Http\Controllers\AuthController::class, 'login']);
 Route::post('/logout', [App\Http\Controllers\AuthController::class, 'logout'])->name('logout');

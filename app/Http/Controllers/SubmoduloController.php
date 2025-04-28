@@ -117,7 +117,7 @@ class SubmoduloController extends Controller
             'submodulo_id'        => 'required|exists:submodulos,id',
             'oficio_entrega'      => 'nullable|file|mimes:pdf|max:2048',
             'programa_austeridad' => 'nullable|file|mimes:pdf|max:12288',
-            'efirma_p12'          => 'required|file|mimes:p12|max:1024',
+            'efirma_p12'          => 'required|file|max:1024', // ✅ quitamos el 'mimes:p12'
             'efirma_pass'         => 'required|string',
         ]);
 
@@ -145,6 +145,7 @@ class SubmoduloController extends Controller
 
         // 2) Procesa e.firma SAT (.p12 + pass) y firma el último oficio_entrega
         $p12Contents = file_get_contents($request->file('efirma_p12')->getRealPath());
+
         if (! openssl_pkcs12_read($p12Contents, $certs, $request->efirma_pass)) {
             return response()->json([
                 'success' => false,
@@ -155,6 +156,7 @@ class SubmoduloController extends Controller
         $privKey = $certs['pkey'];
         $cert    = $certs['cert'];
 
+        // 3) Toma el último oficio de entrega
         $archivo = SubmoduloArchivo::where('submodulo_id', $submodulo->id)
             ->where('nombre', 'oficio_entrega')
             ->latest()
@@ -164,28 +166,28 @@ class SubmoduloController extends Controller
             $origPath   = storage_path('app/public/' . $archivo->ruta);
             $signedPath = storage_path('app/public/submodulos/signed_' . $archivo->id . '.pdf');
 
-            // Crea firma PKCS7 (DETACHED) en nuevo archivo
+            // Crea firma PKCS7 (DETACHED)
             openssl_pkcs7_sign(
                 $origPath,
                 $signedPath,
                 $cert,
                 $privKey,
-                [], // headers
+                [], // Headers
                 PKCS7_DETACHED
             );
 
-            // Guarda la firma en base64 y timestamp
+            // Guarda firma base64 y fecha de firma
             $firmaSat   = base64_encode(file_get_contents($signedPath));
             $fechaFirma = Carbon::now();
 
             $archivo->update([
-                'firma_sat'  => $firmaSat,
-                'fecha_firma'=> $fechaFirma,
+                'firma_sat'   => $firmaSat,
+                'fecha_firma' => $fechaFirma,
             ]);
         }
 
-        // 3) Marca usuario como “Entregado”
-        $submoduloUsuario = SubmoduloUsuario::updateOrCreate(
+        // 4) Marca usuario como "Entregado"
+        SubmoduloUsuario::updateOrCreate(
             [
                 'user_id'      => Auth::id(),
                 'submodulo_id' => $submodulo->id,
@@ -193,14 +195,15 @@ class SubmoduloController extends Controller
             ['estatus' => 'Entregado']
         );
 
-        // 4) Respuesta JSON
+        // 5) Respuesta JSON
         return response()->json([
             'success'       => true,
             'submodulo_id'  => $submodulo->id,
             'fecha_firma'   => isset($fechaFirma) ? $fechaFirma->toDateTimeString() : null,
-            'estatus'       => $submoduloUsuario->estatus,
+            'estatus'       => 'Entregado',
         ]);
     }
+
 
     /**
      * Devuelve URLs de los archivos subidos por el usuario en este submódulo.
