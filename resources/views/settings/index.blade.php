@@ -176,6 +176,24 @@
             </div>
         </div>
 
+        <!-- DOCUMENTOS ACADÉMICOS -->
+        <div class="col-md-4">
+            <div class="card mb-3 shadow border-0">
+                <div class="card-header text-white" style="background-color: #3F51B5;">
+                    <h5 class="mb-0">
+                        <i class="fas fa-folder-open me-2"></i> Documentos Académicos
+                    </h5>
+                </div>
+                <div class="card-body text-center">
+                    <span class="badge bg-secondary">Profesores</span>
+                    <p class="card-text mt-2">Ver los documentos subidos por cada profesor</p>
+                    <a href="{{ url('settings/documentos-profesores') }}" class="btn btn-primary btn-sm">
+                        Acceder
+                    </a>
+                </div>
+            </div>
+        </div>
+
         <!-- VACIAR BASE DE DATOS -->
         <div class="col-md-4">
             <div class="card mb-3 shadow border-0">

@@ -66,4 +66,10 @@ class User extends Authenticatable
     {
         return "El usuario ha sido {$eventName}";
     }
+
+    public function documentos()
+    {
+        return $this->hasMany(DocumentoSubido::class);
+    }
+
 }

@@ -15,8 +15,11 @@
                     @foreach ($documentosPendientes as $documento)
                         <li>
                             📌 {{ $documento->titulo }} - Fecha límite: 
-                            <span class="text-danger">{{ $documento->fecha_limite }}</span>
+                            <span class="text-danger">
+                                {{ \Carbon\Carbon::parse($documento->fecha_limite)->format('d/m/Y') }}
+                            </span>
                         </li>
+
                     @endforeach
                 </ul>
                 <p>Se recomienda entregar la documentación a la brevedad.</p>

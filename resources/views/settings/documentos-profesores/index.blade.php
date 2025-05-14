@@ -1,9 +1,9 @@
 @extends('layouts.app')
 
-@section('title', 'TI-UTM - Usuarios')
+@section('title', 'TI-UTM - Documentos de Profesores')
 
 @section('content')
-<!-- Fila para el botón Regresar, alineado a la derecha -->
+<!-- Botón Regresar -->
 <div class="row mb-2">
     <div class="col-md-12 text-right">
         <a href="{{ url('/settings') }}" 
@@ -14,67 +14,39 @@
     </div>
 </div>
 
-<!-- Fila principal con la tarjeta de Usuarios -->
+<!-- Tabla de Profesores -->
 <div class="row">
     <div class="col-md-12">
-        <!-- Tarjeta principal -->
         <div class="card" style="border-radius: 8px; overflow: hidden;">
-            <!-- Cabecera con fondo azul (#1976d2) y texto blanco -->
             <div class="card-header d-flex justify-content-between align-items-center" 
-                 style="background-color: #1976d2;">
-                <h3 class="card-title text-white mb-0">Usuarios Registrados</h3>
-                <!-- Botón "Crear Nuevo Usuaro" -->
-                <a href="{{ url('/settings/users/create') }}" 
-                   class="btn btn-sm" 
-                   style="background-color: #FFFFFF; color: #000;">
-                    <i class="fa-solid fa-plus"></i> Crear Nuevo Usuario
-                </a>
+                 style="background-color: #3F51B5;">
+                <h3 class="card-title text-white mb-0">Profesores con Documentos Académicos</h3>
             </div>
 
-            <!-- Contenido de la tarjeta -->
             <div class="card-body p-0">
                 <div class="table-responsive">
-                    <table id="users" class="table table-bordered table-hover table-sm mb-0">
-                        <!-- Encabezado de la tabla con el mismo color azul y texto blanco -->
-                        <thead style="background-color: #1976d2; color: #fff;">
+                    <table id="profesores" class="table table-bordered table-hover table-sm mb-0">
+                        <thead style="background-color: #3F51B5; color: #fff;">
                             <tr>
-                                <th><center>Número</center></th>
-                                <th><center>Nombres del Usuario</center></th>
-                                <th><center>Rol</center></th>
-                                <th><center>Correo Institucional</center></th>
+                                <th><center>N°</center></th>
+                                <th><center>Nombre</center></th>
+                                <th><center>Correo</center></th>
                                 <th><center>Área</center></th>
-                                <th><center>Estado</center></th>
                                 <th><center>Acciones</center></th>
                             </tr>
                         </thead>
-                        <!-- Cuerpo de la tabla en blanco -->
                         <tbody style="background-color: #fff;">
-                            @foreach ($users as $index => $user)
+                            @foreach ($profesores as $index => $profesor)
                                 <tr>
                                     <td style="text-align: center">{{ $index + 1 }}</td>
-                                    <td style="text-align: center">{{ $user->nombres }}</td>
-                                    <td style="text-align: center">{{ $user->roles->pluck('name')->join(', ') }}</td>
-                                    <td style="text-align: center">{{ $user->correo_institucional }}</td>
-                                    <td style="text-align: center">{{ $user->area }}</td>
-                                    <td style="text-align: center">{{ $user->estado }}</td>
+                                    <td style="text-align: center">{{ $profesor->nombres }}</td>
+                                    <td style="text-align: center">{{ $profesor->correo_institucional }}</td>
+                                    <td style="text-align: center">{{ $profesor->area ?? '-' }}</td>
                                     <td style="text-align: center">
-                                        <div class="btn-group" role="group">
-                                            <a href="{{ url('/settings/users/' . $user->id) }}" class="btn btn-info btn-sm">
-                                                <i class="fa-regular fa-eye"></i>
-                                            </a>
-                                            <a href="{{ url('/settings/users/' . $user->id . '/edit') }}" class="btn btn-success btn-sm">
-                                                <i class="fa-regular fa-pen-to-square"></i>
-                                            </a>
-                                            {{-- Formulario de Eliminar --}}
-                                            <form action="{{ url('/settings/users/' . $user->id) }}" 
-                                                  method="POST" style="display:inline-block;">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="button" class="btn btn-danger btn-sm delete-btn">
-                                                    <i class="fa-regular fa-trash-can"></i>
-                                                </button>
-                                            </form>
-                                        </div>
+                                        <a href="{{ route('documentos-profesores.show', $profesor->id) }}" 
+                                           class="btn btn-sm btn-info">
+                                            <i class="fa-regular fa-eye"></i> Ver Documentos
+                                        </a>
                                     </td>
                                 </tr>
                             @endforeach
@@ -83,9 +55,10 @@
                 </div> <!-- table-responsive -->
             </div> <!-- card-body -->
         </div> <!-- card -->
-    </div> <!-- col-md-12 -->
-</div> <!-- row -->
+    </div>
+</div>
 @stop
+
 
 @section('css')
 <style>

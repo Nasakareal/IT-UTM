@@ -62,6 +62,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'crear archivos',
             'editar archivos',
             'eliminar archivos',
+
+            'ver documentos profesores',
         ];
 
         // Crear permisos si no existen

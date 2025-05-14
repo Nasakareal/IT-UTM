@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             CarpetaSeeder::class,
             SubmoduloSeeder::class,
             CorrespondenciaSeeder::class,
+            CuatrimestreSeeder::class,
         ]);
     }
 }

@@ -32,7 +32,15 @@ Route::middleware('auth')->group(function () {
 Route::middleware('auth')->group(function () {
     // Mostrar individualmente el contenido de un módulo
     Route::get('/modulos/{modulo}', [App\Http\Controllers\ModuloController::class, 'show'])->name('modulos.show');
+
+    // Gestión Académica – Documentos obligatorios
+    Route::get('/modulos/5/gestion-academica', [App\Http\Controllers\GestionAcademicaController::class, 'index'])->name('modulo5.gestion');
+
+    // Subida de documentos académicos
+    Route::post('/documentos/subir', [App\Http\Controllers\DocumentoSubidoController::class, 'store'])->name('documentos.subir');
 });
+
+
 
 // Rutas de submódulos
 Route::middleware('auth')->group(function () {
@@ -167,4 +175,14 @@ Route::prefix('settings')->middleware('can:ver configuraciones')->group(function
         Route::put('/{archivo}', [App\Http\Controllers\ArchivoController::class, 'update'])->middleware('can:editar archivos')->name('archivos.update');
         Route::delete('/{archivo}', [App\Http\Controllers\ArchivoController::class, 'destroy'])->middleware('can:eliminar archivos')->name('archivos.destroy');
     });
+
+    // Documentos por Profesor
+    Route::prefix('documentos-profesores')->middleware('can:ver documentos profesores')->group(function () {
+        // Lista de todos los profesores
+        Route::get('/', [App\Http\Controllers\ProfesorDocumentoController::class, 'index'])->name('documentos-profesores.index');
+
+        // Ver documentos de un profesor específico
+        Route::get('/{user}', [App\Http\Controllers\ProfesorDocumentoController::class, 'show'])->name('documentos-profesores.show');
+    });
+
 });

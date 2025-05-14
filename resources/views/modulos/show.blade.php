@@ -120,6 +120,15 @@
                 @else
                     <p class="ms-4">No hay carpetas en esta subsección.</p>
                 @endif
+
+                {{-- Botón solo para módulo 5 y subsección Gestión Académica --}}
+                @if(strtoupper($subsec->nombre) === 'GESTIÓN ACADÉMICA' && $modulo->id == 5)
+                    <div class="text-end me-4 mb-3">
+                        <a href="{{ route('modulo5.gestion') }}" class="btn btn-primary">
+                            <i class="fas fa-file-alt"></i> Ver Documentos por Unidad
+                        </a>
+                    </div>
+                @endif
             </div>
         @endforeach
 

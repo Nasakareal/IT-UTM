@@ -147,13 +147,7 @@
 <script>
 $(document).ready(function(){
 
-    // Personalizamos el "dom" de DataTables para ubicar 
-    // "Mostrar X Usuarios" y "Buscador" en la misma fila, con un estilo limpio
     $('#usuarios').DataTable({
-        // DOM personalizado: 
-        // - Fila superior con [Botones, Length] en la izquierda y [Filter] en la derecha
-        // - Luego la tabla (t)
-        // - Abajo, [info] y [paginación]
         dom: "<'row p-3'<'col-md-6 d-flex align-items-center'B l><'col-md-6 text-right'f>>" +
              "<'row'<'col-sm-12'tr>>" +
              "<'row p-3'<'col-sm-5'i><'col-sm-7'p>>",
