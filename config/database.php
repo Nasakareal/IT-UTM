@@ -63,6 +63,22 @@ return [
             ]) : [],
         ],
 
+        'cargahoraria' => [
+            'driver' => 'mysql',
+            'host' => env('DB_CARGAHORARIA_HOST', '127.0.0.1'),
+            'port' => env('DB_CARGAHORARIA_PORT', '3306'),
+            'database' => env('DB_CARGAHORARIA_DATABASE', 'cargahoraria'),
+            'username' => env('DB_CARGAHORARIA_USERNAME', 'root'),
+            'password' => env('DB_CARGAHORARIA_PASSWORD', ''),
+            'unix_socket' => env('DB_SOCKET', ''),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_spanish_ci',
+            'prefix' => '',
+            'strict' => true,
+            'engine' => null,
+        ],
+
+
         'pgsql' => [
             'driver' => 'pgsql',
             'url' => env('DATABASE_URL'),

@@ -117,7 +117,7 @@ class SubmoduloController extends Controller
             'submodulo_id'        => 'required|exists:submodulos,id',
             'oficio_entrega'      => 'nullable|file|mimes:pdf|max:2048',
             'programa_austeridad' => 'nullable|file|mimes:pdf|max:12288',
-            'efirma_p12'          => 'required|file|max:1024', // ✅ quitamos el 'mimes:p12'
+            'efirma_p12'          => 'required|file|max:1024',
             'efirma_pass'         => 'required|string',
         ]);
 

@@ -4,14 +4,12 @@
     "\\app",
     "\\app\\Http",
     "\\app\\Http\\Controllers",
-    "\\app\\Models",
-    "\\config",
+    "\\database",
+    "\\database\\migrations",
     "\\resources",
     "\\resources\\views",
-    "\\resources\\views\\modulos",
-    "\\resources\\views\\pdf",
-    "\\routes"
+    "\\resources\\views\\settings"
   ],
-  "SelectedNode": "\\routes\\web.php",
+  "SelectedNode": "\\app\\Http\\Controllers\\AcuseController.php",
   "PreviewInSolutionExplorer": false
 }

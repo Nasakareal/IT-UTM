@@ -17,23 +17,33 @@ class HomeController extends Controller
 
     public function index()
     {
-        $userId = Auth::id();
+        $user = Auth::user();
 
-        $documentosPendientes = Submodulo::whereNotNull('fecha_limite')
-            ->where(function ($query) use ($userId) {
-                $query->whereDoesntHave('submoduloUsuarios', function ($q) use ($userId) {
-                    $q->where('user_id', $userId)
-                      ->where('estatus', 'entregado');
+        $documentosPendientes = collect();
+
+        if (!$user->hasRole('Administrador')) {
+            $documentosPendientes = Submodulo::whereNotNull('fecha_limite')
+                ->where(function ($query) use ($user) {
+                    $query->whereDoesntHave('submoduloUsuarios', function ($q) use ($user) {
+                            $q->where('user_id', $user->id)
+                              ->where('estatus', 'entregado');
+                        })
+                        ->orWhereHas('submoduloUsuarios', function ($q) use ($user) {
+                            $q->where('user_id', $user->id)
+                              ->where('estatus', 'pendiente');
+                        });
                 })
-                ->orWhereHas('submoduloUsuarios', function ($q) use ($userId) {
-                    $q->where('user_id', $userId)
-                      ->where('estatus', 'pendiente');
-                });
-            })->get();
+                ->where(function ($query) {
+                    $query->whereNull('fecha_apertura')
+                          ->orWhere('fecha_apertura', '<=', now());
+                })
+                ->get();
+        }
 
         $comunicados = Comunicado::latest()->get();
         $secciones = Seccion::with('modulos')->get();
 
         return view('home', compact('documentosPendientes', 'comunicados', 'secciones'));
     }
+
 }

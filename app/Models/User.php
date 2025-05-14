@@ -29,6 +29,7 @@ class User extends Authenticatable
         'area',
         'categoria',
         'caracter',
+        'teacher_id',
     ];
 
     protected $hidden = [

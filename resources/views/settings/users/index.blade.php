@@ -52,7 +52,7 @@
                             @foreach ($users as $index => $user)
                                 <tr>
                                     <td style="text-align: center">{{ $index + 1 }}</td>
-                                    <td style="text-align: center">{{ $user->name }}</td>
+                                    <td style="text-align: center">{{ $user->nombres }}</td>
                                     <td style="text-align: center">{{ $user->roles->pluck('name')->join(', ') }}</td>
                                     <td style="text-align: center">{{ $user->correo_institucional }}</td>
                                     <td style="text-align: center">{{ $user->area }}</td>
