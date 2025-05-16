@@ -34,6 +34,15 @@
         </div>
     @endif
 
+    <!-- 🔹 Botón "Crear Nuevo Comunicado" (solo para Administrador) -->
+    @if(auth()->check() && auth()->user()->hasRole('Administrador'))
+        <div class="mb-4">
+            <a href="{{ url('/settings/comunicados/create') }}" class="btn btn-sm" style="background-color: #FFFFFF; color: #000;">
+                <i class="fa-solid fa-plus"></i> Crear Nuevo Comunicado
+            </a>
+        </div>
+    @endif
+
     <!-- 🔹 Carrusel de comunicados -->
     @if($comunicados->isNotEmpty())
         <div class="comunicado-carousel-wrapper">
@@ -101,59 +110,83 @@
                     </div>
                 @endif
             </div>
+
+            <!-- 🔹 Botón "Crear Nuevo Modulo" (solo para Administrador) -->
+            @if(auth()->check() && auth()->user()->hasRole('Administrador'))
+                <div class="mb-4">
+                    <a href="{{ url('/settings/modulos/create') }}" class="btn btn-sm" style="background-color: #FFFFFF; color: #000;">
+                        <i class="fa-solid fa-plus"></i> Crear Nuevo Modulo
+                    </a>
+                </div>
+            @endif
+
             <div class="row">
                 @forelse ($seccion->modulos as $modulo)
                     <div class="col-md-6 col-lg-4 mb-4">
                         <!-- Tarjeta con barra de color a la izquierda -->
                         <div class="d-flex module-card shadow" style="border-radius: 10px; overflow: hidden; border: none;">
                             <!-- Columna izquierda (color + imagen + badges) -->
-                                <div class="module-left d-flex flex-column justify-content-between align-items-center p-2"
-                                     style="width: 80px; background-color: {{ $modulo->color ?? $seccion->color ?? '#009688' }};">
+                            <div class="module-left d-flex flex-column justify-content-between align-items-center p-2"
+                                 style="width: 80px; background-color: {{ $modulo->color ?? $seccion->color ?? '#009688' }};">
 
-                                    <!-- Mostrar imagen si existe -->
-                                    @if(!empty($modulo->imagen))
-                                        <img src="{{ asset('storage/'.$modulo->imagen) }}" 
-                                             alt="Ícono del módulo" 
-                                             style="max-width: 50px; max-height: 50px;" 
-                                             class="my-2">
-             
-                                    <!-- Mostrar ícono si no hay imagen pero sí hay ícono -->
-                                    @elseif(!empty($modulo->icono))
-                                        <i class="fas {{ $modulo->icono }} fa-2x text-white my-2"></i>
-        
-                                    <!-- Ícono genérico de fallback -->
-                                    @else
-                                        <i class="fas fa-cube fa-2x text-white my-2"></i>
-                                    @endif
+                                @if(!empty($modulo->imagen))
+                                    <img src="{{ asset('storage/'.$modulo->imagen) }}" 
+                                         alt="Ícono del módulo" 
+                                         style="max-width: 50px; max-height: 50px;" 
+                                         class="my-2">
+                                @elseif(!empty($modulo->icono))
+                                    <i class="fas {{ $modulo->icono }} fa-2x text-white my-2"></i>
+                                @else
+                                    <i class="fas fa-cube fa-2x text-white my-2"></i>
+                                @endif
 
-                                    <!-- Año abajo -->
-                                    <div class="text-white fw-bold mb-2">
-                                        {{ $modulo->anio }}
-                                    </div>
+                                <div class="text-white fw-bold mb-2">
+                                    {{ $modulo->anio }}
                                 </div>
-
+                            </div>
 
                             <!-- Columna derecha (contenido principal) -->
-                            <div class="module-right p-3 flex-grow-1">
-                                <h5 class="card-title">{{ $modulo->titulo }}</h5>
-                                @if($modulo->descripcion)
-                                    <p class="card-text">{{ $modulo->descripcion }}</p>
-                                @endif
-                                <a href="{{ route('modulos.show', $modulo->id) }}" 
-                                   class="btn text-white"
-                                   style="background-color: {{ $modulo->color ?? $seccion->color ?? '#009688' }};">
-                                    Ingresar
-                                </a>
+                            <div class="module-right p-3 flex-grow-1 d-flex flex-column justify-content-between">
+                                <div>
+                                    <h5 class="card-title">{{ $modulo->titulo }}</h5>
+                                    @if($modulo->descripcion)
+                                        <p class="card-text">{{ $modulo->descripcion }}</p>
+                                    @endif
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center mt-3">
+                                    <a href="{{ route('modulos.show', $modulo->id) }}" 
+                                       class="btn text-white"
+                                       style="background-color: {{ $modulo->color ?? $seccion->color ?? '#009688' }};">
+                                        Ingresar
+                                    </a>
+
+                                    {{-- Botones solo para administrador --}}
+                                    @if(auth()->check() && auth()->user()->hasRole('Administrador'))
+                                        <div class="btn-group ms-2" role="group">
+                                            <a href="{{ route('modulos.edit', $modulo->id) }}" class="btn btn-success btn-sm">
+                                                <i class="fa-regular fa-pen-to-square"></i>
+                                            </a>
+                                            <form action="{{ route('modulos.destroy', $modulo->id) }}" method="POST" onsubmit="return confirm('¿Estás seguro de eliminar este módulo?');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-danger btn-sm">
+                                                    <i class="fa-regular fa-trash-can"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    @endif
+                                </div>
                             </div>
                         </div>
                     </div>
                 @empty
-                    <!-- Si la sección no tiene módulos -->
                     <div class="col-12">
                         <p>No hay módulos en esta sección.</p>
                     </div>
                 @endforelse
             </div>
+
         @endforeach
     </div>
 @endsection
