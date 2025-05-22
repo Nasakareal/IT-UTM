@@ -29,16 +29,20 @@ class UserController extends Controller
         $caracteres = ['Indeterminado', 'Determinado'];
 
         // Traer profesores activos este cuatrimestre desde CargaHoraria
+        $profesoresConUsuario = User::whereNotNull('teacher_id')->pluck('teacher_id');
+
         $profesores = DB::connection('cargahoraria')
             ->table('teacher_subjects as ts')
             ->join('teachers as t', 'ts.teacher_id', '=', 't.teacher_id')
             ->join('subjects as s', 'ts.subject_id', '=', 's.subject_id')
             ->where('t.estado', 1)
             ->where('s.estado', 1)
+            ->whereNotIn('t.teacher_id', $profesoresConUsuario)
             ->select('t.teacher_id', 't.teacher_name')
             ->distinct()
             ->orderBy('t.teacher_name')
             ->get();
+
 
         return view('settings.users.create', compact(
             'roles', 'categorias', 'caracteres', 'profesores'
@@ -66,7 +70,24 @@ class UserController extends Controller
             'area'                  => 'nullable|string|max:125',
             'foto_perfil'           => 'nullable|image|max:2048',
             'role'                  => 'required|exists:roles,name',
-            'teacher_id'            => 'required_if:role,Profesor|exists:cargahoraria.teacher_subjects,teacher_id',
+            'teacher_id' => [
+                'nullable',
+                function ($attribute, $value, $fail) use ($request) {
+                    if ($request->role === 'Profesor' && empty($value)) {
+                        $fail('El campo teacher_id es obligatorio cuando el rol es Profesor.');
+                    }
+                    if ($request->role === 'Profesor') {
+                        $exists = DB::connection('cargahoraria')
+                            ->table('teachers')
+                            ->where('teacher_id', $value)
+                            ->exists();
+                        if (!$exists) {
+                            $fail('El teacher_id seleccionado no existe.');
+                        }
+                    }
+                }
+            ],
+
         ]);
 
         try {

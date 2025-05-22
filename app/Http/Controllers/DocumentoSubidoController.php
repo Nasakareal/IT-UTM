@@ -145,7 +145,7 @@ class DocumentoSubidoController extends Controller
                 $spreadsheet = $reader->load($absPath);
                 $sheet = $spreadsheet->getActiveSheet();
                 $done  = false;
-                $label = 'nombre y firma del profesor'; // minúsculas para buscar
+                $label = 'nombre y firma del profesor';
 
                 /* 1) Barrido por celdas para hallar la etiqueta ----------------------- */
                 foreach ($sheet->getRowIterator() as $row) {
@@ -155,7 +155,7 @@ class DocumentoSubidoController extends Controller
 
                             /* Colocamos el texto en la FILA INFERIOR (misma columna) */
                             $col         = $cell->getColumn();
-                            $rowDest     = $cell->getRow() + 1;        // justo debajo
+                            $rowDest     = $cell->getRow() + 1;
                             $coordDest   = $col.$rowDest;
 
                             $sheet->setCellValueExplicit(
@@ -166,7 +166,7 @@ class DocumentoSubidoController extends Controller
                             $sheet->getStyle($coordDest)->getAlignment()->setWrapText(true);
 
                             $done = true;
-                            break 2; // salimos de ambos foreach
+                            break 2;
                         }
                     }
                 }

@@ -5,12 +5,11 @@
     "\\app\\Http",
     "\\app\\Http\\Controllers",
     "\\app\\Models",
-    "\\database",
     "\\resources",
     "\\resources\\views",
-    "\\resources\\views\\modulos",
-    "\\resources\\views\\pdf"
+    "\\resources\\views\\settings",
+    "\\resources\\views\\settings\\users"
   ],
-  "SelectedNode": "\\routes\\web.php",
+  "SelectedNode": "\\resources\\views\\settings\\users\\create.blade.php",
   "PreviewInSolutionExplorer": false
 }
