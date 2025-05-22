@@ -14,5 +14,8 @@ class DocumentoSubido extends Model
         'unidad',
         'tipo_documento',
         'archivo',
+        'firma_sat',
+        'fecha_firma',
+        'acuse_pdf',
     ];
 }

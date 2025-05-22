@@ -58,7 +58,6 @@ class ModuloController extends Controller
                         'archivos' => function($q) {
                             $q->where('user_id', auth()->id());
                         },
-                        // asegúrate también de cargar la relación usuario→estatus si la usas en la vista
                         'submoduloUsuarios' => function($q) {
                             $q->where('user_id', auth()->id());
                         },

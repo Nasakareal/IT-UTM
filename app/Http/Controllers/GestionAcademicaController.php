@@ -19,7 +19,8 @@ class GestionAcademicaController extends Controller
             return back()->with('error', 'Este usuario no tiene asignado un teacher_id.');
         }
 
-        $materias = DB::connection('cargahoraria')->table('teacher_subjects as ts')
+        $materias = DB::connection('cargahoraria')
+            ->table('teacher_subjects as ts')
             ->join('subjects as s', 'ts.subject_id', '=', 's.subject_id')
             ->select('s.subject_name as materia', 's.unidades')
             ->where('ts.teacher_id', $user->teacher_id)
@@ -46,10 +47,10 @@ class GestionAcademicaController extends Controller
         $diasTranscurridos = $inicioCuatrimestre->diffInDays($hoy) + 1;
 
         $tipos = [
-            'Planeación didáctica' => 'F-DA-GA-02 Planeación didáctica del programa de asignatura.docx',
+            'Planeación didáctica'         => 'F-DA-GA-02 Planeación didáctica del programa de asignatura.docx',
             'Seguimiento de la Planeación' => 'F-DA-GA-03 Seguimiento de la Planeación Didáctica.xlsx',
-            'Informe de Estudiantes' => 'F-DA-GA-05 Informe de Estudiantes No Acreditados.xlsx',
-            'Control de Asesorías' => 'F-DA-GA-06 Control de Asesorías.xlsx',
+            'Informe de Estudiantes'       => 'F-DA-GA-05 Informe de Estudiantes No Acreditados.xlsx',
+            'Control de Asesorías'         => 'F-DA-GA-06 Control de Asesorías.xlsx',
         ];
 
         foreach ($materias as $materia) {
@@ -68,15 +69,17 @@ class GestionAcademicaController extends Controller
                     ->first();
 
                 $documentos[] = [
-                    'materia' => $materia->materia,
-                    'unidad' => $unidadActual,
-                    'documento' => $tipo,
-                    'archivo' => $archivo,
-                    'entregado' => $registro ? true : false,
+                    'materia'        => $materia->materia,
+                    'unidad'         => $unidadActual,
+                    'documento'      => $tipo,
+                    'archivo'        => $archivo,
+                    'entregado'      => $registro ? true : false,
                     'archivo_subido' => $registro->archivo ?? null,
+                    'acuse'          => $registro->acuse_pdf ?? null,
                 ];
             }
 
+            // Documento extra solo para unidad 1
             if ($unidadActual === 1) {
                 $registro = DocumentoSubido::where('user_id', $user->id)
                     ->where('materia', $materia->materia)
@@ -85,12 +88,13 @@ class GestionAcademicaController extends Controller
                     ->first();
 
                 $documentos[] = [
-                    'materia' => $materia->materia,
-                    'unidad' => 1,
-                    'documento' => 'Presentación de la Asignatura',
-                    'archivo' => 'F-DA-GA-01 Presentación de la asignatura.xlsx',
-                    'entregado' => $registro ? true : false,
+                    'materia'        => $materia->materia,
+                    'unidad'         => 1,
+                    'documento'      => 'Presentación de la Asignatura',
+                    'archivo'        => 'F-DA-GA-01 Presentación de la asignatura.xlsx',
+                    'entregado'      => $registro ? true : false,
                     'archivo_subido' => $registro->archivo ?? null,
+                    'acuse'          => $registro->acuse_pdf ?? null,
                 ];
             }
         }

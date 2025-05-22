@@ -121,7 +121,8 @@ class HomeController extends Controller
 
         // 🔹 Otros datos de la vista
         $comunicados = Comunicado::latest()->get();
-        $secciones = Seccion::with('modulos')->get();
+        $secciones = Seccion::with('modulos')->orderBy('orden')->get();
+
 
         return view('home', compact('documentosPendientes', 'comunicados', 'secciones'));
     }

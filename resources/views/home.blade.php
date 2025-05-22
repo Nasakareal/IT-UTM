@@ -87,18 +87,16 @@
     @endif
 
     <!-- 🔹 Secciones dinámicas (cada sección con sus módulos) -->
-    <div class="container my-4">
-        @foreach ($secciones as $seccion)
+<div class="container my-4" @if(auth()->check() && auth()->user()->hasRole('Administrador')) id="secciones-sortable" @endif>
+    @foreach ($secciones as $seccion)
+        <div class="seccion-item" data-id="{{ $seccion->id }}">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="mb-0">{{ $seccion->nombre }}</h2>
-                <!-- Botones de acción para Administrador -->
+                <h2 class="mb-0" @if(auth()->check() && auth()->user()->hasRole('Administrador')) style="cursor: move;" @endif>{{ $seccion->nombre }}</h2>
                 @if(auth()->check() && auth()->user()->hasRole('Administrador'))
                     <div class="btn-group" role="group">
-                        <!-- Editar sección -->
                         <a href="{{ route('secciones.edit', $seccion->id) }}" class="btn btn-success btn-sm">
                             <i class="fa-regular fa-pen-to-square"></i>
                         </a>
-                        <!-- Eliminar sección -->
                         <form action="{{ route('secciones.destroy', $seccion->id) }}" method="POST" style="display:inline-block;">
                             @csrf
                             @method('DELETE')
@@ -106,12 +104,10 @@
                                 <i class="fa-regular fa-trash-can"></i>
                             </button>
                         </form>
-
                     </div>
                 @endif
             </div>
 
-            <!-- 🔹 Botón "Crear Nuevo Modulo" (solo para Administrador) -->
             @if(auth()->check() && auth()->user()->hasRole('Administrador'))
                 <div class="mb-4">
                     <a href="{{ url('/settings/modulos/create') }}" class="btn btn-sm" style="background-color: #FFFFFF; color: #000;">
@@ -123,29 +119,19 @@
             <div class="row">
                 @forelse ($seccion->modulos as $modulo)
                     <div class="col-md-6 col-lg-4 mb-4">
-                        <!-- Tarjeta con barra de color a la izquierda -->
                         <div class="d-flex module-card shadow" style="border-radius: 10px; overflow: hidden; border: none;">
-                            <!-- Columna izquierda (color + imagen + badges) -->
                             <div class="module-left d-flex flex-column justify-content-between align-items-center p-2"
                                  style="width: 80px; background-color: {{ $modulo->color ?? $seccion->color ?? '#009688' }};">
-
                                 @if(!empty($modulo->imagen))
-                                    <img src="{{ asset('storage/'.$modulo->imagen) }}" 
-                                         alt="Ícono del módulo" 
-                                         style="max-width: 50px; max-height: 50px;" 
-                                         class="my-2">
+                                    <img src="{{ asset('storage/'.$modulo->imagen) }}" alt="Ícono del módulo" style="max-width: 50px; max-height: 50px;" class="my-2">
                                 @elseif(!empty($modulo->icono))
                                     <i class="fas {{ $modulo->icono }} fa-2x text-white my-2"></i>
                                 @else
                                     <i class="fas fa-cube fa-2x text-white my-2"></i>
                                 @endif
-
-                                <div class="text-white fw-bold mb-2">
-                                    {{ $modulo->anio }}
-                                </div>
+                                <div class="text-white fw-bold mb-2">{{ $modulo->anio }}</div>
                             </div>
 
-                            <!-- Columna derecha (contenido principal) -->
                             <div class="module-right p-3 flex-grow-1 d-flex flex-column justify-content-between">
                                 <div>
                                     <h5 class="card-title">{{ $modulo->titulo }}</h5>
@@ -155,13 +141,9 @@
                                 </div>
 
                                 <div class="d-flex justify-content-between align-items-center mt-3">
-                                    <a href="{{ route('modulos.show', $modulo->id) }}" 
-                                       class="btn text-white"
-                                       style="background-color: {{ $modulo->color ?? $seccion->color ?? '#009688' }};">
+                                    <a href="{{ route('modulos.show', $modulo->id) }}" class="btn text-white" style="background-color: {{ $modulo->color ?? $seccion->color ?? '#009688' }};">
                                         Ingresar
                                     </a>
-
-                                    {{-- Botones solo para administrador --}}
                                     @if(auth()->check() && auth()->user()->hasRole('Administrador'))
                                         <div class="btn-group ms-2" role="group">
                                             <a href="{{ route('modulos.edit', $modulo->id) }}" class="btn btn-success btn-sm">
@@ -181,20 +163,21 @@
                         </div>
                     </div>
                 @empty
-                    <div class="col-12">
-                        <p>No hay módulos en esta sección.</p>
-                    </div>
+                    <div class="col-12"><p>No hay módulos en esta sección.</p></div>
                 @endforelse
             </div>
+        </div>
+    @endforeach
+</div>
 
-        @endforeach
-    </div>
+
 @endsection
 
 @section('styles')
 <style>
     .module-card {
-        height: 150px; /* altura fija para todas las tarjetas */
+        /* Quitamos altura fija */
+        min-height: 180px;
         display: flex;
         border-radius: 10px;
         overflow: hidden;
@@ -220,22 +203,19 @@
     }
 
     .card-title {
-        font-size: 1rem;
+        font-size: 1.1rem;
         font-weight: bold;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        white-space: normal; /* Permite salto de línea */
+        overflow: visible;
     }
 
     .card-text {
         flex-grow: 1;
-        font-size: 0.9rem;
-        color: #555;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        display: -webkit-box;
-        -webkit-line-clamp: 2; /* máximo 2 líneas */
-        -webkit-box-orient: vertical;
+        font-size: 1rem;
+        color: #444;
+        overflow: visible;
+        display: block;
+        white-space: normal;
     }
 
     .btn-ingresar {
@@ -244,6 +224,7 @@
     }
 </style>
 @endsection
+
 
 
 @section('scripts')
@@ -365,5 +346,42 @@
             });
         });
     </script>
+
+@if(auth()->check() && auth()->user()->hasRole('Administrador'))
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+    <script>
+        $(function () {
+            $('#secciones-sortable').sortable({
+                handle: 'h2',
+                update: function () {
+                    let orden = [];
+                    $('.seccion-item').each(function (index) {
+                        orden.push({
+                            id: $(this).data('id'),
+                            orden: index + 1
+                        });
+                    });
+
+                    $.ajax({
+                        url: '{{ route("secciones.sort") }}',
+                        method: 'POST',
+                        data: {
+                            orden: orden,
+                            _token: '{{ csrf_token() }}'
+                        },
+                        success: function () {
+                            console.log('Orden de secciones actualizado');
+                        },
+                        error: function () {
+                            alert('Error al guardar el orden');
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+@endif
+
+
 
 @endsection

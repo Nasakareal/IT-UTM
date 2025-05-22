@@ -13,6 +13,15 @@ class SeccionController extends Controller
         return view('settings.secciones.index', compact('secciones'));
     }
 
+    public function sort(Request $request)
+    {
+        foreach ($request->orden as $item) {
+            \App\Models\Seccion::where('id', $item['id'])->update(['orden' => $item['orden']]);
+        }
+
+        return response()->json(['success' => true]);
+    }
+
     public function create()
     {
         $secciones = \App\Models\Seccion::all();

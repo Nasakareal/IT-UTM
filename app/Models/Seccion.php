@@ -13,6 +13,7 @@ class Seccion extends Model
         'nombre',
         'slug',
         'color',
+        'orden',
     ];
 
     // Relación 1 a muchos con Modulo
