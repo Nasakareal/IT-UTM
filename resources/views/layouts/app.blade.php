@@ -91,7 +91,11 @@
         <div class="menu">
             <a href="{{ route('correspondencias.index') }}"><i class="bi bi-envelope"></i> Correspondencia</a>
             <a href="#"><i class="bi bi-chat-left-text"></i> Chat</a>
-            <a href="{{ route('settings.index') }}"><i class="bi bi-gear"></i> Configurar</a>
+            @can('ver configuraciones')
+                <a href="{{ route('settings.index') }}"><i class="bi bi-gear"></i> Configurar</a>
+            @else
+                <a href="{{ route('password.change.form') }}"><i class="bi bi-gear"></i> Configurar</a>
+            @endcan
             <a href="{{ route('logout') }}" class="text-danger"
                onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
                 <i class="bi bi-door-open"></i> Salir

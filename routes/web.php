@@ -20,21 +20,21 @@ Route::get('/login', [App\Http\Controllers\AuthController::class, 'loginForm'])-
 Route::post('/login', [App\Http\Controllers\AuthController::class, 'login']);
 Route::post('/logout', [App\Http\Controllers\AuthController::class, 'logout'])->name('logout');
 
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+Route::middleware(['auth', 'password.changed'])->get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
 // Rutas públicas para subsecciones (visualización)
-Route::middleware('auth')->group(function () {
+Route::middleware('auth', 'password.changed')->group(function () {
     Route::get('/subsections/{subsection}', [App\Http\Controllers\SubsectionController::class, 'show'])->name('subsections.show');
 });
 
 // Rutas Públicas para Carpetas (visualización)
-Route::middleware('auth')->group(function () {
+Route::middleware('auth', 'password.changed')->group(function () {
     // Mostrar carpeta (y subcarpetas, archivos)
     Route::get('/carpetas/{carpeta}', [App\Http\Controllers\CarpetaController::class, 'show'])->name('carpetas.show');
 });
 
 // Rutas Públicas para Módulos (visualización)
-Route::middleware('auth')->group(function () {
+Route::middleware('auth', 'password.changed')->group(function () {
     // Mostrar individualmente el contenido de un módulo
     Route::get('/modulos/{modulo}', [App\Http\Controllers\ModuloController::class, 'show'])->name('modulos.show');
 
@@ -48,7 +48,7 @@ Route::middleware('auth')->group(function () {
 
 
 // Rutas de submódulos
-Route::middleware('auth')->group(function () {
+Route::middleware('auth', 'password.changed')->group(function () {
     Route::get('/submodulos/{submodulo}', [App\Http\Controllers\SubmoduloController::class, 'show'])->name('submodulos.show');
     Route::post('/submodulos/subir-archivos', [App\Http\Controllers\SubmoduloController::class, 'subirArchivos'])->name('submodulos.subirArchivos');
     Route::get('/submodulos/{id}/archivos-usuario', [App\Http\Controllers\SubmoduloController::class, 'archivosUsuario'])->name('submodulos.archivosUsuario');
@@ -56,7 +56,7 @@ Route::middleware('auth')->group(function () {
 });
 
 // Correspondencias
-Route::prefix('correspondencias')->middleware('can:ver correspondencias')->group(function () {
+Route::prefix('correspondencias')->middleware('auth', 'password.changed', 'can:ver correspondencias')->group(function () {
     Route::get('/', [App\Http\Controllers\CorrespondenciaController::class, 'index'])->name('correspondencias.index');
     Route::get('/create', [App\Http\Controllers\CorrespondenciaController::class, 'create'])->middleware('can:crear correspondencias')->name('correspondencias.create');
     Route::post('/', [App\Http\Controllers\CorrespondenciaController::class, 'store'])->middleware('can:crear correspondencias')->name('correspondencias.store');
@@ -66,8 +66,15 @@ Route::prefix('correspondencias')->middleware('can:ver correspondencias')->group
     Route::delete('/{correspondencia}', [App\Http\Controllers\CorrespondenciaController::class, 'destroy'])->middleware('can:eliminar correspondencias')->name('correspondencias.destroy');
 });
 
+// Ruta para cambiar contraseña
+Route::middleware(['auth'])->group(function () {
+    Route::get('/settings/change-password', [App\Http\Controllers\PasswordController::class, 'form'])->name('password.change.form');
+    Route::post('/settings/change-password', [App\Http\Controllers\PasswordController::class, 'update'])->name('password.change.update');
+});
+
+
 // Rutas de Configuraciones Generales
-Route::prefix('settings')->middleware('can:ver configuraciones')->group(function () {
+Route::prefix('settings')->middleware('auth', 'password.changed', 'can:ver configuraciones')->group(function () {
     // Configuración general
     Route::get('/', [App\Http\Controllers\SettingsController::class, 'index'])->name('settings.index');
 

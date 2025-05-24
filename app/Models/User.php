@@ -30,6 +30,7 @@ class User extends Authenticatable
         'categoria',
         'caracter',
         'teacher_id',
+        'must_change_password',
     ];
 
     protected $hidden = [

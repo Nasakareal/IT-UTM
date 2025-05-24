@@ -114,6 +114,7 @@ class UserController extends Controller
                 'foto_perfil'           => $validated['foto_perfil'] ?? null,
                 'estado'                => 'Activo',
                 'teacher_id'            => $validated['teacher_id'] ?? null,
+                'must_change_password'  => true,
             ]);
 
             // Asignar rol

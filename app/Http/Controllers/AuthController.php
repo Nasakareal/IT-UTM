@@ -8,11 +8,17 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
+    /**
+     * Muestra el formulario de inicio de sesión.
+     */
     public function loginForm()
     {
         return view('auth.login');
     }
 
+    /**
+     * Procesa el inicio de sesión del usuario.
+     */
     public function login(Request $request)
     {
         // Validar el formulario
@@ -27,8 +33,15 @@ class AuthController extends Controller
                 'password'             => $data['password'],
             ], $request->filled('remember'))
         ) {
-            // Regenera sesión para evitar fijación de sesión
+            // Regenerar la sesión para evitar fijación
             $request->session()->regenerate();
+
+            $user = Auth::user();
+
+            // Verificar si debe cambiar su contraseña
+            if ($user->must_change_password) {
+                return redirect()->route('password.change.form');
+            }
 
             return redirect()->intended('/home');
         }
@@ -43,13 +56,13 @@ class AuthController extends Controller
      * Cierra la sesión del usuario.
      */
     public function logout(Request $request)
-        {
-            Auth::logout();
+    {
+        Auth::logout();
 
-            // Invalidar y regenerar token CSRF
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
+        // Invalidar y regenerar token CSRF
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
 
-            return redirect('/');
-        }
+        return redirect('/');
+    }
 }
