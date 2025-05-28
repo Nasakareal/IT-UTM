@@ -66,16 +66,23 @@
                             <div class="col-md-6">
                                 <div class="form-group mb-3">
                                     <label for="subsection_id" class="fw-bold">Subsección</label>
-                                    <select name="subsection_id"
-                                            id="subsection_id"
-                                            class="form-control @error('subsection_id') is-invalid @enderror" required>
-                                        <option value="" selected>Sin subsección</option>
-                                        @foreach($subsections as $subsection)
-                                            <option value="{{ $subsection->id }}" {{ old('subsection_id') == $subsection->id ? 'selected' : '' }}>
-                                                {{ $subsection->nombre }}
+                                   <select name="subseccion_id"
+                                            id="subseccion_id"
+                                            class="form-control @error('subseccion_id') is-invalid @enderror"
+                                            required>
+                                        <option value="">Seleccione una subsección</option>
+                                        @foreach($subsections as $sub)
+                                            <option value="{{ $sub->id }}"
+                                                @if(old('subseccion_id'))
+                                                    {{ old('subseccion_id') == $sub->id ? 'selected' : '' }}
+                                                @elseif(isset($subseccionSeleccionada))
+                                                    {{ $subseccionSeleccionada == $sub->id ? 'selected' : '' }}
+                                                @endif>
+                                                {{ $sub->nombre }}
                                             </option>
                                         @endforeach
                                     </select>
+
                                     @error('subsection_id')
                                         <span class="invalid-feedback" role="alert">
                                             <strong>{{ $message }}</strong>

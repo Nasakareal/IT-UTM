@@ -25,6 +25,7 @@
           <div class="folder-card" data-bs-toggle="modal" data-bs-target="#modal-{{ $slug }}">
             <i class="fas fa-folder-open folder-icon"></i>
             <h5 class="mt-2">{{ $materia }}</h5>
+            <small class="text-muted">{{ $docs->first()['programa'] }} — Grupo {{ $docs->first()['grupo'] }}</small>
           </div>
         </div>
       @endforeach

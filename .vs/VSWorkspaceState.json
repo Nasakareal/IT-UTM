@@ -2,8 +2,10 @@
   "ExpandedNodes": [
     "",
     "\\app",
-    "\\app\\Providers"
+    "\\app\\Http",
+    "\\app\\Http\\Controllers",
+    "\\config"
   ],
-  "SelectedNode": "\\app\\Providers\\AppServiceProvider.php",
+  "SelectedNode": "\\config\\database.php",
   "PreviewInSolutionExplorer": false
 }

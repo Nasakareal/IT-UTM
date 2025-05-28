@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use App\Models\DocumentoSubido;
@@ -44,15 +45,22 @@ class DocumentoSubidoController extends Controller
         $absPath  = Storage::disk('public')->path($relPath);
 
         /* 3. DATOS DE e-FIRMA ----------------------------------------------- */
-        $p12raw   = base64_decode($request->firma_sat);
+        $p12raw = base64_decode($request->firma_sat);  // <- ¡Correcto!
+
         $certName = Auth::user()->name;
         $certRFC  = 'N/A';
-        if (@openssl_pkcs12_read($p12raw, $certs, $request->efirma_pass) && !empty($certs['cert'])) {
-            $info     = openssl_x509_parse($certs['cert']);
-            $subject  = $info['subject'] ?? [];
-            $certName = $subject['CN']           ?? $certName;
-            $certRFC  = $subject['serialNumber'] ?? $certRFC;
+
+        if (!@openssl_pkcs12_read($p12raw, $certs, $request->efirma_pass) || empty($certs['cert'])) {
+            return back()->withErrors(['efirma_pass' => 'La contraseña de la e.firma es incorrecta o el archivo está dañado.'])->withInput();
         }
+
+        $info    = openssl_x509_parse($certs['cert']);
+        $subject = $info['subject'] ?? [];
+
+        $certName = $subject['CN']           ?? $certName;
+        $certRFC  = $subject['serialNumber'] ?? $certRFC;
+
+
 
         /* 4. Registro BD se crea YA – por si algo falla después -------------- */
         $registro = DocumentoSubido::updateOrCreate(
@@ -219,6 +227,14 @@ class DocumentoSubidoController extends Controller
         $hashFinal = file_exists($absPath) ? hash_file('sha256',$absPath) : $hashOriginal;
 
         /* 8. GENERAR ACUSE PDF ---------------------------------------------- */
+        $programa = DB::connection('cargahoraria')
+            ->table('teacher_subjects as ts')
+            ->join('subjects as s', 'ts.subject_id', '=', 's.subject_id')
+            ->join('programs as p', 's.program_id', '=', 'p.program_id')
+            ->where('ts.teacher_id', Auth::user()->teacher_id)
+            ->where('s.subject_name', $request->materia)
+            ->value('p.program_name') ?? 'Programa desconocido';
+
         $pdf = Pdf::loadView('pdf.acuse_individual', [
             'institucion'  => 'Universidad Tecnológica de Morelia',
             'ciudad'       => 'Morelia, Michoacán',
@@ -231,9 +247,11 @@ class DocumentoSubidoController extends Controller
             'rfc'          => $certRFC,
             'fecha_firma'  => $registro->fecha_firma->format('Y-m-d H:i:s'),
             'hashArchivo'  => $hashFinal,
-            'cuerpo'       => 'La Universidad Tecnológica de Morelia hace constar que ha recibido en tiempo y forma la documentación solicitada.',
+            'programa'     => $programa,
+            'cuerpo'       => "La Universidad Tecnológica de Morelia hace constar que ha recibido en tiempo y forma la documentación correspondiente al programa educativo {$programa}.",
             'atentamente'  => 'Universidad Tecnológica de Morelia',
         ])->setPaper('letter');
+
 
         $acuseRel = 'acuses/acuse_'.$registro->id.'.pdf';
         Storage::disk('public')->put($acuseRel, $pdf->output());

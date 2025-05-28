@@ -19,12 +19,15 @@ class CarpetaController extends Controller
 
 
     // 2. Mostrar el formulario para crear una nueva carpeta
-    public function create()
+    public function create(Request $request)
     {
-        $allCarpetas = Carpeta::all();
+        $allCarpetas = \App\Models\Carpeta::all();
         $subsections = \App\Models\Subsection::all();
-        return view('settings.carpetas.create', compact('allCarpetas', 'subsections'));
+        $subseccionSeleccionada = $request->query('subseccion_id'); // 🔥 capturamos si viene por URL
+
+        return view('settings.carpetas.create', compact('allCarpetas', 'subsections', 'subseccionSeleccionada'));
     }
+
 
 
     // 3. Guardar la carpeta en la base de datos

@@ -30,12 +30,13 @@
         }
 
         .header {
-            text-align: center;
-            margin-bottom: 20px;
+            text-align: right;
+            margin-bottom: 40px; /* 🔹 MÁS ESPACIO para que no tape el logo */
         }
 
         .section {
             margin-bottom: 20px;
+            text-align: justify;
         }
 
         .footer {
@@ -55,28 +56,39 @@
 </head>
 <body>
 
-    {{-- Imagen de fondo con ruta absoluta --}}
+    {{-- Imagen de fondo --}}
     <img src="{{ public_path('fondo.jpg') }}" class="fondo">
 
     <div class="contenido">
         <div class="header">
-            <h2>{{ $institucion }}</h2>
-            <p><strong>{{ $ciudad }}</strong></p>
-            <h3>{{ $tituloAcuse }}</h3>
-            <p><em>{{ $fecha }}</em></p>
+            <p><strong>Morelia Michoacán, a {{ \Carbon\Carbon::now()->translatedFormat('d') }} de {{ \Carbon\Carbon::now()->translatedFormat('F') }} de {{ \Carbon\Carbon::now()->year }}</strong></p>
         </div>
 
         <div class="section">
-            <p>{{ $cuerpo }}</p>
+            <p><strong>Acuse de recepción del formato de seguimiento de planeación ({{ $tipo }}) del cuatrimestre Mayo–Agosto 2025.</strong></p>
+        </div>
+
+        <div class="section">
+            <p><strong>Información:</strong></p>
             <ul>
-                <li><strong>Materia:</strong> {{ $materia }}</li>
+                <li><strong>Asignatura:</strong> {{ $materia }}</li>
                 <li><strong>Unidad:</strong> {{ $unidad }}</li>
                 <li><strong>Documento:</strong> {{ $tipo }}</li>
+                <li><strong>Programa Educativo:</strong> {{ $programa }}</li>
             </ul>
         </div>
 
         <div class="section">
-            <p>El documento fue entregado por:</p>
+            <p>
+                Sobre el particular, conforme a la normativa vigente de la Universidad Tecnológica de Morelia, se hace constar que {{ $usuario }} entregó en tiempo y forma mediante el Sistema Web TIUTM el formato de seguimiento de planeación ({{ $tipo }}) del cuatrimestre Mayo–Agosto 2025.
+            </p>
+            <p>
+                Es importante mencionar que esta Universidad procederá a la revisión y análisis de la información proporcionada y en caso de detectar errores o inconsistencias se reportarán al usuario solicitando la atención correspondiente.
+            </p>
+        </div>
+
+        <div class="section">
+            <p><strong>El documento fue entregado por:</strong></p>
             <ul>
                 <li><strong>Nombre:</strong> {{ $usuario }}</li>
                 <li><strong>CURP:</strong> {{ $rfc }}</li>
@@ -84,14 +96,11 @@
             </ul>
         </div>
 
-        <div class="section">
-            <p><strong>Hash SHA-256 del archivo:</strong></p>
-            <p style="word-break: break-all;">{{ $hashArchivo }}</p>
-        </div>
-
         <div class="footer">
-            <p>{{ $atentamente }}</p>
-            <p>Fecha de emisión: {{ $fecha_firma }}</p>
+            <p><strong>ATENTAMENTE</strong></p>
+            <p>Huella Digital</p>
+            <p>{{ $hashArchivo }}</p>
+            <p><strong>SUBDIRECCIÓN DEL PROGRAMA EDUCATIVO DE {{ strtoupper($programa) }}</strong></p>
         </div>
     </div>
 

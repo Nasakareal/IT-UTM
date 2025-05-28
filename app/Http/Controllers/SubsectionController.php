@@ -8,22 +8,26 @@ use Illuminate\Http\Request;
 
 class SubsectionController extends Controller
 {
-    // Lista todas las subsecciones
     public function index()
     {
         $subsections = Subsection::with('modulo', 'parent')->get();
         return view('settings.subsections.index', compact('subsections'));
     }
 
-    // Muestra el formulario para crear una nueva subsección
-    public function create()
+    public function create(Request $request)
     {
-        // Se obtienen todos los módulos para elegir a cuál asignar la subsección
-        $modulos = Modulo::all();
-        // Se obtienen las subsecciones existentes para
-        $subsections = Subsection::all();
-        return view('settings.subsections.create', compact('modulos', 'subsections'));
+        $modulos = \App\Models\Modulo::all();
+        $subsections = \App\Models\Subsection::all();
+        $moduloSeleccionado = $request->query('modulo_id');
+
+        return view('settings.subsections.create', [
+            'modulos' => $modulos,
+            'subsections' => $subsections,
+            'moduloSeleccionado' => $moduloSeleccionado,
+        ]);
     }
+
+
 
     // Almacena una nueva subsección en la base de datos
     public function store(Request $request)

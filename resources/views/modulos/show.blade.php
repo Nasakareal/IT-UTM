@@ -15,6 +15,15 @@
             <p class="text-muted">{{ $modulo->categoria }} - {{ $modulo->anio }}</p>
         </div>
 
+        @if(auth()->check() && auth()->user()->hasRole('Administrador'))
+            <div class="mb-4 text-end">
+                <a href="{{ route('subsections.create', ['modulo_id' => $modulo->id]) }}" class="btn btn-sm" style="background-color: #FFFFFF; color: #000;">
+                    <i class="fa-solid fa-plus"></i> Crear Nueva Subsección
+                </a>
+            </div>
+        @endif
+
+
         <!-- Iteramos subsecciones -->
         @foreach($subnivelesPrincipales as $subsec)
             <div class="mb-5">
@@ -23,8 +32,21 @@
                     {{ strtoupper($subsec->nombre) }}
                 </h2>
 
+                @if(auth()->check() && auth()->user()->hasRole('Administrador'))
+                    <div class="mb-3 text-end">
+                        <a href="{{ route('carpetas.create', ['subseccion_id' => $subsec->id]) }}" class="btn btn-sm" style="background-color: #FFFFFF; color: #000;">
+                            <i class="fa-solid fa-folder-plus"></i> Crear Nueva Carpeta
+                        </a>
+                    </div>
+                @endif
+
                 @if($subsec->submodulos->count())
                     <div class="row ms-2 mb-4">
+                        @php
+                            $esAdmin = auth()->check() && auth()->user()->hasRole('Administrador');
+                            $ahora = now();
+                        @endphp
+
                         @foreach($subsec->submodulos as $submodulo)
                             @php
                                 $archivoOficio   = $submodulo->archivos->where('nombre', 'oficio_entrega')->first();
@@ -33,81 +55,81 @@
                                 $estadoMostrar   = $estadoUsuario ? $estadoUsuario->estatus : $submodulo->estatus;
                             @endphp
 
-                            <div class="col-md-6 col-lg-4 mb-3">
-                                <div class="card shadow-sm border-0"
-                                     style="border-radius: 10px; overflow: hidden;">
-                                    <!-- Encabezado -->
-                                    <div class="card-header text-white text-center fw-bold"
-                                         style="background-color: {{ $modulo->color ?? '#009688' }};">
-                                        {{ $submodulo->titulo }}
-                                    </div>
+                            @if($esAdmin || is_null($submodulo->fecha_apertura) || $submodulo->fecha_apertura <= $ahora)
+                                <div class="col-md-6 col-lg-4 mb-3">
+                                    <div class="card shadow-sm border-0"
+                                        style="border-radius: 10px; overflow: hidden;">
+                                        <div class="card-header text-white text-center fw-bold"
+                                            style="background-color: {{ $modulo->color ?? '#009688' }};">
+                                            {{ $submodulo->titulo }}
+                                        </div>
 
-                                    <!-- Contenido -->
-                                    <div class="card-body text-center">
-                                        <p class="mb-1 text-dark fw-bold">
-                                            {{ $submodulo->descripcion ?? 'Sin descripción' }}
-                                        </p>
-                                        <p class="mb-1 text-muted">
-                                            <strong>Estatus:</strong>
-                                            <span class="
-                                                {{ strtolower($estadoMostrar)=='pendiente'   ? 'text-warning'
-                                                  : (strtolower($estadoMostrar)=='entregado' ? 'text-success'
-                                                  : 'text-danger') }}
-                                            ">
-                                                {{ ucfirst($estadoMostrar) }}
-                                            </span>
-                                        </p>
-
-                                        @if($submodulo->fecha_apertura)
+                                        <div class="card-body text-center">
+                                            <p class="mb-1 text-dark fw-bold">
+                                                {{ $submodulo->descripcion ?? 'Sin descripción' }}
+                                            </p>
                                             <p class="mb-1 text-muted">
-                                                <strong>Fecha Apertura:</strong>
-                                                {{ $submodulo->fecha_apertura->format('Y-m-d H:i') }}
+                                                <strong>Estatus:</strong>
+                                                <span class="
+                                                    {{ strtolower($estadoMostrar)=='pendiente'   ? 'text-warning'
+                                                      : (strtolower($estadoMostrar)=='entregado' ? 'text-success'
+                                                      : 'text-danger') }}
+                                                ">
+                                                    {{ ucfirst($estadoMostrar) }}
+                                                </span>
                                             </p>
-                                        @endif
-                                        @if($submodulo->fecha_limite)
-                                            <p class="mb-1 text-muted">
-                                                <strong>Fecha Límite:</strong>
-                                                {{ $submodulo->fecha_limite->format('Y-m-d H:i') }}
-                                            </p>
-                                        @endif
-                                        @if($submodulo->fecha_cierre)
-                                            <p class="mb-1 text-muted">
-                                                <strong>Fecha Cierre:</strong>
-                                                {{ $submodulo->fecha_cierre->format('Y-m-d H:i') }}
-                                            </p>
-                                        @endif
 
-                                        @if($submodulo->documento_solicitado)
-                                            <p class="mb-2">
-                                                <strong>Plantilla base:</strong>
-                                                <a href="{{ asset('storage/' . $submodulo->documento_solicitado) }}"
-                                                   target="_blank">Descargar plantilla</a>
-                                            </p>
-                                        @endif
-                                    </div>
+                                            @if($submodulo->fecha_apertura)
+                                                <p class="mb-1 text-muted">
+                                                    <strong>Fecha Apertura:</strong>
+                                                    {{ $submodulo->fecha_apertura->format('Y-m-d H:i') }}
+                                                </p>
+                                            @endif
+                                            @if($submodulo->fecha_limite)
+                                                <p class="mb-1 text-muted">
+                                                    <strong>Fecha Límite:</strong>
+                                                    {{ $submodulo->fecha_limite->format('Y-m-d H:i') }}
+                                                </p>
+                                            @endif
+                                            @if($submodulo->fecha_cierre)
+                                                <p class="mb-1 text-muted">
+                                                    <strong>Fecha Cierre:</strong>
+                                                    {{ $submodulo->fecha_cierre->format('Y-m-d H:i') }}
+                                                </p>
+                                            @endif
 
-                                    <!-- Pie con botón de acción -->
-                                    <div class="card-footer text-center bg-light">
-                                        <button class="btn btn-info text-white ver-detalle-submodulo"
-                                            data-bs-toggle="modal"
-                                            data-bs-target="#detalleSubmoduloModal"
-                                            data-id="{{ $submodulo->id }}"
-                                            data-titulo="{{ $submodulo->titulo }}"
-                                            data-descripcion="{{ $submodulo->descripcion }}"
-                                            data-estatus="{{ ucfirst($estadoMostrar) }}"
-                                            data-fecha-apertura="{{ $submodulo->fecha_apertura? $submodulo->fecha_apertura->format('Y-m-d H:i') : '' }}"
-                                            data-fecha-limite="{{ $submodulo->fecha_limite? $submodulo->fecha_limite->format('Y-m-d H:i') : '' }}"
-                                            data-fecha-cierre="{{ $submodulo->fecha_cierre? $submodulo->fecha_cierre->format('Y-m-d H:i') : '' }}"
-                                            data-base="{{ $submodulo->documento_solicitado? asset('storage/' . $submodulo->documento_solicitado) : '' }}"
-                                            data-acuse="{{ route('submodulos.generarAcuse', $submodulo->id) }}"
-                                            data-oficio="{{ $archivoOficio? asset('storage/' . $archivoOficio->ruta) : '' }}"
-                                            data-programa="{{ $archivoPrograma? asset('storage/' . $archivoPrograma->ruta) : '' }}">
-                                            <i class="fa fa-info-circle"></i> Detalles
-                                        </button>
+                                            @if($submodulo->documento_solicitado)
+                                                <p class="mb-2">
+                                                    <strong>Plantilla base:</strong>
+                                                    <a href="{{ asset('storage/' . $submodulo->documento_solicitado) }}"
+                                                       target="_blank">Descargar plantilla</a>
+                                                </p>
+                                            @endif
+                                        </div>
+
+                                        <div class="card-footer text-center bg-light">
+                                            <button class="btn btn-info text-white ver-detalle-submodulo"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#detalleSubmoduloModal"
+                                                data-id="{{ $submodulo->id }}"
+                                                data-titulo="{{ $submodulo->titulo }}"
+                                                data-descripcion="{{ $submodulo->descripcion }}"
+                                                data-estatus="{{ ucfirst($estadoMostrar) }}"
+                                                data-fecha-apertura="{{ $submodulo->fecha_apertura? $submodulo->fecha_apertura->format('Y-m-d H:i') : '' }}"
+                                                data-fecha-limite="{{ $submodulo->fecha_limite? $submodulo->fecha_limite->format('Y-m-d H:i') : '' }}"
+                                                data-fecha-cierre="{{ $submodulo->fecha_cierre? $submodulo->fecha_cierre->format('Y-m-d H:i') : '' }}"
+                                                data-base="{{ $submodulo->documento_solicitado? asset('storage/' . $submodulo->documento_solicitado) : '' }}"
+                                                data-acuse="{{ route('submodulos.generarAcuse', $submodulo->id) }}"
+                                                data-oficio="{{ $archivoOficio? asset('storage/' . $archivoOficio->ruta) : '' }}"
+                                                data-programa="{{ $archivoPrograma? asset('storage/' . $archivoPrograma->ruta) : '' }}">
+                                                <i class="fa fa-info-circle"></i> Detalles
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            @endif
                         @endforeach
+
                     </div>
                 @endif
 
@@ -121,16 +143,27 @@
                     <p class="ms-4">No hay carpetas en esta subsección.</p>
                 @endif
 
-                <!-- Botón solo para módulo 5 y subsección Gestión Académica -->
+                <!-- Tarjeta estilo Proyecto Institucional para botón Ver Documentos por Unidad -->
                 @if(strtoupper($subsec->nombre) === 'GESTIÓN ACADÉMICA' && $modulo->id == 5)
-                    <div class="text-end me-4 mb-3">
-                        <a href="{{ route('modulo5.gestion') }}" class="btn btn-primary">
-                            <i class="fas fa-file-alt"></i> Ver Documentos por Unidad
-                        </a>
+                    <div class="col-md-3 mb-4">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-header bg-success text-white text-center rounded-top">
+                                Documentos por Unidad
+                            </div>
+                            <div class="card-body text-center">
+                                <p class="text-muted">Accede a los formatos y documentos por unidad</p>
+                                <a href="{{ route('modulo5.gestion') }}" class="btn btn-info btn-sm">
+                                    <i class="fas fa-file-alt"></i> Ver Documentos por Unidad
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 @endif
+
             </div>
         @endforeach
+
+        
 
         <!-- Botón de regreso -->
         <div class="text-center mt-4">

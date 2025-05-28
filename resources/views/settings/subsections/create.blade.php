@@ -44,9 +44,14 @@
                                             id="modulo_id"
                                             class="form-control @error('modulo_id') is-invalid @enderror"
                                             required>
-                                        <option value="" disabled selected>Seleccione un módulo</option>
+                                        <option value="">Seleccione un módulo</option>
                                         @foreach($modulos as $modulo)
-                                            <option value="{{ $modulo->id }}" {{ old('modulo_id') == $modulo->id ? 'selected' : '' }}>
+                                            <option value="{{ $modulo->id }}"
+                                                @if(old('modulo_id'))
+                                                    {{ old('modulo_id') == $modulo->id ? 'selected' : '' }}
+                                                @elseif(isset($moduloSeleccionado))
+                                                    {{ $moduloSeleccionado == $modulo->id ? 'selected' : '' }}
+                                                @endif>
                                                 {{ $modulo->titulo }}
                                             </option>
                                         @endforeach

@@ -20,12 +20,21 @@ class GestionAcademicaController extends Controller
         }
 
         $materias = DB::connection('cargahoraria')
-            ->table('teacher_subjects as ts')
-            ->join('subjects as s', 'ts.subject_id', '=', 's.subject_id')
-            ->select('s.subject_name as materia', 's.unidades')
-            ->where('ts.teacher_id', $user->teacher_id)
-            ->groupBy('s.subject_name', 's.unidades')
-            ->get();
+        ->table('teacher_subjects as ts')
+        ->join('subjects as s', 'ts.subject_id', '=', 's.subject_id')
+        ->join('programs as p', 's.program_id', '=', 'p.program_id')
+        ->join('groups as g', 'ts.group_id', '=', 'g.group_id')
+        ->select(
+            's.subject_name as materia',
+            's.unidades',
+            'p.program_name as programa',
+            'g.group_name as grupo'
+        )
+        ->where('ts.teacher_id', $user->teacher_id)
+        ->groupBy('s.subject_name', 's.unidades', 'p.program_name', 'g.group_name')
+        ->get();
+
+
 
         if ($materias->isEmpty()) {
             return back()->with('error', 'No se encontraron materias asignadas.');
@@ -76,7 +85,11 @@ class GestionAcademicaController extends Controller
                     'entregado'      => $registro ? true : false,
                     'archivo_subido' => $registro->archivo ?? null,
                     'acuse'          => $registro->acuse_pdf ?? null,
+                    'programa'       => $materia->programa,
+                    'grupo'          => $materia->grupo,
                 ];
+
+
             }
 
             // Documento extra solo para unidad 1
@@ -95,7 +108,10 @@ class GestionAcademicaController extends Controller
                     'entregado'      => $registro ? true : false,
                     'archivo_subido' => $registro->archivo ?? null,
                     'acuse'          => $registro->acuse_pdf ?? null,
+                    'programa'       => $materia->programa,
+                    'grupo'          => $materia->grupo,
                 ];
+
             }
         }
 
