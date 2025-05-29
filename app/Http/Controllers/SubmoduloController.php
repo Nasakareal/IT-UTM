@@ -80,9 +80,9 @@ class SubmoduloController extends Controller
     {
         $data = $request->validate([
             'subsection_id'        => 'required|exists:subsections,id',
-            'titulo'               => 'required|string|max:125',
+            'titulo'               => 'required|string|max:2048',
             'descripcion'          => 'nullable|string',
-            'documento_solicitado' => 'nullable|string|max:125',
+            'documento_solicitado' => 'required|file|mimes:pdf,doc,docx|max:8048',
             'fecha_apertura'       => 'nullable|date|before_or_equal:fecha_cierre',
             'fecha_limite'         => 'nullable|date',
             'fecha_cierre'         => 'nullable|date|after_or_equal:fecha_apertura',
