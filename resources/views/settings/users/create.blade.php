@@ -20,15 +20,20 @@
                         <!-- Campo adicional: Nombre Completo -->
                         <div class="row g-3 mb-3">
                             <div class="col-md-12">
-                                <label for="name" class="fw-bold">Nombre Completo</label>
-                                <input type="text"
-                                       name="name"
-                                       id="name"
-                                       class="form-control @error('name') is-invalid @enderror"
-                                       value="{{ old('name') }}"
-                                       required
-                                >
-                                @error('name')
+                                <label for="role" class="fw-bold">Rol<span class="text-danger">*</span></label>
+                                <select name="role"
+                                        id="role"
+                                        class="form-control @error('role') is-invalid @enderror"
+                                        required>
+                                    <option value="" disabled selected>Seleccione un rol</option>
+                                    @foreach ($roles as $role)
+                                        <option value="{{ $role->name }}"
+                                                {{ old('role') == $role->name ? 'selected' : '' }}>
+                                            {{ $role->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('role')
                                     <span class="invalid-feedback"><strong>{{ $message }}</strong></span>
                                 @enderror
                             </div>
@@ -37,7 +42,7 @@
                         <!-- Primera fila: Nombres / Selección de Profesor -->
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label for="nombres" class="fw-bold">Nombres</label>
+                                <label for="nombres" class="fw-bold">Nombres<span class="text-danger">*</span></label>
                                 <!-- Input de texto por defecto -->
                                 <input type="text"
                                        name="nombres"
@@ -45,14 +50,12 @@
                                        class="form-control @error('nombres') is-invalid @enderror"
                                        value="{{ old('nombres') }}"
                                        required
-                                       style="display: none;"
-                                >
+                                       style="display: none;">
                                 <!-- Select de profesores para rol Profesor -->
                                 <select name="nombres"
                                         id="select_profesor"
                                         class="form-control @error('nombres') is-invalid @enderror"
-                                        style="display: none;"
-                                >
+                                        style="display: none;">
                                     <option value="" disabled selected>-- Selecciona profesor --</option>
                                     @foreach($profesores as $profe)
                                         <option value="{{ $profe->teacher_name }}"
@@ -70,42 +73,10 @@
                                 <input type="hidden"
                                        name="teacher_id"
                                        id="teacher_id"
-                                       value="{{ old('teacher_id') }}"
-                                >
+                                       value="{{ old('teacher_id') }}">
                             </div>
-                        </div>
 
-                        <!-- Segunda fila: Apellidos -->
-                        <div class="row g-3 mt-3">
-                            <div class="col-md-4">
-                                <label for="apellido_paterno" class="fw-bold">Apellido Paterno</label>
-                                <input type="text"
-                                       name="apellido_paterno"
-                                       id="apellido_paterno"
-                                       class="form-control @error('apellido_paterno') is-invalid @enderror"
-                                       value="{{ old('apellido_paterno') }}"
-                                >
-                                @error('apellido_paterno')
-                                    <span class="invalid-feedback"><strong>{{ $message }}</strong></span>
-                                @enderror
-                            </div>
-                            <div class="col-md-4">
-                                <label for="apellido_materno" class="fw-bold">Apellido Materno</label>
-                                <input type="text"
-                                       name="apellido_materno"
-                                       id="apellido_materno"
-                                       class="form-control @error('apellido_materno') is-invalid @enderror"
-                                       value="{{ old('apellido_materno') }}"
-                                >
-                                @error('apellido_materno')
-                                    <span class="invalid-feedback"><strong>{{ $message }}</strong></span>
-                                @enderror
-                            </div>
-                        </div>
-
-                        <!-- Tercera fila: CURP, Correo Institucional, Correo Personal -->
-                        <div class="row g-3 mt-3">
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <label for="curp" class="fw-bold">CURP</label>
                                 <input type="text"
                                        name="curp"
@@ -113,21 +84,24 @@
                                        class="form-control @error('curp') is-invalid @enderror"
                                        value="{{ old('curp') }}"
                                        maxlength="18"
-                                       required
-                                >
+                                       required>
                                 @error('curp')
                                     <span class="invalid-feedback"><strong>{{ $message }}</strong></span>
                                 @enderror
                             </div>
+                        </div>
+
+                        <!-- Segunda fila: CURP, Correo Institucional, Correo Personal -->
+                        <div class="row g-3 mt-3">
+                            
                             <div class="col-md-4">
-                                <label for="correo_institucional" class="fw-bold">Correo Institucional</label>
+                                <label for="correo_institucional" class="fw-bold">Correo Institucional<span class="text-danger">*</span></label>
                                 <input type="email"
                                        name="correo_institucional"
                                        id="correo_institucional"
                                        class="form-control @error('correo_institucional') is-invalid @enderror"
                                        value="{{ old('correo_institucional') }}"
-                                       required
-                                >
+                                       required>
                                 @error('correo_institucional')
                                     <span class="invalid-feedback"><strong>{{ $message }}</strong></span>
                                 @enderror
@@ -138,24 +112,32 @@
                                        name="correo_personal"
                                        id="correo_personal"
                                        class="form-control @error('correo_personal') is-invalid @enderror"
-                                       value="{{ old('correo_personal') }}"
-                                       required
-                                >
+                                       value="{{ old('correo_personal') }}">
                                 @error('correo_personal')
+                                    <span class="invalid-feedback"><strong>{{ $message }}</strong></span>
+                                @enderror
+                            </div>
+                            <div class="col-md-4">
+                                <label for="area" class="fw-bold">Área</label>
+                                <input type="text"
+                                       name="area"
+                                       id="area"
+                                       class="form-control @error('area') is-invalid @enderror"
+                                       value="{{ old('area') }}">
+                                @error('area')
                                     <span class="invalid-feedback"><strong>{{ $message }}</strong></span>
                                 @enderror
                             </div>
                         </div>
 
-                        <!-- Cuarta fila: Categoría, Carácter, Rol -->
+                        <!-- Cuarta fila: Categoría, Carácter -->
                         <div class="row g-3 mt-3">
-                            <div class="col-md-3">
-                                <label for="categoria" class="fw-bold">Categoría</label>
+                            <div class="col-md-4">
+                                <label for="categoria" class="fw-bold">Categoría<span class="text-danger">*</span></label>
                                 <select name="categoria"
                                         id="categoria"
                                         class="form-control @error('categoria') is-invalid @enderror"
-                                        required
-                                >
+                                        required>
                                     <option value="" disabled selected>Seleccione categoría</option>
                                     @foreach($categorias as $cat)
                                         <option value="{{ $cat }}"
@@ -168,13 +150,12 @@
                                     <span class="invalid-feedback"><strong>{{ $message }}</strong></span>
                                 @enderror
                             </div>
-                            <div class="col-md-3">
-                                <label for="caracter" class="fw-bold">Carácter</label>
+                            <div class="col-md-4">
+                                <label for="caracter" class="fw-bold">Carácter<span class="text-danger">*</span></label>
                                 <select name="caracter"
                                         id="caracter"
                                         class="form-control @error('caracter') is-invalid @enderror"
-                                        required
-                                >
+                                        required>
                                     <option value="" disabled selected>Seleccione carácter</option>
                                     @foreach($caracteres as $car)
                                         <option value="{{ $car }}"
@@ -187,52 +168,24 @@
                                     <span class="invalid-feedback"><strong>{{ $message }}</strong></span>
                                 @enderror
                             </div>
-                            <div class="col-md-6">
-                                <label for="role" class="fw-bold">Rol</label>
-                                <select name="role"
-                                        id="role"
-                                        class="form-control @error('role') is-invalid @enderror"
-                                        required
-                                >
-                                    <option value="" disabled selected>Seleccione un rol</option>
-                                    @foreach ($roles as $role)
-                                        <option value="{{ $role->name }}"
-                                                {{ old('role') == $role->name ? 'selected' : '' }}>
-                                            {{ $role->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                @error('role')
-                                    <span class="invalid-feedback"><strong>{{ $message }}</strong></span>
-                                @enderror
-                            </div>
-                        </div>
 
-                        <!-- Quinta fila: Área, Foto de Perfil -->
-                        <div class="row g-3 mt-3">
-                            <div class="col-md-6">
-                                <label for="area" class="fw-bold">Área</label>
-                                <input type="text"
-                                       name="area"
-                                       id="area"
-                                       class="form-control @error('area') is-invalid @enderror"
-                                       value="{{ old('area') }}"
-                                >
-                                @error('area')
-                                    <span class="invalid-feedback"><strong>{{ $message }}</strong></span>
-                                @enderror
-                            </div>
-                            <div class="col-md-6">
+                            <div class="col-md-3">
                                 <label for="foto_perfil" class="fw-bold">Foto de Perfil</label>
                                 <input type="file"
                                        name="foto_perfil"
                                        id="foto_perfil"
-                                       class="form-control @error('foto_perfil') is-invalid @enderror"
-                                >
+                                       class="form-control @error('foto_perfil') is-invalid @enderror">
                                 @error('foto_perfil')
                                     <span class="invalid-feedback"><strong>{{ $message }}</strong></span>
                                 @enderror
                             </div>
+                            
+                        </div>
+
+                        <!-- Quinta fila: Área, Foto de Perfil -->
+                        <div class="row g-3 mt-3">
+                            
+                            
                         </div>
 
                         <!-- Sexta fila: Contraseña, Confirmación -->

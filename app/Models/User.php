@@ -16,10 +16,7 @@ class User extends Authenticatable
     use HasApiTokens, HasFactory, Notifiable, HasRoles, LogsActivity;
 
     protected $fillable = [
-        'name',
         'nombres',
-        'apellido_paterno',
-        'apellido_materno',
         'curp',
         'correo_institucional',
         'correo_personal',
@@ -46,10 +43,7 @@ class User extends Authenticatable
     {
         return LogOptions::defaults()
             ->logOnly([
-                'name',
                 'nombres',
-                'apellido_paterno',
-                'apellido_materno',
                 'curp',
                 'correo_institucional',
                 'correo_personal',
@@ -72,5 +66,4 @@ class User extends Authenticatable
     {
         return $this->hasMany(DocumentoSubido::class);
     }
-
 }

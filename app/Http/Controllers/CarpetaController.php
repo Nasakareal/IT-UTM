@@ -23,7 +23,7 @@ class CarpetaController extends Controller
     {
         $allCarpetas = \App\Models\Carpeta::all();
         $subsections = \App\Models\Subsection::all();
-        $subseccionSeleccionada = $request->query('subseccion_id'); // 🔥 capturamos si viene por URL
+        $subseccionSeleccionada = $request->query('subseccion_id');
 
         return view('settings.carpetas.create', compact('allCarpetas', 'subsections', 'subseccionSeleccionada'));
     }

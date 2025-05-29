@@ -66,18 +66,14 @@
                             <div class="col-md-6">
                                 <div class="form-group mb-3">
                                     <label for="subsection_id" class="fw-bold">Subsección</label>
-                                   <select name="subseccion_id"
-                                            id="subseccion_id"
-                                            class="form-control @error('subseccion_id') is-invalid @enderror"
+                                    <select name="subsection_id"
+                                            id="subsection_id"
+                                            class="form-control @error('subsection_id') is-invalid @enderror"
                                             required>
                                         <option value="">Seleccione una subsección</option>
                                         @foreach($subsections as $sub)
                                             <option value="{{ $sub->id }}"
-                                                @if(old('subseccion_id'))
-                                                    {{ old('subseccion_id') == $sub->id ? 'selected' : '' }}
-                                                @elseif(isset($subseccionSeleccionada))
-                                                    {{ $subseccionSeleccionada == $sub->id ? 'selected' : '' }}
-                                                @endif>
+                                                {{ old('subsection_id', $subseccionSeleccionada) == $sub->id ? 'selected' : '' }}>
                                                 {{ $sub->nombre }}
                                             </option>
                                         @endforeach
@@ -90,6 +86,7 @@
                                     @enderror
                                 </div>
                             </div>
+
                         </div>
                         
                         <!-- Botones -->

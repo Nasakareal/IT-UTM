@@ -2,10 +2,15 @@
   "ExpandedNodes": [
     "",
     "\\app",
-    "\\app\\Http",
-    "\\app\\Http\\Controllers",
-    "\\config"
+    "\\app\\Models",
+    "\\config",
+    "\\database",
+    "\\database\\migrations",
+    "\\resources",
+    "\\resources\\views",
+    "\\resources\\views\\settings",
+    "\\resources\\views\\settings\\users"
   ],
-  "SelectedNode": "\\config\\database.php",
+  "SelectedNode": "\\database\\migrations\\2025_05_28_192115_remove_apellidos_and_name_from_users_table.php",
   "PreviewInSolutionExplorer": false
 }
