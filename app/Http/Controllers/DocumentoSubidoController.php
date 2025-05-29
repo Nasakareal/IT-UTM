@@ -45,7 +45,7 @@ class DocumentoSubidoController extends Controller
         $absPath  = Storage::disk('public')->path($relPath);
 
         /* 3. DATOS DE e-FIRMA ----------------------------------------------- */
-        $p12raw = base64_decode($request->firma_sat);  // <- ¡Correcto!
+        $p12raw = base64_decode($request->firma_sat);
 
         $certName = Auth::user()->name;
         $certRFC  = 'N/A';

@@ -8,9 +8,10 @@
     "\\resources\\views",
     "\\resources\\views\\modulos",
     "\\resources\\views\\partials",
+    "\\resources\\views\\pdf",
     "\\resources\\views\\submodulos",
     "\\routes"
   ],
-  "SelectedNode": "\\app\\Models\\Carpeta.php",
+  "SelectedNode": "\\resources\\views\\pdf\\acuse.blade.php",
   "PreviewInSolutionExplorer": false
 }

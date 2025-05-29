@@ -17,105 +17,98 @@ class AcuseController extends Controller
      */
     public function generarAcuse($submoduloId)
     {
-        // Lógica idéntica a antes hasta el paso de generar el QR...
-        $submodulo   = Submodulo::with('archivos')->findOrFail($submoduloId);
-        $remitente   = Auth::user();
-        $archivo     = $submodulo->archivos()->where('nombre','like','%oficio_entrega%')->latest('fecha_firma')->firstOrFail();
-        $hashContent = @file_get_contents(storage_path('app/'.$submodulo->documento_url)) ?: $archivo->firma_sat;
+        $submodulo = Submodulo::with('archivos')->findOrFail($submoduloId);
+        $usuario   = Auth::user();
+
+        $archivo = $submodulo->archivos()
+            ->where('nombre', 'like', '%oficio_entrega%')
+            ->latest('fecha_firma')
+            ->firstOrFail();
+
+        $hashContent = @file_get_contents(storage_path('app/public/' . $archivo->ruta)) ?: $archivo->firma_sat;
         $hashArchivo = hash('sha256', $hashContent);
 
-        // Datos del acuse…
         $dataAcuse = [
-            'institucion' => 'Universidad Tecnológica de Morelia',
-            'ciudad'      => 'Morelia, Michoacán',
-            'fecha'       => Carbon::now()->format('d \\d\\e F \\d\\e Y'),
-            'tituloAcuse' => 'Acuse de recepción de documentación',
-            'subtitulo'   => 'Documentación correspondiente al submódulo: '.$submodulo->titulo,
-            'cuerpo'      => 'La Universidad Tecnológica de Morelia hace constar que ha recibido en tiempo y forma la documentación solicitada correspondiente al submódulo "'
-                              .$submodulo->titulo
-                              .'". La información será revisada y, en caso de detectar inconsistencias, se solicitarán las aclaraciones necesarias.',
-            'atentamente'  => 'Universidad Tecnológica de Morelia',
-            'impresion'    => Carbon::now()->format('Y-m-d H:i:s'),
-            'firmante'     => $remitente->name,
-            'rfc'          => $remitente->rfc ?? 'N/A',
-            'fecha_firma'  => Carbon::parse($archivo->fecha_firma)->format('Y-m-d H:i:s'),
-            'firma_dig'    => $archivo->firma_sat,
+            'institucion'   => 'Universidad Tecnológica de Morelia',
+            'ciudad'        => 'Morelia, Michoacán',
+            'fecha'         => Carbon::now()->format('d \\d\\e F \\d\\e Y'),
+            'tituloAcuse'   => 'Acuse de recepción del submódulo "' . ($submodulo->titulo ?? 'No especificado') . '" correspondiente al cuatrimestre Mayo–Agosto 2025.',
+            'materia'       => $submodulo->titulo ?? 'No especificado',
+            'tipo'          => 'Oficio Entrega',
+            'usuario'       => $usuario->nombres ?? 'No especificado',
+            'rfc'           => $usuario->curp ?? 'N/A',
+            'fecha_firma'   => Carbon::parse($archivo->fecha_firma)->format('Y-m-d H:i:s'),
+            'hashArchivo'   => $hashArchivo,
+            'programa'      => 'No especificado',
+            'atentamente'   => 'Universidad Tecnológica de Morelia',
         ];
 
-        // **Nuevo**: URL pública para visualizar el acuse
         $urlVer = route('submodulos.ver-acuse', ['submodulo' => $submodulo->id]);
 
-        // Generar QR con la URL
-        $writer = new PngWriter();
         $qr = Builder::create()
-            ->writer($writer)
+            ->writer(new PngWriter())
             ->data($urlVer)
             ->logoPath(public_path('utm_logo2.png'))
             ->logoResizeToWidth(40)
             ->logoResizeToHeight(30)
             ->size(190)
             ->margin(10)
-            ->build();
-        $qrDataUri = $qr->getDataUri();
+            ->build()
+            ->getDataUri();
 
-        // Descargar PDF
-        $pdf = Pdf::loadView('pdf.acuse', [
-            'dataAcuse'   => $dataAcuse,
-            'qrDataUri'   => $qrDataUri,
-            'hashArchivo' => $hashArchivo,
-        ])->setPaper('letter','portrait');
+        $pdf = Pdf::loadView('pdf.acuse', array_merge($dataAcuse, [
+            'qrDataUri' => $qr,
+        ]))->setPaper('letter', 'portrait');
 
         return $pdf->download("acuse_submodulo_{$submodulo->id}.pdf");
     }
 
     /**
-     * Muestra el acuse inline (navegador) para la ruta QR.
+     * Muestra el acuse inline (navegador).
      */
     public function verAcuse($submoduloId)
     {
         $submodulo = Submodulo::with('archivos')->findOrFail($submoduloId);
-        // Reproducimos la misma lógica de armado de PDF:
-        // (podrías extraer a un método privado para no duplicar)
-        $remitente   = Auth::user();
-        $archivo     = $submodulo->archivos()->where('nombre','like','%oficio_entrega%')->latest('fecha_firma')->firstOrFail();
-        $hashContent = @file_get_contents(storage_path('app/'.$submodulo->documento_url)) ?: $archivo->firma_sat;
+        $usuario   = Auth::user();
+
+        $archivo = $submodulo->archivos()
+            ->where('nombre', 'like', '%oficio_entrega%')
+            ->latest('fecha_firma')
+            ->firstOrFail();
+
+        $hashContent = @file_get_contents(storage_path('app/public/' . $archivo->ruta)) ?: $archivo->firma_sat;
         $hashArchivo = hash('sha256', $hashContent);
 
         $dataAcuse = [
-            'institucion' => 'Universidad Tecnológica de Morelia',
-            'ciudad'      => 'Morelia, Michoacán',
-            'fecha'       => Carbon::now()->format('d \\d\\e F \\d\\e Y'),
-            'tituloAcuse'=> 'Acuse de recepción de documentación',
-            'subtitulo'  => 'Documentación correspondiente al submódulo: '.$submodulo->titulo,
-            'cuerpo'     => 'La Universidad Tecnológica de Morelia hace constar que ha recibido en tiempo y forma la documentación solicitada correspondiente al submódulo "'
-                             .$submodulo->titulo
-                             .'". La información será revisada y, en caso de detectar inconsistencias, se solicitarán las aclaraciones necesarias.',
-            'atentamente'=> 'Universidad Tecnológica de Morelia',
-            'impresion'  => Carbon::now()->format('Y-m-d H:i:s'),
-            'firmante'   => $remitente->name,
-            'rfc'        => $remitente->rfc ?? 'N/A',
-            'fecha_firma'=> Carbon::parse($archivo->fecha_firma)->format('Y-m-d H:i:s'),
-            'firma_dig'  => $archivo->firma_sat,
+            'institucion'   => 'Universidad Tecnológica de Morelia',
+            'ciudad'        => 'Morelia, Michoacán',
+            'fecha'         => Carbon::now()->format('d \\d\\e F \\d\\e Y'),
+            'tituloAcuse'   => 'Acuse de recepción del submódulo "' . ($submodulo->titulo ?? 'No especificado') . '" correspondiente al cuatrimestre Mayo–Agosto 2025.',
+            'materia'       => $submodulo->titulo ?? 'No especificado',
+            'tipo'          => 'Oficio Entrega',
+            'usuario'       => $usuario->nombres ?? 'No especificado',
+            'rfc'           => $usuario->curp ?? 'N/A',
+            'fecha_firma'   => Carbon::parse($archivo->fecha_firma)->format('Y-m-d H:i:s'),
+            'hashArchivo'   => $hashArchivo,
+            'programa'      => 'No especificado',
+            'atentamente'   => 'Universidad Tecnológica de Morelia',
         ];
 
-        $qrDataUri = Builder::create()
+        $qr = Builder::create()
             ->writer(new PngWriter())
-            ->data(route('submodulos.ver-acuse',['submodulo'=>$submodulo->id]))
+            ->data(route('submodulos.ver-acuse', ['submodulo' => $submodulo->id]))
             ->logoPath(public_path('utm_logo2.png'))
             ->logoResizeToWidth(40)
-            ->logoResizeToHeight(40)
-            ->size(150)
+            ->logoResizeToHeight(30)
+            ->size(190)
             ->margin(10)
             ->build()
             ->getDataUri();
 
-        $pdf = Pdf::loadView('pdf.acuse',[
-            'dataAcuse'   => $dataAcuse,
-            'qrDataUri'   => $qrDataUri,
-            'hashArchivo' => $hashArchivo,
-        ])->setPaper('letter','portrait');
+        $pdf = Pdf::loadView('pdf.acuse', array_merge($dataAcuse, [
+            'qrDataUri' => $qr,
+        ]))->setPaper('letter', 'portrait');
 
-        // Aquí indicamos inline en lugar de download:
         return $pdf->stream("acuse_submodulo_{$submodulo->id}.pdf");
     }
 }

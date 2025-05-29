@@ -202,9 +202,6 @@
                     <p>Oficio de entrega ya subido:
                         <a id="linkOficio" href="#" target="_blank">Descargar PDF</a>
                     </p>
-                    <p>Programa de Austeridad ya subido:
-                        <a id="linkPrograma" href="#" target="_blank">Descargar PDF</a>
-                    </p>
                 </div>
 
                 <!-- FORMULARIO PARA SUBIR LOS DOS PDFs -->
@@ -218,16 +215,9 @@
 
                     <div class="mb-3">
                         <label for="oficio_entrega" class="form-label">
-                            1. Oficio de entrega (PDF máx. 2Mb):
+                            1. Formato de entrega (PDF máx. 8Mb):
                         </label>
-                        <input type="file" class="form-control" id="oficio_entrega" name="oficio_entrega" accept=".pdf">
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="programa_austeridad" class="form-label">
-                            2. Programa de Austeridad y Ahorro (PDF máx. 12Mb):
-                        </label>
-                        <input type="file" class="form-control" id="programa_austeridad" name="programa_austeridad" accept=".pdf">
+                        <input type="file" class="form-control" id="oficio_entrega" name="oficio_entrega" accept=".pdf,.doc,.docx,.odt,.txt">
                     </div>
 
                     <!-- NUEVOS CAMPOS PARA E.FIRMA -->
@@ -244,9 +234,15 @@
                         <input type="password" class="form-control" id="efirma_pass" name="efirma_pass" required>
                     </div>
 
-                    <button type="submit" class="btn btn-primary" id="btnEnviarArchivos">
-                        Enviar y Firmar
-                    </button>
+                    <div class="d-flex gap-2">
+                        <button type="submit" name="accion" value="solo_enviar" class="btn btn-secondary">
+                            Solo Enviar
+                        </button>
+
+                        <button type="submit" name="accion" value="firmar" class="btn btn-primary">
+                            Enviar y Firmar
+                        </button>
+                    </div>
                 </form>
 
 
@@ -286,6 +282,21 @@
 @section('scripts')
 <script>
     $(document).ready(function() {
+        let accion = null;
+
+        // Capturar botón presionado y manejar required dinámico
+        $('#formSubirArchivos button[type="submit"]').on('click', function() {
+            accion = $(this).val(); // 'solo_enviar' o 'firmar'
+
+            if (accion === 'firmar') {
+                $('#efirma_p12').attr('required', true);
+                $('#efirma_pass').attr('required', true);
+            } else {
+                $('#efirma_p12').removeAttr('required');
+                $('#efirma_pass').removeAttr('required');
+            }
+        });
+
         $('.ver-detalle-submodulo').on('click', function() {
             let titulo      = $(this).data('titulo'),
                 descripcion = $(this).data('descripcion'),
@@ -296,7 +307,6 @@
                 base        = $(this).data('base'),
                 acuse       = $(this).data('acuse'),
                 oficio      = $(this).data('oficio'),
-                programa    = $(this).data('programa'),
                 id          = $(this).data('id');
 
             $('#detalleSubmoduloModalLabel').text(titulo);
@@ -324,11 +334,10 @@
             }
 
             // Archivos entregados
-            if (oficio || programa) {
+            if (oficio) {
                 $('#formSubirArchivos').hide();
                 $('#archivosExistentes').show();
-                if (oficio)   $('#linkOficio').attr('href', oficio);
-                if (programa) $('#linkPrograma').attr('href', programa);
+                $('#linkOficio').attr('href', oficio);
             } else {
                 $('#archivosExistentes').hide();
                 $('#formSubirArchivos').show();
@@ -338,31 +347,79 @@
         });
 
         $('#detalleSubmoduloModal .btn-close, #detalleSubmoduloModal .btn-secondary')
-          .on('click', function() {
-            $('#detalleSubmoduloModal').modal('hide');
-        });
+            .on('click', function() {
+                $('#detalleSubmoduloModal').modal('hide');
+            });
 
         $('#formSubirArchivos').on('submit', function(e) {
             e.preventDefault();
-            let formData = new FormData(this);
+
+            const form = this;
+            const formData = new FormData(form);
+
+            // Validar archivo oficio_entrega por extensión
+            const file = $('#oficio_entrega')[0].files[0];
+            if (file) {
+                const ext = file.name.split('.').pop().toLowerCase();
+                const extensionesPermitidas = ['pdf', 'doc', 'docx', 'odt', 'txt'];
+
+                if (!extensionesPermitidas.includes(ext)) {
+                    alert('El archivo debe ser PDF, DOC, DOCX, ODT o TXT.');
+                    return;
+                }
+            }
+
+            // Validar campos de e.firma si se va a firmar
+            if (accion === 'firmar') {
+                const p12 = $('#efirma_p12')[0].files[0];
+                const pass = $('#efirma_pass').val();
+
+                if (!p12) {
+                    alert('Debes seleccionar un archivo .p12 para firmar.');
+                    return;
+                }
+
+                if (!pass || pass.trim() === '') {
+                    alert('Debes escribir la contraseña de la e.firma.');
+                    return;
+                }
+            }
+
+            formData.append('accion', accion);
 
             $.ajax({
-                url: $(this).attr('action'),
+                url: $(form).attr('action'),
                 type: 'POST',
                 data: formData,
                 processData: false,
                 contentType: false,
                 success: function(response) {
                     if (response.success) {
-                        // refrescar modal para mostrar acuse y ocultar form
-                        $('.ver-detalle-submodulo[data-id="'+ response.submodulo_id +'"]').click();
-                        alert('Archivos subidos correctamente.');
+                        Swal.fire({
+                            position: 'center',
+                            icon: 'success',
+                            title: 'Archivos subidos correctamente.',
+                            showConfirmButton: false,
+                            timer: 3000
+                        });
+
+                        setTimeout(() => {
+                            location.reload();
+                        }, 3000);
                     } else {
-                        alert('Error al subir archivos.');
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error al subir archivos.',
+                            text: response.message || 'Intenta nuevamente.'
+                        });
                     }
                 },
                 error: function(xhr) {
-                    alert('Error: ' + xhr.responseText);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error inesperado',
+                        text: xhr.responseText
+                    });
                 }
             });
         });
