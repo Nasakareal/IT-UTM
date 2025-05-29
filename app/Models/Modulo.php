@@ -27,7 +27,7 @@ class Modulo extends Model
 
     public function subsections()
     {
-        return $this->hasMany(Subsection::class);
+        return $this->hasMany(Subsection::class)->orderBy('orden');
     }
 
 }

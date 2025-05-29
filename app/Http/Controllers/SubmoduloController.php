@@ -25,6 +25,15 @@ class SubmoduloController extends Controller
         return view('settings.submodulos.index', compact('submodulos'));
     }
 
+    public function sort(Request $request)
+    {
+        foreach ($request->orden as $item) {
+            \App\Models\Submodulo::where('id', $item['id'])->update(['orden' => $item['orden']]);
+        }
+
+        return response()->json(['success' => true]);
+    }
+
     public function create()
     {
         $subsections = Subsection::all();

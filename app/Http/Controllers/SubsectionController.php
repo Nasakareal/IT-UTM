@@ -14,6 +14,15 @@ class SubsectionController extends Controller
         return view('settings.subsections.index', compact('subsections'));
     }
 
+    public function sort(Request $request)
+    {
+        foreach ($request->orden as $item) {
+            \App\Models\Subsection::where('id', $item['id'])->update(['orden' => $item['orden']]);
+        }
+
+        return response()->json(['success' => true]);
+    }
+
     public function create(Request $request)
     {
         $modulos = \App\Models\Modulo::all();

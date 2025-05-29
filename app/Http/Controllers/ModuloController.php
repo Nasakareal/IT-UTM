@@ -48,25 +48,33 @@ class ModuloController extends Controller
     {
         $subsections = Subsection::where('modulo_id', $modulo->id)
             ->whereNull('parent_id')
+            ->orderBy('orden')  // ← ordena aquí
             ->with([
                 'carpetas' => function ($query) {
                     $query->whereNull('parent_id')
-                          ->with(['archivos', 'children']);
+                          ->orderBy('orden')  // ← y aquí
+                          ->with([
+                              'archivos',
+                              'children' => function ($q) {
+                                  $q->orderBy('orden');  // orden para hijos de carpeta
+                              }
+                          ]);
                 },
                 'submodulos' => function ($query) {
-                    $query->with([
-                        'archivos' => function($q) {
-                            $q->where('user_id', auth()->id());
-                        },
-                        'submoduloUsuarios' => function($q) {
-                            $q->where('user_id', auth()->id());
-                        },
-                    ]);
+                    $query->orderBy('orden')  // ← y aquí
+                          ->with([
+                              'archivos' => function($q) {
+                                  $q->where('user_id', auth()->id());
+                              },
+                              'submoduloUsuarios' => function($q) {
+                                  $q->where('user_id', auth()->id());
+                              },
+                          ]);
                 },
             ])
             ->get();
 
-        //  ↓ Aquí convertimos cada fecha en Carbon:
+        // Convertimos cada fecha en Carbon
         $subsections->each(function ($subsec) {
             $subsec->submodulos->transform(function ($sm) {
                 $sm->fecha_apertura = $sm->fecha_apertura 
@@ -87,6 +95,7 @@ class ModuloController extends Controller
             'subnivelesPrincipales' => $subsections,
         ]);
     }
+
 
     // Muestra el formulario para editar un módulo
     public function edit(Modulo $modulo)

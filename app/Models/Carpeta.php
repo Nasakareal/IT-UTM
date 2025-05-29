@@ -11,7 +11,8 @@ class Carpeta extends Model
         'nombre',
         'color',
         'parent_id',
-        'subsection_id'
+        'subsection_id',
+        'orden'
     ];
 
     public function parent()

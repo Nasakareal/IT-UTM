@@ -10,6 +10,10 @@ Route::get('/', function () {
 Route::get('submodulos/{submodulo}/ver-acuse', [App\Http\Controllers\AcuseController::class, 'verAcuse'])
      ->name('submodulos.ver-acuse');
 
+Route::post('/carpetas/sort', [App\Http\Controllers\CarpetaController::class, 'sort'])->name('carpetas.sort');
+Route::post('/subsections/sort', [App\Http\Controllers\SubsectionController::class, 'sort'])->name('subsections.sort');
+Route::post('/submodulos/sort', [App\Http\Controllers\SubmoduloController::class, 'sort'])->name('submodulos.sort');
+
 Route::post('/secciones/sort', [App\Http\Controllers\SeccionController::class, 'sort'])->name('secciones.sort');
 Route::post('documentos/subir',  [DocumentoSubidoController::class,'store'])->name('documentos.subir');
 Route::post('documentos/firmar', [DocumentoSubidoController::class,'sign'])->name('documentos.firmar');

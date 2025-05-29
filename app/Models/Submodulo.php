@@ -19,7 +19,8 @@ class Submodulo extends Model
         'fecha_cierre',
         'estatus', 
         'acuse_pdf', 
-        'documento_url'
+        'documento_url',
+        'orden'
     ];
 
     public function subsection()

@@ -12,6 +12,7 @@ class Subsection extends Model
     protected $fillable = [
         'nombre',
         'modulo_id',
+        'orden',
     ];
 
     public function carpetas() {
