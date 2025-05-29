@@ -17,6 +17,15 @@ class CarpetaController extends Controller
         return view('settings.carpetas.index', compact('carpetas'));
     }
 
+    public function sort(Request $request)
+    {
+        foreach ($request->orden as $item) {
+            \App\Models\Carrpeta::where('id', $item['id'])->update(['orden' => $item['orden']]);
+        }
+
+        return response()->json(['success' => true]);
+    }
+
 
     // 2. Mostrar el formulario para crear una nueva carpeta
     public function create(Request $request)

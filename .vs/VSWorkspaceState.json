@@ -2,15 +2,15 @@
   "ExpandedNodes": [
     "",
     "\\app",
-    "\\app\\Models",
+    "\\app\\Http",
+    "\\app\\Http\\Controllers",
     "\\resources",
     "\\resources\\views",
     "\\resources\\views\\modulos",
     "\\resources\\views\\partials",
-    "\\resources\\views\\settings\\users",
     "\\resources\\views\\submodulos",
     "\\routes"
   ],
-  "SelectedNode": "\\resources\\views\\partials\\folder_tree.blade.php",
+  "SelectedNode": "\\app\\Models\\Carpeta.php",
   "PreviewInSolutionExplorer": false
 }

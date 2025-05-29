@@ -11,10 +11,6 @@
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:resources\\views\\modulos\\show.blade.php||{3B902123-F8A7-4915-9F01-361F908088D0}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\wamp64\\www\\TI-UTM\\app\\Http\\Controllers\\SubsectionController.php||{3B902123-F8A7-4915-9F01-361F908088D0}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:app\\Http\\Controllers\\SubsectionController.php||{3B902123-F8A7-4915-9F01-361F908088D0}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\wamp64\\www\\TI-UTM\\resources\\views\\home.blade.php||{3B902123-F8A7-4915-9F01-361F908088D0}",
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:resources\\views\\home.blade.php||{3B902123-F8A7-4915-9F01-361F908088D0}"
     }
@@ -36,7 +32,7 @@
               "RelativeDocumentMoniker": "resources\\views\\partials\\folder_tree.blade.php",
               "ToolTip": "C:\\wamp64\\www\\TI-UTM\\resources\\views\\partials\\folder_tree.blade.php",
               "RelativeToolTip": "resources\\views\\partials\\folder_tree.blade.php",
-              "ViewState": "AgIAAC8AAAAAAAAAAAAgwD8AAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACIAAAAVAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002338|",
               "WhenOpened": "2025-05-29T05:50:35.104Z",
               "EditorCaption": ""
@@ -49,7 +45,7 @@
               "RelativeDocumentMoniker": "resources\\views\\modulos\\show.blade.php",
               "ToolTip": "C:\\wamp64\\www\\TI-UTM\\resources\\views\\modulos\\show.blade.php",
               "RelativeToolTip": "resources\\views\\modulos\\show.blade.php",
-              "ViewState": "AgIAAI0AAAAAAAAAAAApwNIAAAAqAAAAAAAAAA==",
+              "ViewState": "AgIAAHoBAAAAAAAAAAAAAJgBAAAXAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002338|",
               "WhenOpened": "2025-05-29T05:27:09.182Z",
               "EditorCaption": ""
@@ -57,19 +53,6 @@
             {
               "$type": "Document",
               "DocumentIndex": 2,
-              "Title": "SubsectionController.php",
-              "DocumentMoniker": "C:\\wamp64\\www\\TI-UTM\\app\\Http\\Controllers\\SubsectionController.php",
-              "RelativeDocumentMoniker": "app\\Http\\Controllers\\SubsectionController.php",
-              "ToolTip": "C:\\wamp64\\www\\TI-UTM\\app\\Http\\Controllers\\SubsectionController.php",
-              "RelativeToolTip": "app\\Http\\Controllers\\SubsectionController.php",
-              "ViewState": "AgIAACoAAAAAAAAAAAAgwFsAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002338|",
-              "WhenOpened": "2025-05-29T05:26:27.314Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
               "Title": "home.blade.php",
               "DocumentMoniker": "C:\\wamp64\\www\\TI-UTM\\resources\\views\\home.blade.php",
               "RelativeDocumentMoniker": "resources\\views\\home.blade.php",
@@ -77,8 +60,7 @@
               "RelativeToolTip": "resources\\views\\home.blade.php",
               "ViewState": "AgIAAN0AAAAAAAAAAAAgwOUAAAATAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002338|",
-              "WhenOpened": "2025-05-29T05:26:04.687Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-05-29T05:26:04.687Z"
             }
           ]
         }
