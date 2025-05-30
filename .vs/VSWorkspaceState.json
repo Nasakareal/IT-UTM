@@ -1,16 +1,14 @@
 {
   "ExpandedNodes": [
     "",
-    "\\database",
-    "\\database\\seeders",
+    "\\app",
+    "\\app\\Http",
+    "\\app\\Http\\Controllers",
     "\\resources",
     "\\resources\\views",
-    "\\resources\\views\\pdf",
     "\\resources\\views\\settings",
-    "\\resources\\views\\settings\\submodulos",
-    "\\resources\\views\\submodulos",
-    "\\routes"
+    "\\resources\\views\\settings\\submodulos"
   ],
-  "SelectedNode": "\\app\\Http\\Controllers\\GestionAcademicaController.php",
+  "SelectedNode": "\\resources\\views\\settings\\submodulos\\create.blade.php",
   "PreviewInSolutionExplorer": false
 }
