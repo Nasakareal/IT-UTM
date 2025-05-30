@@ -146,6 +146,7 @@
                                                 <form action="{{ route('documentos.subir') }}" method="POST" enctype="multipart/form-data" class="row g-2 align-items-end">
                                                     @csrf
                                                     <input type="hidden" name="materia"        value="{{ $doc['materia'] }}">
+                                                    <input type="hidden" name="grupo"          value="{{ $grupo }}">
                                                     <input type="hidden" name="unidad"         value="{{ $u }}">
                                                     <input type="hidden" name="tipo_documento" value="{{ $doc['documento'] }}">
 

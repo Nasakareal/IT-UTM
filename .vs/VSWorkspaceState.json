@@ -4,14 +4,14 @@
     "\\app",
     "\\app\\Http",
     "\\app\\Http\\Controllers",
+    "\\app\\Models",
+    "\\database",
+    "\\database\\migrations",
     "\\resources",
     "\\resources\\views",
-    "\\resources\\views\\certificados",
-    "\\resources\\views\\layouts",
-    "\\resources\\views\\settings",
-    "\\resources\\views\\settings\\users",
+    "\\resources\\views\\modulos",
     "\\routes"
   ],
-  "SelectedNode": "\\app\\Http\\Controllers\\CertificadoController.php",
+  "SelectedNode": "\\app\\Models\\DocumentoSubido.php",
   "PreviewInSolutionExplorer": false
 }

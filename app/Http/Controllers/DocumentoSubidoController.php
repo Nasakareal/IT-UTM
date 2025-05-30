@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use App\Models\DocumentoSubido;
 use Barryvdh\DomPDF\Facade\Pdf;
-use Carbon\Carbon;
 use PhpOffice\PhpWord\IOFactory          as WordIOFactory;
 use PhpOffice\PhpWord\Element\Table;
 use PhpOffice\PhpSpreadsheet\Reader\Xlsx as XlsxReader;
@@ -25,21 +24,21 @@ class DocumentoSubidoController extends Controller
     public function store(Request $request)
     {
         /* ------------------------------------------------------------------ *
-         * 1. DETERMINAR LA ACCIÓN (qué botón se pulsó)                        *
+         * 1. DETERMINAR LA ACCIÓN                                             *
          * ------------------------------------------------------------------ */
         $action = $request->input('action', 'sign_upload');   // sign_upload | upload_only
 
         /* ------------------------------------------------------------------ *
-         * 2. VALIDACIÓN DINÁMICA                                              *
+         * 2. VALIDACIÓN DINÁMICA (ahora incluye GRUPO)                       *
          * ------------------------------------------------------------------ */
         $rules = [
             'materia'        => 'required|string',
+            'grupo'          => 'required|string',
             'unidad'         => 'required|integer|min:1',
             'tipo_documento' => 'required|string',
             'archivo'        => 'required|file|mimes:pdf,doc,docx,xls,xlsx|max:5120',
         ];
         if ($action === 'sign_upload') {
-            // Solo pedimos firma y contraseña si es “Firmar y Subir”
             $rules['firma_sat']   = 'required|string';
             $rules['efirma_pass'] = 'required|string';
         }
@@ -58,13 +57,14 @@ class DocumentoSubidoController extends Controller
         $absPath  = Storage::disk('public')->path($relPath);
 
         /* ------------------------------------------------------------------ *
-         * 4. FLUJO “SOLO SUBIR” (sin firma, sin acuse)                        *
+         * 4. FLUJO “SOLO SUBIR”                                               *
          * ------------------------------------------------------------------ */
         if ($action === 'upload_only') {
             DocumentoSubido::updateOrCreate(
                 [
                     'user_id'        => Auth::id(),
                     'materia'        => $request->materia,
+                    'grupo'          => $request->grupo,
                     'unidad'         => $request->unidad,
                     'tipo_documento' => $request->tipo_documento,
                 ],
@@ -83,10 +83,10 @@ class DocumentoSubidoController extends Controller
          * 5. FLUJO “FIRMAR Y SUBIR”                                           *
          * ------------------------------------------------------------------ */
 
-        /* 5.1  Obtener datos de la e-firma (.p12) --------------------------- */
-        $p12raw = base64_decode($request->firma_sat);
-        $certName = Auth::user()->name;   // valor por defecto
-        $certRFC  = 'N/A';
+        /* 5.1  Obtener datos de la e-firma                                    */
+        $p12raw    = base64_decode($request->firma_sat);
+        $certName  = Auth::user()->name;   // valor por defecto
+        $certRFC   = 'N/A';
 
         if (!@openssl_pkcs12_read($p12raw, $certs, $request->efirma_pass) || empty($certs['cert'])) {
             return back()
@@ -94,15 +94,16 @@ class DocumentoSubidoController extends Controller
                 ->withInput();
         }
 
-        $info  = openssl_x509_parse($certs['cert']);
-        $certName = $info['subject']['CN'] ?? $certName;
-        $certRFC  = $info['subject']['serialNumber'] ?? $certRFC;
+        $info      = openssl_x509_parse($certs['cert']);
+        $certName  = $info['subject']['CN']          ?? $certName;
+        $certRFC   = $info['subject']['serialNumber']?? $certRFC;
 
-        /* 5.2  Crear/actualizar registro BD antes de modificar archivo ------ */
+        /* 5.2  Registrar/actualizar en BD (incluye GRUPO) ------------------ */
         $registro = DocumentoSubido::updateOrCreate(
             [
                 'user_id'        => Auth::id(),
                 'materia'        => $request->materia,
+                'grupo'          => $request->grupo,
                 'unidad'         => $request->unidad,
                 'tipo_documento' => $request->tipo_documento,
             ],
@@ -119,7 +120,7 @@ class DocumentoSubidoController extends Controller
 
         /* 5.4  Insertar firma y hash en DOCX / XLS(X) ----------------------- */
         try {
-            /* ----------- WORD (.docx) ------------- */
+            /* ---------- WORD (.docx) ---------- */
             if ($ext === 'docx') {
                 $doc  = WordIOFactory::load($absPath);
                 $done = false;
@@ -149,7 +150,7 @@ class DocumentoSubidoController extends Controller
                     if ($done) break;
                 }
 
-                /* Mantener encabezados con imágenes ------------------------ */
+                /* Conservar encabezados con imágenes */
                 if ($done) {
                     $tmp = $absPath . '.tmp';
                     WordIOFactory::createWriter($doc, 'Word2007')->save($tmp);
@@ -170,7 +171,7 @@ class DocumentoSubidoController extends Controller
                 }
             }
 
-            /* ----------- EXCEL (.xls / .xlsx) ----------- */
+            /* ---------- EXCEL (.xls / .xlsx) ---------- */
             if (in_array($ext, ['xls', 'xlsx'])) {
                 ini_set('memory_limit', '512M');
                 Settings::setCacheStorageMethod(
@@ -178,13 +179,13 @@ class DocumentoSubidoController extends Controller
                     ['memoryCacheSize' => '32MB']
                 );
 
-                $reader = $ext === 'xlsx' ? new XlsxReader() : new XlsReader();
-                $spreadsheet = $reader->load($absPath);
-                $sheet = $spreadsheet->getActiveSheet();
-                $done  = false;
-                $label = 'nombre y firma del profesor';
+                $reader       = $ext === 'xlsx' ? new XlsxReader() : new XlsReader();
+                $spreadsheet  = $reader->load($absPath);
+                $sheet        = $spreadsheet->getActiveSheet();
+                $done         = false;
+                $label        = 'nombre y firma del profesor';
 
-                /* 1) Buscar etiqueta en celdas normales --------------------- */
+                /* 1) Celdas normales */
                 foreach ($sheet->getRowIterator() as $row) {
                     foreach ($row->getCellIterator() as $cell) {
                         $value = strtolower(trim((string) $cell->getValue()));
@@ -204,7 +205,7 @@ class DocumentoSubidoController extends Controller
                     }
                 }
 
-                /* 2) Buscar etiqueta en celdas combinadas ------------------ */
+                /* 2) Celdas combinadas */
                 if (!$done) {
                     foreach ($sheet->getMergeCells() as $range) {
                         [$topLeft] = explode(':', $range);
@@ -227,7 +228,7 @@ class DocumentoSubidoController extends Controller
                     }
                 }
 
-                /* 3) Guardar solo si insertamos algo ----------------------- */
+                /* 3) Guardar si modificamos algo */
                 if ($done) {
                     $writer = SpreadsheetIOFactory::createWriter(
                         $spreadsheet,
@@ -263,6 +264,7 @@ class DocumentoSubidoController extends Controller
             'fecha'        => now()->translatedFormat('d \\d\\e F \\d\\e Y'),
             'tituloAcuse'  => 'Acuse de recepción de documentación',
             'materia'      => $request->materia,
+            'grupo'        => $request->grupo,
             'unidad'       => $request->unidad,
             'tipo'         => $request->tipo_documento,
             'usuario'      => $certName,

@@ -17,5 +17,6 @@ class DocumentoSubido extends Model
         'firma_sat',
         'fecha_firma',
         'acuse_pdf',
+        'grupo',
     ];
 }
