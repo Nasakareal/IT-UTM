@@ -90,7 +90,7 @@
         </div>
         <div class="menu">
             <a href="{{ route('correspondencias.index') }}"><i class="bi bi-envelope"></i> Correspondencia</a>
-            <a href="#"><i class="bi bi-chat-left-text"></i> Chat</a>
+            <a href="{{ route('certificados.subir') }}"><i class="fa-solid fa-certificate"> .P12</i>
             @can('ver configuraciones')
                 <a href="{{ route('settings.index') }}"><i class="bi bi-gear"></i> Configurar</a>
             @else

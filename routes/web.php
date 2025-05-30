@@ -25,6 +25,12 @@ Route::post('/logout', [App\Http\Controllers\AuthController::class, 'logout'])->
 
 Route::middleware(['auth', 'password.changed'])->get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
 
+Route::post('/certificados/generar-p12', [App\Http\Controllers\CertificadoController::class, 'generarP12'])->name('certificados.generarP12');
+Route::get('/certificados/formulario', function () {
+    return view('certificados.subir');
+})->middleware('auth')->name('certificados.subir');
+
+
 // Rutas públicas para subsecciones (visualización)
 Route::middleware('auth', 'password.changed')->group(function () {
     Route::get('/subsections/{subsection}', [App\Http\Controllers\SubsectionController::class, 'show'])->name('subsections.show');

@@ -1,12 +1,17 @@
 {
   "ExpandedNodes": [
     "",
+    "\\app",
+    "\\app\\Http",
+    "\\app\\Http\\Controllers",
     "\\resources",
     "\\resources\\views",
+    "\\resources\\views\\certificados",
+    "\\resources\\views\\layouts",
     "\\resources\\views\\settings",
-    "\\resources\\views\\settings\\documentos-profesores",
-    "\\resources\\views\\settings\\users"
+    "\\resources\\views\\settings\\users",
+    "\\routes"
   ],
-  "SelectedNode": "\\resources\\views\\settings\\documentos-profesores\\index.blade.php",
+  "SelectedNode": "\\app\\Http\\Controllers\\CertificadoController.php",
   "PreviewInSolutionExplorer": false
 }
