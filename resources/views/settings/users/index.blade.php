@@ -131,8 +131,7 @@
 @section('scripts')
 <script>
 $(document).ready(function(){
-
-    $('#usuarios').DataTable({
+    $('#users').DataTable({
         dom: "<'row p-3'<'col-md-6 d-flex align-items-center'B l><'col-md-6 text-right'f>>" +
              "<'row'<'col-sm-12'tr>>" +
              "<'row p-3'<'col-sm-5'i><'col-sm-7'p>>",
@@ -140,10 +139,10 @@ $(document).ready(function(){
         pageLength: 10,
         language: {
             emptyTable: "No hay información",
-            info: "Mostrando _START_ a _END_ de _TOTAL_ Roles",
-            infoEmpty: "Mostrando 0 a 0 de 0 Roles",
-            infoFiltered: "(Filtrado de _MAX_ total Roles)",
-            lengthMenu: "Mostrar _MENU_ Roles",
+            info: "Mostrando _START_ a _END_ de _TOTAL_ Usuarios",
+            infoEmpty: "Mostrando 0 a 0 de 0 Usuarios",
+            infoFiltered: "(Filtrado de _MAX_ total Usuarios)",
+            lengthMenu: "Mostrar _MENU_ Usuarios",
             loadingRecords: "Cargando...",
             processing: "Procesando...",
             search: "Buscador:",

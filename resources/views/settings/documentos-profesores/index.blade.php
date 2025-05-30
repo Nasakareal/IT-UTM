@@ -59,53 +59,10 @@
 </div>
 @stop
 
-
-@section('css')
-<style>
-    /* Quita cualquier franja si tuvieras 'table-striped' por otro lado */
-    .table.table-striped tbody tr:nth-of-type(odd),
-    .table.table-striped tbody tr:nth-of-type(even) {
-        background-color: #fff !important;
-    }
-
-    /* Centra texto y ajusta vertical */
-    .table th, .table td {
-        text-align: center;
-        vertical-align: middle;
-    }
-
-    /* Redondea la cabecera de la tarjeta */
-    .card-header {
-        border-top-left-radius: 8px;
-        border-top-right-radius: 8px;
-    }
-
-    /* Estilo para la fila de controles DataTables (Mostrar X y Buscador) */
-    /* Ajusta la separación y la alineación */
-    .dataTables_length label,
-    .dataTables_filter label {
-        display: flex;
-        align-items: center;
-        gap: 8px; /* Separación entre texto y select/input */
-        margin-bottom: 0;
-    }
-
-    /* Ajusta el select y el input del buscador */
-    .dataTables_length select,
-    .dataTables_filter input {
-        border-radius: 4px;
-        border: 1px solid #ccc;
-        padding: 4px 8px;
-        height: auto;
-    }
-</style>
-@stop
-
 @section('scripts')
 <script>
 $(document).ready(function(){
-
-    $('#usuarios').DataTable({
+    $('#profesores').DataTable({
         dom: "<'row p-3'<'col-md-6 d-flex align-items-center'B l><'col-md-6 text-right'f>>" +
              "<'row'<'col-sm-12'tr>>" +
              "<'row p-3'<'col-sm-5'i><'col-sm-7'p>>",
@@ -113,10 +70,10 @@ $(document).ready(function(){
         pageLength: 10,
         language: {
             emptyTable: "No hay información",
-            info: "Mostrando _START_ a _END_ de _TOTAL_ Roles",
-            infoEmpty: "Mostrando 0 a 0 de 0 Roles",
-            infoFiltered: "(Filtrado de _MAX_ total Roles)",
-            lengthMenu: "Mostrar _MENU_ Roles",
+            info: "Mostrando _START_ a _END_ de _TOTAL_ Profesores",
+            infoEmpty: "Mostrando 0 a 0 de 0 Profesores",
+            infoFiltered: "(Filtrado de _MAX_ total Profesores)",
+            lengthMenu: "Mostrar _MENU_ Profesores",
             loadingRecords: "Cargando...",
             processing: "Procesando...",
             search: "Buscador:",
