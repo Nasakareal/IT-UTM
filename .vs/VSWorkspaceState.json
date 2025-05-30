@@ -4,11 +4,14 @@
     "\\app",
     "\\app\\Http",
     "\\app\\Http\\Controllers",
+    "\\app\\Models",
     "\\resources",
     "\\resources\\views",
+    "\\resources\\views\\modulos",
+    "\\resources\\views\\pdf",
     "\\resources\\views\\settings",
     "\\resources\\views\\settings\\submodulos"
   ],
-  "SelectedNode": "\\resources\\views\\settings\\submodulos\\create.blade.php",
+  "SelectedNode": "\\app\\Models\\Submodulo.php",
   "PreviewInSolutionExplorer": false
 }

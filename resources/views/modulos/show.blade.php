@@ -217,7 +217,7 @@
                         <label for="oficio_entrega" class="form-label">
                             1. Formato de entrega (PDF máx. 8Mb):
                         </label>
-                        <input type="file" class="form-control" id="oficio_entrega" name="oficio_entrega" accept=".pdf,.doc,.docx,.odt,.txt">
+                        <input type="file" class="form-control" id="oficio_entrega" name="oficio_entrega" accept=".pdf,.doc,.docx,.odt,.txt" required>
                     </div>
 
                     <!-- NUEVOS CAMPOS PARA E.FIRMA -->

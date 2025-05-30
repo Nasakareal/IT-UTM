@@ -3,24 +3,12 @@
   "WorkspaceRootPath": "C:\\wamp64\\www\\TI-UTM\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\wamp64\\www\\TI-UTM\\app\\Http\\Controllers\\GestionAcademicaController.php||{3B902123-F8A7-4915-9F01-361F908088D0}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:app\\Http\\Controllers\\GestionAcademicaController.php||{3B902123-F8A7-4915-9F01-361F908088D0}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\wamp64\\www\\TI-UTM\\resources\\views\\modulos\\gestion_academica.blade.php||{3B902123-F8A7-4915-9F01-361F908088D0}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:resources\\views\\modulos\\gestion_academica.blade.php||{3B902123-F8A7-4915-9F01-361F908088D0}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\wamp64\\www\\TI-UTM\\app\\Http\\Controllers\\SubmoduloController.php||{3B902123-F8A7-4915-9F01-361F908088D0}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:app\\Http\\Controllers\\SubmoduloController.php||{3B902123-F8A7-4915-9F01-361F908088D0}"
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\wamp64\\www\\TI-UTM\\resources\\views\\settings\\submodulos\\edit.blade.php||{3B902123-F8A7-4915-9F01-361F908088D0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:resources\\views\\settings\\submodulos\\edit.blade.php||{3B902123-F8A7-4915-9F01-361F908088D0}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\wamp64\\www\\TI-UTM\\resources\\views\\settings\\submodulos\\create.blade.php||{3B902123-F8A7-4915-9F01-361F908088D0}",
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:resources\\views\\settings\\submodulos\\create.blade.php||{3B902123-F8A7-4915-9F01-361F908088D0}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\wamp64\\www\\TI-UTM\\database\\seeders\\UsersSeeder.php||{3B902123-F8A7-4915-9F01-361F908088D0}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:database\\seeders\\UsersSeeder.php||{3B902123-F8A7-4915-9F01-361F908088D0}"
     }
   ],
   "DocumentGroupContainers": [
@@ -30,71 +18,32 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 1,
           "Children": [
             {
               "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "GestionAcademicaController.php",
-              "DocumentMoniker": "C:\\wamp64\\www\\TI-UTM\\app\\Http\\Controllers\\GestionAcademicaController.php",
-              "RelativeDocumentMoniker": "app\\Http\\Controllers\\GestionAcademicaController.php",
-              "ToolTip": "C:\\wamp64\\www\\TI-UTM\\app\\Http\\Controllers\\GestionAcademicaController.php",
-              "RelativeToolTip": "app\\Http\\Controllers\\GestionAcademicaController.php",
-              "ViewState": "AgIAAFAAAAAAAAAAAAAIwH8AAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002338|",
-              "WhenOpened": "2025-05-30T02:07:52.275Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 1,
               "Title": "create.blade.php",
               "DocumentMoniker": "C:\\wamp64\\www\\TI-UTM\\resources\\views\\settings\\submodulos\\create.blade.php",
               "RelativeDocumentMoniker": "resources\\views\\settings\\submodulos\\create.blade.php",
               "ToolTip": "C:\\wamp64\\www\\TI-UTM\\resources\\views\\settings\\submodulos\\create.blade.php",
               "RelativeToolTip": "resources\\views\\settings\\submodulos\\create.blade.php",
-              "ViewState": "AgIAAD8AAAAAAAAAAAAAAEcAAABHAAAAAAAAAA==",
+              "ViewState": "AgIAADkAAAAAAAAAAAAAAEcAAABLAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002338|",
-              "WhenOpened": "2025-05-30T02:02:40.46Z",
+              "WhenOpened": "2025-05-30T02:35:51.51Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "SubmoduloController.php",
-              "DocumentMoniker": "C:\\wamp64\\www\\TI-UTM\\app\\Http\\Controllers\\SubmoduloController.php",
-              "RelativeDocumentMoniker": "app\\Http\\Controllers\\SubmoduloController.php",
-              "ToolTip": "C:\\wamp64\\www\\TI-UTM\\app\\Http\\Controllers\\SubmoduloController.php",
-              "RelativeToolTip": "app\\Http\\Controllers\\SubmoduloController.php",
-              "ViewState": "AgIAABIAAAAAAAAAAAAAADAAAABRAAAAAAAAAA==",
+              "DocumentIndex": 0,
+              "Title": "edit.blade.php",
+              "DocumentMoniker": "C:\\wamp64\\www\\TI-UTM\\resources\\views\\settings\\submodulos\\edit.blade.php",
+              "RelativeDocumentMoniker": "resources\\views\\settings\\submodulos\\edit.blade.php",
+              "ToolTip": "C:\\wamp64\\www\\TI-UTM\\resources\\views\\settings\\submodulos\\edit.blade.php",
+              "RelativeToolTip": "resources\\views\\settings\\submodulos\\edit.blade.php",
+              "ViewState": "AgIAADYAAAAAAAAAAAAAAEwAAABLAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002338|",
-              "WhenOpened": "2025-05-30T02:01:02.935Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "UsersSeeder.php",
-              "DocumentMoniker": "C:\\wamp64\\www\\TI-UTM\\database\\seeders\\UsersSeeder.php",
-              "RelativeDocumentMoniker": "database\\seeders\\UsersSeeder.php",
-              "ToolTip": "C:\\wamp64\\www\\TI-UTM\\database\\seeders\\UsersSeeder.php",
-              "RelativeToolTip": "database\\seeders\\UsersSeeder.php",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAACcAAAA2AAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002338|",
-              "WhenOpened": "2025-05-30T01:42:16.137Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "gestion_academica.blade.php",
-              "DocumentMoniker": "C:\\wamp64\\www\\TI-UTM\\resources\\views\\modulos\\gestion_academica.blade.php",
-              "RelativeDocumentMoniker": "resources\\views\\modulos\\gestion_academica.blade.php",
-              "ToolTip": "C:\\wamp64\\www\\TI-UTM\\resources\\views\\modulos\\gestion_academica.blade.php",
-              "RelativeToolTip": "resources\\views\\modulos\\gestion_academica.blade.php",
-              "ViewState": "AgIAAH8AAAAAAAAAAAAIwK4AAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002338|",
-              "WhenOpened": "2025-05-30T01:32:34.552Z",
+              "WhenOpened": "2025-05-30T02:35:41.302Z",
               "EditorCaption": ""
             }
           ]

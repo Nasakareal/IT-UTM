@@ -45,7 +45,8 @@
         // unidad seleccionada por defecto
         $default  = $unidades->first();
       @endphp
-
+      <br>
+      <br>
       <div class="modal fade" id="modal-{{ $slug }}" data-bs-backdrop="false" tabindex="-1" aria-labelledby="label-{{ $slug }}" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered">
           <div class="modal-content">

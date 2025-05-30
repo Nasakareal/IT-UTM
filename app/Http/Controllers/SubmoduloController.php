@@ -91,7 +91,7 @@ class SubmoduloController extends Controller
             'subsection_id'        => 'required|exists:subsections,id',
             'titulo'               => 'required|string|max:2048',
             'descripcion'          => 'nullable|string',
-            'documento_solicitado' => 'required|file|mimes:pdf,doc,docx,xls,xlsx,xml|max:8048',
+            'documento_solicitado' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,xml|max:8048',
             'fecha_apertura'       => 'nullable|date|before_or_equal:fecha_cierre',
             'fecha_limite'         => 'nullable|date',
             'fecha_cierre'         => 'nullable|date|after_or_equal:fecha_apertura',
