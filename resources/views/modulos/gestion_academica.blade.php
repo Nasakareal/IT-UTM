@@ -93,36 +93,46 @@
                         </div>
 
                         @unless($doc['entregado'])
-                          <form action="{{ route('documentos.subir') }}" method="POST" enctype="multipart/form-data" class="row g-2 align-items-end">
-                            @csrf
-                            <input type="hidden" name="materia"        value="{{ $doc['materia'] }}">
-                            <input type="hidden" name="unidad"         value="{{ $u }}">
-                            <input type="hidden" name="tipo_documento" value="{{ $doc['documento'] }}">
+                          <<form action="{{ route('documentos.subir') }}" method="POST" enctype="multipart/form-data" class="row g-2 align-items-end">
+                              @csrf
+                              <input type="hidden" name="materia"        value="{{ $doc['materia'] }}">
+                              <input type="hidden" name="unidad"         value="{{ $u }}">
+                              <input type="hidden" name="tipo_documento" value="{{ $doc['documento'] }}">
 
-                            <div class="col-md-4">
-                              <label class="input-label" for="archivo_{{ $slug }}_{{ $u }}">Archivo (PDF/DOC/XLS)</label>
-                              <input type="file" id="archivo_{{ $slug }}_{{ $u }}" name="archivo" accept=".pdf,.doc,.docx,.xls,.xlsx"
-                                     class="form-control form-control-sm @error('archivo') is-invalid @enderror" required>
-                              @error('archivo')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                            </div>
-                            <div class="col-md-3">
-                              <label class="input-label">Certificado (.p12)</label>
-                              <input type="file" id="certFile_{{ $slug }}_{{ $u }}" accept=".p12" class="form-control form-control-sm" required>
-                              <input type="hidden" name="firma_sat" id="firma_sat_{{ $slug }}_{{ $u }}">
-                              @error('firma_sat')<div class="text-danger">{{ $message }}</div>@enderror
-                            </div>
-                            <div class="col-md-3">
-                              <label class="input-label" for="efirma_pass_{{ $slug }}_{{ $u }}">Contraseña e.firma</label>
-                              <input type="password" id="efirma_pass_{{ $slug }}_{{ $u }}" name="efirma_pass"
-                                     class="form-control form-control-sm @error('efirma_pass') is-invalid @enderror" required>
-                              @error('efirma_pass')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                            </div>
-                            <div class="col-md-2 text-end">
-                              <button type="submit" class="btn btn-sm btn-primary w-100">
-                                <i class="fas fa-upload"></i> Firmar y Subir
-                              </button>
-                            </div>
-                          </form>
+                              <div class="col-md-4">
+                                <label class="input-label" for="archivo_{{ $slug }}_{{ $u }}">Archivo (PDF/DOC/XLS)</label>
+                                <input type="file" id="archivo_{{ $slug }}_{{ $u }}" name="archivo" accept=".pdf,.doc,.docx,.xls,.xlsx"
+                                       class="form-control form-control-sm @error('archivo') is-invalid @enderror" required>
+                                @error('archivo')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                              </div>
+                              <div class="col-md-3">
+                                <label class="input-label">Certificado (.p12)</label>
+                                <input type="file" id="certFile_{{ $slug }}_{{ $u }}" accept=".p12" class="form-control form-control-sm" required>
+                                <input type="hidden" name="firma_sat" id="firma_sat_{{ $slug }}_{{ $u }}">
+                                @error('firma_sat')<div class="text-danger">{{ $message }}</div>@enderror
+                              </div>
+                              <div class="col-md-3">
+                                <label class="input-label" for="efirma_pass_{{ $slug }}_{{ $u }}">Contraseña e.firma</label>
+                                <input type="password" id="efirma_pass_{{ $slug }}_{{ $u }}" name="efirma_pass"
+                                       class="form-control form-control-sm @error('efirma_pass') is-invalid @enderror" required>
+                                @error('efirma_pass')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                              </div>
+                              <div class="col-md-2 text-end d-flex gap-2">
+                                <!-- Botón principal -->
+                                <button type="submit" name="action" value="sign_upload" class="btn btn-sm btn-primary">
+                                  <i class="fas fa-upload"></i> Firmar y Subir
+                                </button>
+                                <!-- Nuevo botón Solo Subir -->
+                                <button type="submit"
+                                        name="action"
+                                        value="upload_only"
+                                        class="btn btn-sm btn-secondary"
+                                        formnovalidate>
+                                  <i class="fas fa-upload"></i> Solo Subir
+                                </button>
+                              </div>
+                            </form>
+
                         @endunless
                       </div>
                     @endforeach

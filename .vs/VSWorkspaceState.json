@@ -10,6 +10,6 @@
     "\\resources\\views\\settings",
     "\\resources\\views\\settings\\submodulos"
   ],
-  "SelectedNode": "\\resources\\views\\settings\\submodulos\\create.blade.php",
+  "SelectedNode": "\\app\\Http\\Controllers\\DocumentoSubidoController.php",
   "PreviewInSolutionExplorer": false
 }
