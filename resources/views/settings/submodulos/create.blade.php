@@ -69,7 +69,7 @@
                                 name="documento_solicitado"
                                 id="documento_solicitado"
                                 class="form-control @error('documento_solicitado') is-invalid @enderror"
-                                accept=".pdf,.doc,.docx"
+                                accept=".pdf,.doc,.docx, .xls, .xlsx, .xml"
                                 required
                             >
                             @error('documento_solicitado')

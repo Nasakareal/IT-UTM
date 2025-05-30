@@ -223,7 +223,7 @@
                     <!-- NUEVOS CAMPOS PARA E.FIRMA -->
                     <div class="mb-3">
                         <label for="efirma_p12" class="form-label">
-                            3. Certificado e.firma (.p12):
+                            2. Certificado e.firma (.p12):
                         </label>
                         <input type="file" class="form-control" id="efirma_p12" name="efirma_p12" accept=".p12" required>
                     </div>

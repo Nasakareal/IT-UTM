@@ -12,10 +12,7 @@ class UsersSeeder extends Seeder
     {
         $users = [
             [
-                'name' => 'Mario Bautista',
-                'nombres' => 'Mario',
-                'apellido_paterno' => 'Bautista',
-                'apellido_materno' => null,
+                'nombres' => 'Mario Bautista',
                 'curp' => 'BAUM001122HMCXXX01',
                 'correo_institucional' => 'admin@admin.com',
                 'correo_personal' => 'mario@gmail.com',
@@ -25,10 +22,7 @@ class UsersSeeder extends Seeder
                 'role' => 'Administrador'
             ],
             [
-                'name' => 'Alexei Rodriguez',
-                'nombres' => 'Alexei',
-                'apellido_paterno' => 'Rodriguez',
-                'apellido_materno' => 'Hernández',
+                'nombres' => 'Alexei Rodriguez',
                 'curp' => 'ROHA001122HMCXXX02',
                 'correo_institucional' => 'jorgerodriguez@ut-morelia.edu.mx',
                 'correo_personal' => 'alexei@gmail.com',
@@ -43,10 +37,7 @@ class UsersSeeder extends Seeder
             $user = User::firstOrCreate(
                 ['correo_institucional' => $userData['correo_institucional']],
                 [
-                    'name' => $userData['name'],
                     'nombres' => $userData['nombres'],
-                    'apellido_paterno' => $userData['apellido_paterno'],
-                    'apellido_materno' => $userData['apellido_materno'],
                     'curp' => $userData['curp'],
                     'correo_personal' => $userData['correo_personal'],
                     'categoria' => $userData['categoria'],
