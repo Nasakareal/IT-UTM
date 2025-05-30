@@ -19,7 +19,6 @@ Route::post('documentos/subir',  [DocumentoSubidoController::class,'store'])->na
 Route::post('documentos/firmar', [DocumentoSubidoController::class,'sign'])->name('documentos.firmar');
 
 
-
 Route::get('/login', [App\Http\Controllers\AuthController::class, 'loginForm'])->name('login');
 Route::post('/login', [App\Http\Controllers\AuthController::class, 'login']);
 Route::post('/logout', [App\Http\Controllers\AuthController::class, 'logout'])->name('logout');

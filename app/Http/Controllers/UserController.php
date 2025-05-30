@@ -191,6 +191,7 @@ class UserController extends Controller
 
             if ($request->filled('password')) {
                 $data['password'] = Hash::make($validated['password']);
+                $data['must_change_password'] = 1;
             }
 
             $user->update($data);

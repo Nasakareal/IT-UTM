@@ -55,9 +55,8 @@ class GestionAcademicaController extends Controller
 
         // 3) Tipos de documento
         $tipos = [
-            'Planeación didáctica'         => 'F-DA-GA-02 Planeación didáctica del programa de asignatura.docx',
-            'Seguimiento de la Planeación' => 'F-DA-GA-03 Seguimiento de la Planeación Didáctica.xlsx',
-            'Informe de Estudiantes'       => 'F-DA-GA-05 Informe de Estudiantes No Acreditados.xlsx',
+            'Reporte de Evaluación Continua por Unidad de Aprendizaje (SIGO)' => null,
+            'Informe de Estudiantes No Acreditados'       => 'F-DA-GA-05 Informe de Estudiantes No Acreditados.xlsx',
             'Control de Asesorías'         => 'F-DA-GA-06 Control de Asesorías.xlsx',
         ];
 
@@ -70,6 +69,38 @@ class GestionAcademicaController extends Controller
             $unidadActual  = min($totalUnidades, (int) ceil($diasTranscurridos / $diasPorUnidad));
 
             for ($u = 1; $u <= $totalUnidades; $u++) {
+
+                // extra: Presentación de la Asignatura en unidad 1
+                if ($u === 1) {
+                    $documentosEspeciales = [
+                        'Presentación de la Asignatura' => 'F-DA-GA-01 Presentación de la asignatura.xlsx',
+                        'Planeación didáctica'         => 'F-DA-GA-02 Planeación didáctica del programa de asignatura.docx',
+                        'Seguimiento de la Planeación' => 'F-DA-GA-03 Seguimiento de la Planeación Didáctica.xlsx',
+                    ];
+
+                    foreach ($documentosEspeciales as $tipo => $plantilla) {
+                        $registro = DocumentoSubido::where([
+                            ['user_id',        '=', $user->id],
+                            ['materia',        '=', $m->materia],
+                            ['unidad',         '=', 1],
+                            ['tipo_documento', '=', $tipo],
+                        ])->first();
+
+                        $documentos[] = [
+                            'materia'        => $m->materia,
+                            'programa'       => $m->programa,
+                            'grupo'          => $m->grupo,
+                            'unidad'         => 1,
+                            'documento'      => $tipo,
+                            'archivo'        => $plantilla,
+                            'entregado'      => (bool) $registro,
+                            'archivo_subido' => $registro->archivo ?? null,
+                            'acuse'          => $registro->acuse_pdf ?? null,
+                            'es_actual'      => $unidadActual === 1,
+                        ];
+                    }
+                }
+
                 // cada tipo para la unidad $u
                 foreach ($tipos as $tipo => $plantilla) {
                     $registro = DocumentoSubido::where([
@@ -93,29 +124,28 @@ class GestionAcademicaController extends Controller
                     ];
                 }
 
-                // extra: Presentación de la Asignatura en unidad 1
-                if ($u === 1) {
-                    $tipoExtra    = 'Presentación de la Asignatura';
-                    $plantillaExtra = 'F-DA-GA-01 Presentación de la asignatura.xlsx';
+                // Documento especial solo para la última unidad
+                if ($u === $totalUnidades) {
+                    $tipoFinal = 'Reporte Cuatrimestral de la Evaluación Continua (SIGO)';
 
-                    $registroExtra = DocumentoSubido::where([
+                    $registroFinal = DocumentoSubido::where([
                         ['user_id',        '=', $user->id],
                         ['materia',        '=', $m->materia],
-                        ['unidad',         '=', 1],
-                        ['tipo_documento', '=', $tipoExtra],
+                        ['unidad',         '=', $u],
+                        ['tipo_documento', '=', $tipoFinal],
                     ])->first();
 
                     $documentos[] = [
                         'materia'        => $m->materia,
                         'programa'       => $m->programa,
                         'grupo'          => $m->grupo,
-                        'unidad'         => 1,
-                        'documento'      => $tipoExtra,
-                        'archivo'        => $plantillaExtra,
-                        'entregado'      => (bool) $registroExtra,
-                        'archivo_subido' => $registroExtra->archivo ?? null,
-                        'acuse'          => $registroExtra->acuse_pdf ?? null,
-                        'es_actual'      => $unidadActual === 1,
+                        'unidad'         => $u,
+                        'documento'      => $tipoFinal,
+                        'archivo'        => null,
+                        'entregado'      => (bool) $registroFinal,
+                        'archivo_subido' => $registroFinal->archivo ?? null,
+                        'acuse'          => $registroFinal->acuse_pdf ?? null,
+                        'es_actual'      => $u === $unidadActual,
                     ];
                 }
             }
