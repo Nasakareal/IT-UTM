@@ -20,26 +20,55 @@
                             <thead style="background-color: #E3F2FD;">
                                 <tr class="text-center">
                                     <th>Materia</th>
+                                    <th>Grupo</th>
                                     <th>Unidad</th>
                                     <th>Tipo de Documento</th>
                                     <th>Archivo</th>
+                                    <th>Acuse</th>
                                     <th>Fecha de Subida</th>
+                                    <th>Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach($documentos as $doc)
                                     <tr class="text-center">
                                         <td>{{ $doc->materia }}</td>
+                                        <td>{{ $doc->grupo }}</td>
                                         <td>{{ $doc->unidad }}</td>
                                         <td>{{ $doc->tipo_documento }}</td>
                                         <td>
-                                            <a href="{{ asset('storage/' . $doc->archivo) }}" 
-                                               class="btn btn-outline-primary btn-sm" 
-                                               target="_blank">
-                                               <i class="fas fa-download"></i> Ver
-                                            </a>
+                                            @if($doc->archivo)
+                                                <a href="{{ asset('storage/' . $doc->archivo) }}"
+                                                   class="btn btn-outline-primary btn-sm"
+                                                   target="_blank">
+                                                   <i class="fas fa-file-alt"></i> Ver
+                                                </a>
+                                            @else
+                                                <em>—</em>
+                                            @endif
+                                        </td>
+                                        <td>
+                                            @if($doc->acuse_pdf)
+                                                <a href="{{ asset('storage/' . $doc->acuse_pdf) }}"
+                                                   class="btn btn-outline-secondary btn-sm"
+                                                   target="_blank">
+                                                   <i class="fas fa-file-pdf"></i> Acuse
+                                                </a>
+                                            @else
+                                                <em>—</em>
+                                            @endif
                                         </td>
                                         <td>{{ \Carbon\Carbon::parse($doc->created_at)->format('d/m/Y H:i') }}</td>
+                                        <td>
+                                            <form method="POST" action="{{ route('documentos-profesores.destroy', $doc->id) }}"
+                                                  onsubmit="return confirm('¿Seguro que deseas eliminar este documento?');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button class="btn btn-sm btn-danger">
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </button>
+                                            </form>
+                                        </td>
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -61,6 +90,7 @@
     </div>
 </div>
 @stop
+
 
 @section('css')
 <style>

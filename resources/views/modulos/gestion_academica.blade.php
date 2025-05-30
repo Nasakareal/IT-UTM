@@ -12,6 +12,11 @@
     @endif
 
     <style>
+        /* Asegura que el navbar quede por debajo del modal */
+        .navbar, .navbar-fixed-top {
+            z-index: 1000 !important;
+        }
+
         .folder-card {
             cursor: pointer;
             transition: transform .2s, box-shadow .2s;
@@ -37,15 +42,15 @@
             font-weight: 500;
         }
 
-        /* forzar el modal por encima de todo */
+        /* Asegura que el backdrop y el modal estén por encima de todo */
         .modal-backdrop {
-            z-index: 2000 !important;
+            z-index: 1050 !important;
         }
         .modal {
-            z-index: 2001 !important;
+            z-index: 1060 !important;
         }
 
-        /* evitar que el header se rompa */
+        /* Ajustes internos del modal */
         .modal-header.d-flex {
             padding-bottom: 0;
         }
@@ -95,7 +100,7 @@
             $default  = $unidades->first();
         @endphp
 
-        <div class="modal fade" id="modal-{{ $slug }}" data-bs-backdrop="false" tabindex="-1" aria-labelledby="label-{{ $slug }}" aria-hidden="true">
+        <div class="modal fade" id="modal-{{ $slug }}" tabindex="-1" aria-labelledby="label-{{ $slug }}" aria-hidden="true">
             <div class="modal-dialog modal-lg modal-dialog-centered">
                 <div class="modal-content">
 
@@ -103,7 +108,7 @@
                         <h5 class="modal-title" id="label-{{ $slug }}">
                             {{ $materia }} — Grupo {{ $grupo }} (Unidad <span class="unidad-display">{{ $default }}</span>)
                         </h5>
-                        <select id="unidad_select_{{ $slug }}" class="form-select form-select-sm w-auto">
+                        <select id="unidad_select_{{ $slug }}" class="form-select form-select-sm w-auto mx-3">
                             @foreach($unidades as $u)
                                 <option value="{{ $u }}" @if($u==$default) selected @endif>Unidad {{ $u }}</option>
                             @endforeach
@@ -122,7 +127,7 @@
                                                 <div class="d-flex gap-2">
                                                     @if($doc['archivo'])
                                                         <a href="{{ asset('formatos_academicos/'.$doc['archivo']) }}" class="btn btn-sm btn-outline-success" download>
-                                                            <i class="fas fa-download"> Descargar Plantilla</i>
+                                                            <i class="fas fa-download"></i> Descargar Plantilla
                                                         </a>
                                                     @endif
 
@@ -146,7 +151,7 @@
                                                 <form action="{{ route('documentos.subir') }}" method="POST" enctype="multipart/form-data" class="row g-2 align-items-end">
                                                     @csrf
                                                     <input type="hidden" name="materia"        value="{{ $doc['materia'] }}">
-                                                    <input type="hidden" name="grupo"          value="{{ $grupo }}">
+                                                    <input type="hidden" name="grupo" value="{{ $doc['grupo'] }}">
                                                     <input type="hidden" name="unidad"         value="{{ $u }}">
                                                     <input type="hidden" name="tipo_documento" value="{{ $doc['documento'] }}">
 
@@ -197,30 +202,40 @@
             </div>
         </div>
     @endforeach
+@stop
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function(){
-            document.querySelectorAll('[id^="unidad_select_"]').forEach(sel => {
-                sel.addEventListener('change', function(){
-                    const val = this.value;
-                    const modal = this.closest('.modal-content');
-                    modal.querySelector('.unidad-display').textContent = val;
-                    modal.querySelectorAll('.docs-unidad').forEach(div => {
-                        div.style.display = div.classList.contains('docs-unidad-'+val) ? 'block' : 'none';
-                    });
-                });
-            });
-            document.querySelectorAll('[id^="certFile_"]').forEach(input => {
-                input.addEventListener('change', function() {
-                    const file = this.files[0];
-                    if (!file) return;
-                    const reader = new FileReader();
-                    reader.onload = evt => {
-                        this.nextElementSibling.value = evt.target.result.split(',')[1];
-                    };
-                    reader.readAsDataURL(file);
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function(){
+        // Mover todos los modales al body para evitar stacking contexts
+        document.querySelectorAll('.modal').forEach(modal => {
+            document.body.appendChild(modal);
+        });
+
+        // Cambiar unidad visible
+        document.querySelectorAll('[id^="unidad_select_"]').forEach(sel => {
+            sel.addEventListener('change', function(){
+                const val = this.value;
+                const modal = this.closest('.modal-content');
+                modal.querySelector('.unidad-display').textContent = val;
+                modal.querySelectorAll('.docs-unidad').forEach(div => {
+                    div.style.display = div.classList.contains('docs-unidad-'+val) ? 'block' : 'none';
                 });
             });
         });
-    </script>
-@stop
+
+        // Leer .p12 y guardar Base64
+        document.querySelectorAll('[id^="certFile_"]').forEach(input => {
+            input.addEventListener('change', function() {
+                const file = this.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = evt => {
+                    this.nextElementSibling.value = evt.target.result.split(',')[1];
+                };
+                reader.readAsDataURL(file);
+            });
+        });
+    });
+</script>
+@endpush

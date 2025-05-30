@@ -204,6 +204,8 @@ Route::prefix('settings')->middleware('auth', 'password.changed', 'can:ver confi
 
         // Ver documentos de un profesor específico
         Route::get('/{user}', [App\Http\Controllers\ProfesorDocumentoController::class, 'show'])->name('documentos-profesores.show');
-    });
 
+        // Eliminar un documento subido por profesor
+        Route::delete('/eliminar/{id}', [App\Http\Controllers\ProfesorDocumentoController::class, 'destroy'])->name('documentos-profesores.destroy');
+    });
 });

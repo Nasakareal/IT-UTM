@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\DocumentoSubido;
+use Illuminate\Support\Facades\Storage;
 
 class ProfesorDocumentoController extends Controller
 {
@@ -25,5 +26,25 @@ class ProfesorDocumentoController extends Controller
             'profesor' => $user,
             'documentos' => $documentos,
         ]);
+    }
+
+    // Eliminar documento y archivos relacionados
+    public function destroy($id)
+    {
+        $documento = DocumentoSubido::findOrFail($id);
+
+        // Eliminar archivo principal
+        if ($documento->archivo && Storage::disk('public')->exists($documento->archivo)) {
+            Storage::disk('public')->delete($documento->archivo);
+        }
+
+        // Eliminar acuse si existe
+        if ($documento->acuse_pdf && Storage::disk('public')->exists($documento->acuse_pdf)) {
+            Storage::disk('public')->delete($documento->acuse_pdf);
+        }
+
+        $documento->delete();
+
+        return back()->with('success', 'Documento eliminado correctamente.');
     }
 }

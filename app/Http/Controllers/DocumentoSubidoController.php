@@ -85,7 +85,7 @@ class DocumentoSubidoController extends Controller
 
         /* 5.1  Obtener datos de la e-firma                                    */
         $p12raw    = base64_decode($request->firma_sat);
-        $certName  = Auth::user()->name;   // valor por defecto
+        $certName  = Auth::user()->name;
         $certRFC   = 'N/A';
 
         if (!@openssl_pkcs12_read($p12raw, $certs, $request->efirma_pass) || empty($certs['cert'])) {
