@@ -97,9 +97,17 @@ class SubmoduloController extends Controller
             'fecha_cierre'         => 'nullable|date|after_or_equal:fecha_apertura',
         ]);
 
+        // ← Aquí procesas la subida si vino nuevo archivo
+        if ($request->hasFile('documento_solicitado')) {
+            $data['documento_solicitado'] = $request
+                ->file('documento_solicitado')
+                ->store('plantillas', 'public');
+        }
+
+        // ahora sí actualizas
         $submodulo->update($data);
 
-        // Revisa vencimiento tras actualización
+        // y luego tu lógica de vencimiento…
         if ($submodulo->fecha_cierre && now()->gt($submodulo->fecha_cierre)) {
             $submodulo->update(['estatus' => 'Incumplimiento']);
         }
@@ -108,6 +116,7 @@ class SubmoduloController extends Controller
             ->route('submodulos.index')
             ->with('success', 'Submódulo actualizado correctamente.');
     }
+
 
     public function destroy(Submodulo $submodulo)
     {

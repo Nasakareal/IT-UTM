@@ -115,8 +115,7 @@
                                 name="fecha_apertura"
                                 id="fecha_apertura"
                                 class="form-control @error('fecha_apertura') is-invalid @enderror"
-                                value="{{ old('fecha_apertura', optional($submodulo->fecha_apertura)->format('Y-m-d\TH:i')) }}"
-                            >
+                                value="{{ old('fecha_apertura', \Carbon\Carbon::parse($submodulo->fecha_apertura)->format('Y-m-d\TH:i')) }}">
                             @error('fecha_apertura')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -130,8 +129,7 @@
                                 name="fecha_limite"
                                 id="fecha_limite"
                                 class="form-control @error('fecha_limite') is-invalid @enderror"
-                                value="{{ old('fecha_limite', optional($submodulo->fecha_limite)->format('Y-m-d\TH:i')) }}"
-                            >
+                                value="{{ old('fecha_limite', \Carbon\Carbon::parse($submodulo->fecha_limite)->format('Y-m-d\TH:i')) }}">
                             @error('fecha_limite')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -145,8 +143,7 @@
                                 name="fecha_cierre"
                                 id="fecha_cierre"
                                 class="form-control @error('fecha_cierre') is-invalid @enderror"
-                                value="{{ old('fecha_cierre', optional($submodulo->fecha_cierre)->format('Y-m-d\TH:i')) }}"
-                            >
+                                value="{{ old('fecha_cierre', \Carbon\Carbon::parse($submodulo->fecha_cierre)->format('Y-m-d\TH:i')) }}">
                             @error('fecha_cierre')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
