@@ -43,19 +43,18 @@
                         <!-- Nombres / Selección de Profesor -->
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label for="nombres" class="fw-bold">Nombres <span class="text-danger">*</span></label>
-                                <!-- Input de texto por defecto -->
+                                <label class="fw-bold">Nombres <span class="text-danger">*</span></label>
+
+                                <!-- Input visible si NO es profesor -->
                                 <input type="text"
-                                       name="nombres"
-                                       id="nombres"
-                                       class="form-control @error('nombres') is-invalid @enderror"
+                                       id="nombres_texto"
+                                       class="form-control"
                                        value="{{ old('nombres', $user->nombres) }}"
-                                       required
                                        style="display: none;">
-                                <!-- Select de profesores -->
-                                <select name="nombres"
-                                        id="select_profesor"
-                                        class="form-control @error('nombres') is-invalid @enderror"
+
+                                <!-- Select visible si ES profesor -->
+                                <select id="select_profesor"
+                                        class="form-control"
                                         style="display: none;">
                                     <option value="" disabled>-- Selecciona profesor --</option>
                                     @foreach($profesores as $profe)
@@ -66,15 +65,22 @@
                                         </option>
                                     @endforeach
                                 </select>
-                                @error('nombres')
-                                    <span class="invalid-feedback"><strong>{{ $message }}</strong></span>
-                                @enderror
 
-                                <!-- Campo oculto para guardar teacher_id -->
+                                <!-- Campo real a enviar -->
+                                <input type="hidden"
+                                       name="nombres"
+                                       id="nombres"
+                                       value="{{ old('nombres', $user->nombres) }}">
+
+                                <!-- Campo oculto para teacher_id -->
                                 <input type="hidden"
                                        name="teacher_id"
                                        id="teacher_id"
                                        value="{{ old('teacher_id', $user->teacher_id) }}">
+
+                                @error('nombres')
+                                    <span class="invalid-feedback"><strong>{{ $message }}</strong></span>
+                                @enderror
                             </div>
 
                             <div class="col-md-6">
@@ -92,9 +98,9 @@
                             </div>
                         </div>
 
-                        <!-- Correos y Área -->
+                        <!-- Correos -->
                         <div class="row g-3 mt-3">
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <label for="correo_institucional" class="fw-bold">Correo Institucional <span class="text-danger">*</span></label>
                                 <input type="email"
                                        name="correo_institucional"
@@ -106,7 +112,7 @@
                                     <span class="invalid-feedback"><strong>{{ $message }}</strong></span>
                                 @enderror
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <label for="correo_personal" class="fw-bold">Correo Personal</label>
                                 <input type="email"
                                        name="correo_personal"
@@ -114,17 +120,6 @@
                                        class="form-control @error('correo_personal') is-invalid @enderror"
                                        value="{{ old('correo_personal', $user->correo_personal) }}">
                                 @error('correo_personal')
-                                    <span class="invalid-feedback"><strong>{{ $message }}</strong></span>
-                                @enderror
-                            </div>
-                            <div class="col-md-4">
-                                <label for="area" class="fw-bold">Área</label>
-                                <input type="text"
-                                       name="area"
-                                       id="area"
-                                       class="form-control @error('area') is-invalid @enderror"
-                                       value="{{ old('area', $user->area) }}">
-                                @error('area')
                                     <span class="invalid-feedback"><strong>{{ $message }}</strong></span>
                                 @enderror
                             </div>
@@ -209,6 +204,34 @@
                             </div>
                         </div>
 
+                        <div class="row">
+
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="areas" class="fw-bold">Áreas</label>
+                                <div class="form-control" style="height:auto; padding:10px;">
+                                    @foreach ($areas as $area_item)
+                                        <div class="form-check">
+                                            <input class="form-check-input"
+                                                   type="checkbox"
+                                                   name="areas[]"
+                                                   value="{{ $area_item }}"
+                                                   id="area_{{ $area_item }}"
+                                                   {{ (is_array(old('areas', $user_areas ?? [])) && in_array($area_item, old('areas', $user_areas))) ? 'checked' : '' }}>
+                                            <label class="form-check-label" for="area_{{ $area_item }}">
+                                                {{ $area_item }}
+                                            </label>
+                                        </div>
+                                    @endforeach
+                                </div>
+                                @error('areas')
+                                    <span class="text-danger"><strong>{{ $message }}</strong></span>
+                                @enderror
+                            </div>
+                        </div>
+
+                        </div>
+
                         <hr class="mt-4">
 
                         <!-- Botones -->
@@ -267,32 +290,53 @@
         });
 
         // Toggle entre input de texto y select de profesor
-        const roleEl       = document.getElementById('role');
-        const textNombres  = document.getElementById('nombres');
-        const selectProfe  = document.getElementById('select_profesor');
+        const roleEl        = document.getElementById('role');
+        const textNombres   = document.getElementById('nombres_texto');
+        const selectProfe   = document.getElementById('select_profesor');
+        const hiddenNombres = document.getElementById('nombres');
         const hiddenTeacher = document.getElementById('teacher_id');
 
         function toggleProfesorFields() {
             if (roleEl.value === 'Profesor') {
-                textNombres.style.display     = 'none';  textNombres.required    = false;
-                selectProfe.style.display     = 'block'; selectProfe.required    = true;
+                textNombres.style.display = 'none';
+                selectProfe.style.display = 'block';
+
+                const selected = selectProfe.selectedOptions[0];
+                hiddenNombres.value = selected?.value || '';
+                hiddenTeacher.value = selected?.dataset.id || '';
             } else {
-                textNombres.style.display     = 'block'; textNombres.required    = true;
-                selectProfe.style.display     = 'none';  selectProfe.required    = false;
-                hiddenTeacher.value           = '';
+                textNombres.style.display = 'block';
+                selectProfe.style.display = 'none';
+
+                hiddenNombres.value = textNombres.value;
+                hiddenTeacher.value = '';
             }
         }
 
-        roleEl.addEventListener('change', toggleProfesorFields);
-        selectProfe.addEventListener('change', e => {
-            hiddenTeacher.value = e.target.selectedOptions[0].dataset.id;
+        selectProfe.addEventListener('change', () => {
+            const selected = selectProfe.selectedOptions[0];
+            hiddenNombres.value = selected.value;
+            hiddenTeacher.value = selected.dataset.id;
         });
+
+        textNombres.addEventListener('input', () => {
+            hiddenNombres.value = textNombres.value;
+        });
+
         window.addEventListener('load', () => {
             toggleProfesorFields();
-            if (selectProfe.value) {
-                hiddenTeacher.value = selectProfe.selectedOptions[0].dataset.id;
+            if (roleEl.value === 'Profesor') {
+                const selected = selectProfe.selectedOptions[0];
+                hiddenNombres.value = selected?.value || '';
+                hiddenTeacher.value = selected?.dataset.id || '';
+            } else {
+                hiddenNombres.value = textNombres.value;
+                hiddenTeacher.value = '';
             }
         });
+
+        roleEl.addEventListener('change', toggleProfesorFields);
+
 
         // Validación con SweetAlert
         $(document).ready(function(){

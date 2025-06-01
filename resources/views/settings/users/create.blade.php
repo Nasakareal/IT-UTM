@@ -94,7 +94,7 @@
                         <!-- Segunda fila: CURP, Correo Institucional, Correo Personal -->
                         <div class="row g-3 mt-3">
                             
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <label for="correo_institucional" class="fw-bold">Correo Institucional<span class="text-danger">*</span></label>
                                 <input type="email"
                                        name="correo_institucional"
@@ -106,7 +106,7 @@
                                     <span class="invalid-feedback"><strong>{{ $message }}</strong></span>
                                 @enderror
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <label for="correo_personal" class="fw-bold">Correo Personal</label>
                                 <input type="email"
                                        name="correo_personal"
@@ -114,17 +114,6 @@
                                        class="form-control @error('correo_personal') is-invalid @enderror"
                                        value="{{ old('correo_personal') }}">
                                 @error('correo_personal')
-                                    <span class="invalid-feedback"><strong>{{ $message }}</strong></span>
-                                @enderror
-                            </div>
-                            <div class="col-md-4">
-                                <label for="area" class="fw-bold">Área</label>
-                                <input type="text"
-                                       name="area"
-                                       id="area"
-                                       class="form-control @error('area') is-invalid @enderror"
-                                       value="{{ old('area') }}">
-                                @error('area')
                                     <span class="invalid-feedback"><strong>{{ $message }}</strong></span>
                                 @enderror
                             </div>
@@ -179,13 +168,6 @@
                                     <span class="invalid-feedback"><strong>{{ $message }}</strong></span>
                                 @enderror
                             </div>
-                            
-                        </div>
-
-                        <!-- Quinta fila: Área, Foto de Perfil -->
-                        <div class="row g-3 mt-3">
-                            
-                            
                         </div>
 
                         <!-- Sexta fila: Contraseña, Confirmación -->
@@ -221,6 +203,34 @@
                             </div>
                         </div>
 
+                        <!-- Quinta fila: Área -->
+                        <div class="row g-3 mt-3">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label for="areas" class="fw-bold">Áreas</label>
+                                    <div class="form-control" style="height:auto; padding:10px;">
+                                        @foreach ($areas as $area_item)
+                                            <div class="form-check">
+                                                <input class="form-check-input"
+                                                       type="checkbox"
+                                                       name="areas[]"
+                                                       value="{{ $area_item }}"
+                                                       id="area_{{ $area_item }}"
+                                                       {{ (is_array(old('areas')) && in_array($area_item, old('areas'))) ? 'checked' : '' }}>
+                                                <label class="form-check-label" for="area_{{ $area_item }}">
+                                                    {{ $area_item }}
+                                                </label>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                    @error('areas')
+                                        <span class="text-danger"><strong>{{ $message }}</strong></span>
+                                    @enderror
+                                </div>
+                            </div>
+
+                        </div> <!-- ← aquí cierra la fila del campo de área -->
+
                         <hr class="mt-4">
 
                         <!-- Botones -->
@@ -234,6 +244,7 @@
                                 </a>
                             </div>
                         </div>
+
                     </form>
 
                 </div>

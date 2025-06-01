@@ -36,9 +36,15 @@ class UserController extends Controller
             ->orderBy('t.teacher_name')
             ->get();
 
-        return view('settings.users.create', compact(
-            'roles', 'categorias', 'caracteres', 'profesores'
-        ));
+        $areas = DB::connection('cargahoraria')
+            ->table('programs')
+            ->where('estado', 1)
+            ->select('area')
+            ->distinct()
+            ->orderBy('area')
+            ->pluck('area');
+
+        return view('settings.users.create', compact('roles', 'categorias', 'caracteres', 'profesores', 'areas'));
     }
 
 
@@ -57,7 +63,8 @@ class UserController extends Controller
             ]),
             'caracter'              => 'required|in:Indeterminado,Determinado',
             'password'              => 'required|min:6|confirmed',
-            'area'                  => 'nullable|string|max:125',
+            'areas'                 => 'nullable|array',
+            'areas.*'               => 'string|max:125',
             'foto_perfil'           => 'nullable|image|max:2048',
             'role'                  => 'required|exists:roles,name',
             'teacher_id' => [
@@ -92,7 +99,7 @@ class UserController extends Controller
                 'categoria'            => $validated['categoria'],
                 'caracter'             => $validated['caracter'],
                 'password'             => Hash::make($validated['password']),
-                'area'                 => $validated['area'] ?? null,
+                'area'                 => isset($validated['areas']) ? implode(',', $validated['areas']) : null,
                 'foto_perfil'          => $validated['foto_perfil'] ?? null,
                 'estado'               => 'Activo',
                 'teacher_id'           => $validated['teacher_id'] ?? null,
@@ -138,8 +145,18 @@ class UserController extends Controller
             ->orderBy('t.teacher_name')
             ->get();
 
+        $areas = DB::connection('cargahoraria')
+            ->table('programs')
+            ->where('estado', 1)
+            ->select('area')
+            ->distinct()
+            ->orderBy('area')
+            ->pluck('area');
+
+        $user_areas = $user->area ? explode(',', $user->area) : [];
+
         return view('settings.users.edit', compact(
-            'user', 'roles', 'categorias', 'caracteres', 'profesores'
+            'user', 'roles', 'categorias', 'caracteres', 'profesores', 'areas', 'user_areas'
         ));
     }
 
@@ -157,10 +174,27 @@ class UserController extends Controller
                 'Profesor de Asignatura B',
             ]),
             'caracter'              => 'required|in:Indeterminado,Determinado',
-            'area'                  => 'nullable|string|max:125',
+            'areas'                 => 'nullable|array',
+            'areas.*'               => 'string|max:125',
             'foto_perfil'           => 'nullable|image|max:2048',
             'role'                  => 'required|exists:roles,name',
-            'teacher_id'            => 'required_if:role,Profesor|exists:cargahoraria.teachers,teacher_id',
+            'teacher_id' => [
+                'nullable',
+                function ($attribute, $value, $fail) use ($request) {
+                    if ($request->role === 'Profesor' && empty($value)) {
+                        $fail('El campo teacher_id es obligatorio cuando el rol es Profesor.');
+                    }
+                    if ($request->role === 'Profesor') {
+                        $exists = DB::connection('cargahoraria')
+                            ->table('teachers')
+                            ->where('teacher_id', $value)
+                            ->exists();
+                        if (!$exists) {
+                            $fail('El teacher_id seleccionado no existe.');
+                        }
+                    }
+                }
+            ],
         ];
 
         if ($request->filled('password')) {
@@ -177,16 +211,16 @@ class UserController extends Controller
             }
 
             $data = [
-                'nombres'               => $validated['nombres'],
-                'curp'                  => $validated['curp'],
-                'correo_institucional'  => $validated['correo_institucional'],
-                'correo_personal'       => $validated['correo_personal'],
-                'categoria'             => $validated['categoria'],
-                'caracter'              => $validated['caracter'],
-                'area'                  => $validated['area'] ?? null,
-                'foto_perfil'           => $validated['foto_perfil'] ?? $user->foto_perfil,
-                'estado'                => 'Activo',
-                'teacher_id'            => $validated['teacher_id'] ?? null,
+                'nombres'              => $validated['nombres'],
+                'curp'                 => $validated['curp'],
+                'correo_institucional' => $validated['correo_institucional'],
+                'correo_personal'      => $validated['correo_personal'],
+                'categoria'            => $validated['categoria'],
+                'caracter'             => $validated['caracter'],
+                'area'                 => isset($validated['areas']) ? implode(',', $validated['areas']) : null,
+                'foto_perfil'          => $validated['foto_perfil'] ?? $user->foto_perfil,
+                'estado'               => 'Activo',
+                'teacher_id'           => $validated['teacher_id'] ?? null,
             ];
 
             if ($request->filled('password')) {

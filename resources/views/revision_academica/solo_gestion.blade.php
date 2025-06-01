@@ -3,11 +3,11 @@
 @section('title', 'TI-UTM - Documentación de Gestión Académica')
 
 @section('content')
-<div class="row mb-3">
-    <div class="col-md-4">
-        <form method="GET" action="{{ route('revision.gestion.academica.gestion') }}" class="d-flex">
+<form method="GET" action="{{ route('revision.gestion.academica.gestion') }}">
+    <div class="row mb-3">
+        <div class="col-md-4">
             <label class="input-group-text"><i class="fa-solid fa-user"></i> Profesor:</label>
-            <select name="profesor_id" class="form-select" onchange="this.form.submit()">
+            <select name="profesor_id" class="form-select">
                 <option value="">-- Todos los profesores --</option>
                 @foreach ($profesores as $p)
                     <option value="{{ $p->id }}" {{ request('profesor_id') == $p->id ? 'selected' : '' }}>
@@ -15,12 +15,11 @@
                     </option>
                 @endforeach
             </select>
-        </form>
-    </div>
-    <div class="col-md-4">
-        <form method="GET" action="{{ route('revision.gestion.academica.gestion') }}" class="d-flex">
+        </div>
+
+        <div class="col-md-4">
             <label class="input-group-text"><i class="fa-solid fa-book"></i> Materia:</label>
-            <select name="materia" class="form-select" onchange="this.form.submit()">
+            <select name="materia" class="form-select">
                 <option value="">-- Todas las materias --</option>
                 @foreach ($materiasDisponibles as $m)
                     <option value="{{ $m }}" {{ request('materia') == $m ? 'selected' : '' }}>
@@ -28,12 +27,11 @@
                     </option>
                 @endforeach
             </select>
-        </form>
-    </div>
-    <div class="col-md-4">
-        <form method="GET" action="{{ route('revision.gestion.academica.gestion') }}" class="d-flex">
+        </div>
+
+        <div class="col-md-4">
             <label class="input-group-text"><i class="fa-solid fa-layer-group"></i> Unidad:</label>
-            <select name="unidad" class="form-select" onchange="this.form.submit()">
+            <select name="unidad" class="form-select">
                 <option value="">-- Todas las unidades --</option>
                 @foreach ($unidadesDisponibles as $u)
                     <option value="{{ $u }}" {{ request('unidad') == $u ? 'selected' : '' }}>
@@ -41,17 +39,20 @@
                     </option>
                 @endforeach
             </select>
-        </form>
+        </div>
     </div>
-</div>
 
-<div class="row mb-3">
-    <div class="col-md-12 text-end">
-        <a href="{{ route('revision.gestion.academica') }}" class="btn btn-sm btn-secondary">
-            <i class="fas fa-arrow-left"></i> Regresar a Submódulos
-        </a>
+    <div class="row mb-3">
+        <div class="col-md-12 text-end">
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-filter"></i> Aplicar filtros
+            </button>
+            <a href="{{ route('revision.gestion.academica') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Regresar a Submódulos
+            </a>
+        </div>
     </div>
-</div>
+</form>
 
 @if($profesorSeleccionado)
     <div class="card">

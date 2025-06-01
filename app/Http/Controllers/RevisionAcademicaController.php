@@ -20,9 +20,16 @@ class RevisionAcademicaController extends Controller
         $usuario = auth()->user();
 
         // 1. Profesores del MISMO área
+        $areasUsuario = explode(',', $usuario->area);
+
         $profesores = User::whereNotNull('teacher_id')
-            ->where('area', $usuario->area)
+            ->where(function ($query) use ($areasUsuario) {
+                foreach ($areasUsuario as $area) {
+                    $query->orWhereRaw('FIND_IN_SET(?, area)', [$area]);
+                }
+            })
             ->get();
+
 
         // 2. Submódulos dentro del módulo 5 (filtrados por subsección si aplica)
         $query = Submodulo::whereHas('subseccion', function ($q) {
@@ -56,9 +63,16 @@ class RevisionAcademicaController extends Controller
         $usuario = auth()->user();
 
         // 1) Obtener todos los profesores del área del usuario
+        $areasUsuario = explode(',', $usuario->area);
+
         $profesores = User::whereNotNull('teacher_id')
-            ->where('area', $usuario->area)
+            ->where(function ($query) use ($areasUsuario) {
+                foreach ($areasUsuario as $area) {
+                    $query->orWhereRaw('FIND_IN_SET(?, area)', [$area]);
+                }
+            })
             ->get();
+
 
         // 2) Leer filtros (profesor, materia, unidad) desde la query string
         $profesorId     = $request->input('profesor_id');

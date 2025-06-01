@@ -131,18 +131,29 @@ class SubmoduloController extends Controller
      */
     public function subirArchivos(Request $request)
     {
-        $accion = $request->input('accion'); // 'solo_enviar' o 'firmar'
+        $accion = $request->input('accion');
 
         // 🔹 Validación condicional
         $rules = [
-            'submodulo_id'        => 'required|exists:submodulos,id',
-            'oficio_entrega'      => 'nullable|file|mimes:pdf,doc,docx|max:8048',
+            'submodulo_id'   => ['required', 'exists:submodulos,id'],
+            'oficio_entrega' => ['nullable','file','mimes:pdf,doc,docx','max:8048'],
         ];
 
-        if ($accion === 'firmar') {
-            $rules['efirma_p12']  = 'required|file|mimes:p12|max:1024';
+      if ($accion === 'firmar') {
+            $rules['efirma_p12'] = [
+                'required',
+                'file',
+                'max:5120',   // 5 MB
+                // ⬇️  YA NO uses “mimes:…”
+                'mimetypes:application/pkcs12,' .
+                           'application/x-pkcs12,' .
+                           'application/x-pkcs7-certificates,' .
+                           'application/x-pkcs7-mime,' .
+                           'application/octet-stream',
+            ];
             $rules['efirma_pass'] = 'required|string';
         }
+
 
         $request->validate($rules);
 

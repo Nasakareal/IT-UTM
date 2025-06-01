@@ -113,13 +113,15 @@
                                                 data-fecha-apertura="{{ $submodulo->fecha_apertura? $submodulo->fecha_apertura->format('Y-m-d H:i') : '' }}"
                                                 data-fecha-limite="{{ $submodulo->fecha_limite? $submodulo->fecha_limite->format('Y-m-d H:i') : '' }}"
                                                 data-fecha-cierre="{{ $submodulo->fecha_cierre? $submodulo->fecha_cierre->format('Y-m-d H:i') : '' }}"
-                                                data-base="{{ $submodulo->documento_solicitado? asset('storage/'.$submodulo->documento_solicitado) : '' }}"
-                                                data-acuse="{{ route('submodulos.generarAcuse',$submodulo->id) }}"
-                                                data-oficio="{{ $archivoOficio? asset('storage/'.$archivoOficio->ruta) : '' }}"
-                                                data-programa="{{ $archivoPrograma? asset('storage/'.$archivoPrograma->ruta) : '' }}">
+                                                data-base="{{ $submodulo->documento_solicitado ? asset('storage/'.$submodulo->documento_solicitado) : '' }}"
+                                                {{-- ⬇️ solo manda la URL si el oficio tiene firma --}}
+                                                data-acuse="{{ ($archivoOficio && $archivoOficio->firma_sat) ? route('submodulos.generarAcuse',$submodulo->id) : '' }}"
+                                                data-oficio="{{ $archivoOficio ? asset('storage/'.$archivoOficio->ruta) : '' }}"
+                                                data-programa="{{ $archivoPrograma ? asset('storage/'.$archivoPrograma->ruta) : '' }}">
                                                 <i class="fa fa-info-circle"></i> Detalles
                                             </button>
                                         </div>
+
                                     </div>
                                 </div>
                             @endif
@@ -220,12 +222,18 @@
                         <input type="file" class="form-control" id="oficio_entrega" name="oficio_entrega" accept=".pdf,.doc,.docx,.odt,.txt" required>
                     </div>
 
-                    <!-- NUEVOS CAMPOS PARA E.FIRMA -->
+                    <!-- CAMPOS PARA E.FIRMA -->
                     <div class="mb-3">
                         <label for="efirma_p12" class="form-label">
                             2. Certificado e.firma (.p12):
                         </label>
-                        <input type="file" class="form-control" id="efirma_p12" name="efirma_p12" accept=".p12" required>
+                        <input type="file"
+                           id="efirma_p12"
+                           name="efirma_p12"
+                           class="form-control"
+                           accept=".p12,.pfx"
+                           required>
+
                     </div>
                     <div class="mb-3">
                         <label for="efirma_pass" class="form-label">
