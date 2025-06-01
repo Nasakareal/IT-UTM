@@ -60,9 +60,10 @@
                                     @foreach($profesores as $profe)
                                         <option value="{{ $profe->teacher_name }}"
                                                 data-id="{{ $profe->teacher_id }}"
-                                                {{ old('nombres', $user->nombres) == $profe->teacher_name ? 'selected' : '' }}>
+                                                {{ old('teacher_id', $user->teacher_id) == $profe->teacher_id ? 'selected' : '' }}>
                                             {{ $profe->teacher_name }}
                                         </option>
+
                                     @endforeach
                                 </select>
 
@@ -270,6 +271,7 @@
             for (let i = 0; i < len; i++) pass += chars[arr[i] % chars.length];
             return pass;
         }
+
         document.getElementById('btnGenerate').addEventListener('click', () => {
             const p = genPass(12);
             document.getElementById('password').value = p;
@@ -300,23 +302,18 @@
             if (roleEl.value === 'Profesor') {
                 textNombres.style.display = 'none';
                 selectProfe.style.display = 'block';
-
-                const selected = selectProfe.selectedOptions[0];
-                hiddenNombres.value = selected?.value || '';
-                hiddenTeacher.value = selected?.dataset.id || '';
             } else {
                 textNombres.style.display = 'block';
                 selectProfe.style.display = 'none';
-
-                hiddenNombres.value = textNombres.value;
-                hiddenTeacher.value = '';
             }
         }
 
         selectProfe.addEventListener('change', () => {
             const selected = selectProfe.selectedOptions[0];
-            hiddenNombres.value = selected.value;
-            hiddenTeacher.value = selected.dataset.id;
+            if (selected) {
+                hiddenNombres.value = selected.value;
+                hiddenTeacher.value = selected.dataset.id;
+            }
         });
 
         textNombres.addEventListener('input', () => {
@@ -325,18 +322,36 @@
 
         window.addEventListener('load', () => {
             toggleProfesorFields();
+
             if (roleEl.value === 'Profesor') {
-                const selected = selectProfe.selectedOptions[0];
-                hiddenNombres.value = selected?.value || '';
-                hiddenTeacher.value = selected?.dataset.id || '';
+                // Solo si el campo teacher_id está vacío, autocompletar
+                if (!hiddenTeacher.value) {
+                    const selected = selectProfe.selectedOptions[0];
+                    if (selected) {
+                        hiddenNombres.value = selected.value;
+                        hiddenTeacher.value = selected.dataset.id;
+                    }
+                }
             } else {
                 hiddenNombres.value = textNombres.value;
                 hiddenTeacher.value = '';
             }
         });
 
-        roleEl.addEventListener('change', toggleProfesorFields);
+        roleEl.addEventListener('change', () => {
+            toggleProfesorFields();
 
+            if (roleEl.value === 'Profesor') {
+                const selected = selectProfe.selectedOptions[0];
+                if (selected) {
+                    hiddenNombres.value = selected.value;
+                    hiddenTeacher.value = selected.dataset.id;
+                }
+            } else {
+                hiddenNombres.value = textNombres.value;
+                hiddenTeacher.value = '';
+            }
+        });
 
         // Validación con SweetAlert
         $(document).ready(function(){

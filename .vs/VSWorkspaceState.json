@@ -10,8 +10,9 @@
     "\\resources\\views",
     "\\resources\\views\\modulos",
     "\\resources\\views\\revision_academica",
-    "\\resources\\views\\settings"
+    "\\resources\\views\\settings",
+    "\\resources\\views\\settings\\users"
   ],
-  "SelectedNode": "\\app\\Http\\Controllers\\DocumentoSubidoController.php",
+  "SelectedNode": "\\resources\\views\\settings\\users\\index.blade.php",
   "PreviewInSolutionExplorer": false
 }
