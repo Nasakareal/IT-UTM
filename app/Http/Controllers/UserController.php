@@ -126,13 +126,20 @@ class UserController extends Controller
     {
         $user = User::findOrFail($id);
         $roles = Role::all();
+
         $categorias = [
             'Titular C', 'Titular B', 'Titular A',
             'Asociado C', 'Técnico Académico C',
             'Técnico Académico B', 'Técnico Académico A',
             'Profesor de Asignatura B',
         ];
+
         $caracteres = ['Indeterminado', 'Determinado'];
+
+        // Excluir profesores ya asignados a usuarios, excepto el del usuario actual
+        $profesoresConUsuario = User::whereNotNull('teacher_id')
+            ->where('id', '!=', $user->id)
+            ->pluck('teacher_id');
 
         $profesores = DB::connection('cargahoraria')
             ->table('teacher_subjects as ts')
@@ -140,6 +147,7 @@ class UserController extends Controller
             ->join('subjects as s', 'ts.subject_id', '=', 's.subject_id')
             ->where('t.estado', 1)
             ->where('s.estado', 1)
+            ->whereNotIn('t.teacher_id', $profesoresConUsuario)
             ->select('t.teacher_id', 't.teacher_name')
             ->distinct()
             ->orderBy('t.teacher_name')
@@ -180,17 +188,29 @@ class UserController extends Controller
             'role'                  => 'required|exists:roles,name',
             'teacher_id' => [
                 'nullable',
-                function ($attribute, $value, $fail) use ($request) {
-                    if ($request->role === 'Profesor' && empty($value)) {
-                        $fail('El campo teacher_id es obligatorio cuando el rol es Profesor.');
-                    }
+                function ($attribute, $value, $fail) use ($request, $id) {
                     if ($request->role === 'Profesor') {
+                        if (empty($value)) {
+                            return $fail('El campo teacher_id es obligatorio cuando el rol es Profesor.');
+                        }
+
+                        // Validar existencia en la tabla teachers
                         $exists = DB::connection('cargahoraria')
                             ->table('teachers')
                             ->where('teacher_id', $value)
                             ->exists();
+
                         if (!$exists) {
-                            $fail('El teacher_id seleccionado no existe.');
+                            return $fail('El teacher_id seleccionado no existe.');
+                        }
+
+                        // Validar que no esté asignado a otro usuario
+                        $yaAsignado = \App\Models\User::where('teacher_id', $value)
+                            ->where('id', '!=', $id)
+                            ->exists();
+
+                        if ($yaAsignado) {
+                            return $fail('Este teacher_id ya está asignado a otro usuario.');
                         }
                     }
                 }
@@ -238,6 +258,7 @@ class UserController extends Controller
             return redirect()->back()->withInput()->withErrors('Ocurrió un error al actualizar el usuario.');
         }
     }
+
 
     public function destroy($id)
     {
