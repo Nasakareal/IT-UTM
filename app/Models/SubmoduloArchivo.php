@@ -20,11 +20,17 @@ class SubmoduloArchivo extends Model
 
     public function submodulo()
     {
-        return $this->belongsTo(Submodulo::class);
+        return $this->belongsTo(Submodulo::class, 'submodulo_id');
     }
 
     public function user()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class, 'user_id');
     }
+
+    public function subsection()
+    {
+        return $this->belongsTo(Subsection::class, 'subsection_id');
+    }
+
 }

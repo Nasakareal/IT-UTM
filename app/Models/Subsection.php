@@ -21,7 +21,7 @@ class Subsection extends Model
 
     public function modulo()
     {
-        return $this->belongsTo(Modulo::class);
+        return $this->belongsTo(Modulo::class, 'modulo_id');
     }
 
     public function parent()
@@ -36,7 +36,7 @@ class Subsection extends Model
 
     public function submodulos()
     {
-        return $this->hasMany(Submodulo::class);
+        return $this->hasMany(Submodulo::class, 'subsection_id');
     }
 
 }

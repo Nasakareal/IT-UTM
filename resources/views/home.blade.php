@@ -92,6 +92,14 @@
         <div class="seccion-item" data-id="{{ $seccion->id }}">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h2 class="mb-0" @if(auth()->check() && auth()->user()->hasRole('Administrador')) style="cursor: move;" @endif>{{ $seccion->nombre }}</h2>
+                @if($seccion->nombre === 'Académico')
+                    <div class="mb-3 text-end">
+                        <a href="{{ route('revision.gestion.academica') }}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-eye"></i> Revisión de Gestión Académica
+                        </a>
+                    </div>
+                @endif
+
                 @if(auth()->check() && auth()->user()->hasRole('Administrador'))
                     <div class="btn-group" role="group">
                         <a href="{{ route('secciones.edit', $seccion->id) }}" class="btn btn-success btn-sm">

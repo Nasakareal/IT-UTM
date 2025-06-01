@@ -19,4 +19,10 @@ class DocumentoSubido extends Model
         'acuse_pdf',
         'grupo',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
 }

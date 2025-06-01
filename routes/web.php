@@ -7,8 +7,12 @@ Route::get('/', function () {
 });
 
 // Ruta para ver el acuse en el navegador
-Route::get('submodulos/{submodulo}/ver-acuse', [App\Http\Controllers\AcuseController::class, 'verAcuse'])
-     ->name('submodulos.ver-acuse');
+Route::get('submodulos/{submodulo}/ver-acuse', [App\Http\Controllers\AcuseController::class, 'verAcuse'])->name('submodulos.ver-acuse');
+
+
+Route::get('/revision-gestion-academica', [App\Http\Controllers\RevisionAcademicaController::class, 'index'])->middleware('can:ver revisiones')->name('revision.gestion.academica');
+Route::get('/revision-gestion-academica/gestion', [App\Http\Controllers\RevisionAcademicaController::class, 'soloGestion'])->middleware('can:ver revisiones')->name('revision.gestion.academica.gestion');
+
 
 Route::post('/carpetas/sort', [App\Http\Controllers\CarpetaController::class, 'sort'])->name('carpetas.sort');
 Route::post('/subsections/sort', [App\Http\Controllers\SubsectionController::class, 'sort'])->name('subsections.sort');

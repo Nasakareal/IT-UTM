@@ -66,4 +66,10 @@ class User extends Authenticatable
     {
         return $this->hasMany(DocumentoSubido::class);
     }
+
+    public function submoduloArchivos()
+    {
+        return $this->hasMany(\App\Models\SubmoduloArchivo::class, 'user_id');
+    }
+
 }

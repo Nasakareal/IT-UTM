@@ -4,13 +4,13 @@
     "\\app",
     "\\app\\Models",
     "\\database",
+    "\\database\\seeders",
     "\\resources",
     "\\resources\\views",
-    "\\resources\\views\\modulos",
+    "\\resources\\views\\revision_academica",
     "\\resources\\views\\settings",
-    "\\resources\\views\\settings\\documentos-profesores",
-    "\\routes"
+    "\\resources\\views\\settings\\users"
   ],
-  "SelectedNode": "\\resources\\views\\modulos\\gestion_academica.blade.php",
+  "SelectedNode": "\\routes\\web.php",
   "PreviewInSolutionExplorer": false
 }

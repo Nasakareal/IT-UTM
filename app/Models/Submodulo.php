@@ -23,9 +23,9 @@ class Submodulo extends Model
         'orden'
     ];
 
-    public function subsection()
+    public function subseccion()
     {
-        return $this->belongsTo(Subsection::class);
+        return $this->belongsTo(Subsection::class, 'subsection_id');
     }
 
     public function archivos()

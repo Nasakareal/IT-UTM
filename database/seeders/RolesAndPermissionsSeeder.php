@@ -63,6 +63,11 @@ class RolesAndPermissionsSeeder extends Seeder
             'editar archivos',
             'eliminar archivos',
 
+            'ver revisiones',
+            'crear revisiones',
+            'editar revisiones',
+            'eliminar revisiones',
+
             'ver documentos profesores',
         ];
 
