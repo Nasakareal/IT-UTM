@@ -45,35 +45,30 @@
                             <div class="col-md-6">
                                 <label class="fw-bold">Nombres <span class="text-danger">*</span></label>
 
-                                <!-- Input visible si NO es profesor -->
+                                {{-- Campo visible si NO es rol=Profesor --}}
                                 <input type="text"
+                                       name="nombres"
                                        id="nombres_texto"
-                                       class="form-control"
+                                       class="form-control @error('nombres') is-invalid @enderror"
                                        value="{{ old('nombres', $user->nombres) }}"
-                                       style="display: none;">
+                                       {{ old('role', $user->role) === 'Profesor' ? 'style=display:none' : '' }}>
 
-                                <!-- Select visible si ES profesor -->
-                                <select id="select_profesor"
+                                {{-- Select visible si rol=Profesor --}}
+                                <select name=""
+                                        id="select_profesor"
                                         class="form-control"
-                                        style="display: none;">
+                                        {{ old('role', $user->role) === 'Profesor' ? '' : 'style=display:none' }}>
                                     <option value="" disabled>-- Selecciona profesor --</option>
                                     @foreach($profesores as $profe)
-                                        <option value="{{ $profe->teacher_name }}"
-                                                data-id="{{ $profe->teacher_id }}"
+                                        <option value="{{ $profe->teacher_id }}"
+                                                data-name="{{ $profe->teacher_name }}"
                                                 {{ old('teacher_id', $user->teacher_id) == $profe->teacher_id ? 'selected' : '' }}>
                                             {{ $profe->teacher_name }}
                                         </option>
-
                                     @endforeach
                                 </select>
 
-                                <!-- Campo real a enviar -->
-                                <input type="hidden"
-                                       name="nombres"
-                                       id="nombres"
-                                       value="{{ old('nombres', $user->nombres) }}">
-
-                                <!-- Campo oculto para teacher_id -->
+                                {{-- Hidden: guarda el teacher_id real --}}
                                 <input type="hidden"
                                        name="teacher_id"
                                        id="teacher_id"
@@ -98,6 +93,7 @@
                                 @enderror
                             </div>
                         </div>
+
 
                         <!-- Correos -->
                         <div class="row g-3 mt-3">
@@ -262,13 +258,15 @@
 
 @section('scripts')
     <script>
-        // Generar contraseña
+        // ================= 1) Generar contraseña =================
         function genPass(len = 12) {
             const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+~';
             let pass = '';
             const arr = new Uint32Array(len);
             crypto.getRandomValues(arr);
-            for (let i = 0; i < len; i++) pass += chars[arr[i] % chars.length];
+            for (let i = 0; i < len; i++) {
+                pass += chars[arr[i] % chars.length];
+            }
             return pass;
         }
 
@@ -291,11 +289,10 @@
             });
         });
 
-        // Toggle entre input de texto y select de profesor
+        // ================= 2) Toggle entre input de texto y select de Profesor =================
         const roleEl        = document.getElementById('role');
         const textNombres   = document.getElementById('nombres_texto');
         const selectProfe   = document.getElementById('select_profesor');
-        const hiddenNombres = document.getElementById('nombres');
         const hiddenTeacher = document.getElementById('teacher_id');
 
         function toggleProfesorFields() {
@@ -305,55 +302,42 @@
             } else {
                 textNombres.style.display = 'block';
                 selectProfe.style.display = 'none';
+                // Si cambia a otro rol, borramos el teacher_id
+                hiddenTeacher.value = '';
             }
         }
 
+        // ================= 3) Al cambiar el select de Profesor =================
         selectProfe.addEventListener('change', () => {
-            const selected = selectProfe.selectedOptions[0];
-            if (selected) {
-                hiddenNombres.value = selected.value;
-                hiddenTeacher.value = selected.dataset.id;
+            const opcion = selectProfe.selectedOptions[0];
+            if (opcion) {
+                // Copiamos el teacher_name al input visible (nombres_texto)
+                textNombres.value = opcion.dataset.name;
+                // Copiamos el teacher_id al campo oculto
+                hiddenTeacher.value = opcion.value;
             }
         });
 
-        textNombres.addEventListener('input', () => {
-            hiddenNombres.value = textNombres.value;
-        });
-
+        // ================= 4) Al cargar la página =================
         window.addEventListener('load', () => {
+            // Mostrar/ocultar input vs select según el rol actual
             toggleProfesorFields();
 
             if (roleEl.value === 'Profesor') {
-                // Solo si el campo teacher_id está vacío, autocompletar
-                if (!hiddenTeacher.value) {
-                    const selected = selectProfe.selectedOptions[0];
-                    if (selected) {
-                        hiddenNombres.value = selected.value;
-                        hiddenTeacher.value = selected.dataset.id;
-                    }
+                // Si rol=Profesor y ya hay un teacher_id asignado,
+                // marcamos el <option> correspondiente y colocamos su nombre:
+                const opcionSel = selectProfe.querySelector('option[selected]');
+                if (opcionSel) {
+                    textNombres.value = opcionSel.dataset.name;
+                    hiddenTeacher.value = opcionSel.value;
                 }
-            } else {
-                hiddenNombres.value = textNombres.value;
-                hiddenTeacher.value = '';
             }
         });
 
-        roleEl.addEventListener('change', () => {
-            toggleProfesorFields();
+        // ================= 5) Al cambiar de rol dinámicamente =================
+        roleEl.addEventListener('change', toggleProfesorFields);
 
-            if (roleEl.value === 'Profesor') {
-                const selected = selectProfe.selectedOptions[0];
-                if (selected) {
-                    hiddenNombres.value = selected.value;
-                    hiddenTeacher.value = selected.dataset.id;
-                }
-            } else {
-                hiddenNombres.value = textNombres.value;
-                hiddenTeacher.value = '';
-            }
-        });
-
-        // Validación con SweetAlert
+        // ================= 6) Validación con SweetAlert si hay errores =================
         $(document).ready(function(){
             @if ($errors->any())
                 Swal.fire({
