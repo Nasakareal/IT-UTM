@@ -136,11 +136,22 @@ class UserController extends Controller
 
         $caracteres = ['Indeterminado', 'Determinado'];
 
-        // Excluir profesores ya asignados a usuarios, excepto el del usuario actual
+        // 1. Buscar el profesor actual aunque no tenga materias activas
+        $profesorActual = null;
+        if ($user->teacher_id) {
+            $profesorActual = DB::connection('cargahoraria')
+                ->table('teachers')
+                ->where('teacher_id', $user->teacher_id)
+                ->select('teacher_id', 'teacher_name')
+                ->first();
+        }
+
+        // 2. Excluir profesores ya usados en users, excepto el actual
         $profesoresConUsuario = User::whereNotNull('teacher_id')
             ->where('id', '!=', $user->id)
             ->pluck('teacher_id');
 
+        // 3. Obtener profesores con materias activas, excluyendo duplicados
         $profesores = DB::connection('cargahoraria')
             ->table('teacher_subjects as ts')
             ->join('teachers as t', 'ts.teacher_id', '=', 't.teacher_id')
@@ -153,6 +164,12 @@ class UserController extends Controller
             ->orderBy('t.teacher_name')
             ->get();
 
+        // 4. Asegurarse de incluir al profesor actual si no está en la lista
+        if ($profesorActual && !$profesores->contains('teacher_id', $profesorActual->teacher_id)) {
+            $profesores->push($profesorActual);
+        }
+
+        // 5. Obtener las áreas disponibles
         $areas = DB::connection('cargahoraria')
             ->table('programs')
             ->where('estado', 1)
