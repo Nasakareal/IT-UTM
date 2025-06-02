@@ -3,7 +3,11 @@
     "",
     "\\app",
     "\\app\\Http",
-    "\\app\\Http\\Controllers"
+    "\\app\\Http\\Controllers",
+    "\\resources",
+    "\\resources\\views",
+    "\\resources\\views\\modulos",
+    "\\resources\\views\\submodulos"
   ],
   "SelectedNode": "\\app\\Http\\Controllers\\SubmoduloController.php",
   "PreviewInSolutionExplorer": false

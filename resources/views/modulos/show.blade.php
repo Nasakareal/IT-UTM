@@ -55,7 +55,8 @@
 
                         @foreach($subsec->submodulos as $submodulo)
                             @php
-                                $archivoOficio   = $submodulo->archivos->where('nombre','oficio_entrega')->first();
+                                $archivoOficio = $submodulo->archivos->where('nombre','oficio_entrega')->sortByDesc('id')->first();
+
                                 $archivoPrograma = $submodulo->archivos->where('nombre','programa_austeridad')->first();
                                 $estadoUsuario   = $submodulo->submoduloUsuarios->where('user_id',Auth::id())->first();
                                 $estadoMostrar   = $estadoUsuario ? $estadoUsuario->estatus : $submodulo->estatus;
