@@ -3,15 +3,8 @@
     "",
     "\\app",
     "\\app\\Http",
-    "\\app\\Http\\Controllers",
-    "\\database",
-    "\\database\\seeders",
-    "\\resources",
-    "\\resources\\views",
-    "\\resources\\views\\modulos",
-    "\\resources\\views\\revision_academica",
-    "\\resources\\views\\settings",
-    "\\resources\\views\\settings\\users"
+    "\\app\\Http\\Controllers"
   ],
+  "SelectedNode": "\\app\\Http\\Controllers\\SubmoduloController.php",
   "PreviewInSolutionExplorer": false
 }
