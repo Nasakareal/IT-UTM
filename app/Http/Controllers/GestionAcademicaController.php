@@ -58,6 +58,7 @@ class GestionAcademicaController extends Controller
             'Reporte de Evaluación Continua por Unidad de Aprendizaje (SIGO)' => null,
             'Informe de Estudiantes No Acreditados'                           => 'F-DA-GA-05 Informe de Estudiantes No Acreditados.xlsx',
             'Control de Asesorías'                                            => 'F-DA-GA-06 Control de Asesorías.xlsx',
+            'Seguimiento de la Planeación'     => 'F-DA-GA-03 Seguimiento de la Planeación Didáctica.xlsx',
         ];
 
         $documentos = [];
@@ -75,7 +76,6 @@ class GestionAcademicaController extends Controller
                     $documentosEspeciales = [
                         'Presentación de la Asignatura'     => 'F-DA-GA-01 Presentación de la asignatura.xlsx',
                         'Planeación didáctica'             => 'F-DA-GA-02 Planeación didáctica del programa de asignatura.docx',
-                        'Seguimiento de la Planeación'     => 'F-DA-GA-03 Seguimiento de la Planeación Didáctica.xlsx',
                     ];
 
                     foreach ($documentosEspeciales as $tipo => $plantilla) {

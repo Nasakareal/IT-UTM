@@ -91,6 +91,7 @@
         <div class="menu">
             <a href="{{ route('correspondencias.index') }}"><i class="bi bi-envelope"></i> Correspondencia</a>
             <a href="{{ route('certificados.subir') }}"><i class="bi bi-award"> .P12</i>
+            <a href="{{ route('tutoriales.index') }}"><i class="bi bi-journal-code"></i> Tutoriales</a>
             @can('ver configuraciones')
                 <a href="{{ route('settings.index') }}"><i class="bi bi-gear"></i> Configurar</a>
             @else
@@ -124,6 +125,41 @@
     
     @yield('scripts')
     @stack('scripts')
-    
+    <!-- Modal de Aviso de Privacidad -->
+    <div class="modal fade" id="avisoPrivacidadModal" tabindex="-1" aria-labelledby="avisoPrivacidadLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header bg-warning text-dark">
+            <h5 class="modal-title" id="avisoPrivacidadLabel">Aviso de Privacidad</h5>
+          </div>
+          <div class="modal-body text-justify">
+            <p>
+              Sistema TI UTM informa que los datos personales recabados serán tratados de manera confidencial y utilizados exclusivamente para fines relacionados con la operación académica, administrativa y de gestión institucional de la Universidad Tecnológica de Morelia.
+            </p>
+            <p>
+              Los datos proporcionados serán protegidos conforme a lo establecido en la Ley Federal de Protección de Datos Personales en Posesión de los Particulares. No serán compartidos con terceros sin su consentimiento, salvo en los casos previstos por la ley.
+            </p>
+            <p>
+              El uso de este sistema implica la aceptación de este aviso de privacidad.
+            </p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Cerrar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
 </body>
+
+@if(session('mostrar_aviso'))
+    <script>
+        window.addEventListener('load', function () {
+            var modal = new bootstrap.Modal(document.getElementById('avisoPrivacidadModal'));
+            modal.show();
+        });
+    </script>
+@endif
+
+
 </html>

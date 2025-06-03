@@ -1,12 +1,16 @@
 {
   "ExpandedNodes": [
     "",
+    "\\app",
+    "\\app\\Models",
+    "\\database",
+    "\\database\\migrations",
     "\\resources",
     "\\resources\\views",
-    "\\resources\\views\\modulos",
-    "\\resources\\views\\settings\\users",
-    "\\routes"
+    "\\resources\\views\\partials",
+    "\\resources\\views\\settings\\tutoriales",
+    "\\resources\\views\\tutoriales"
   ],
-  "SelectedNode": "\\resources\\views\\modulos\\gestion_academica.blade.php",
+  "SelectedNode": "\\app\\Models\\Carpeta.php",
   "PreviewInSolutionExplorer": false
 }

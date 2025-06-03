@@ -10,6 +10,19 @@ Route::get('/', function () {
 Route::get('submodulos/{submodulo}/ver-acuse', [App\Http\Controllers\AcuseController::class, 'verAcuse'])->name('submodulos.ver-acuse');
 
 
+// Tutoriales
+Route::prefix('tutoriales')->middleware('auth')->group(function () {
+    Route::get('/', [App\Http\Controllers\TutorialController::class, 'index'])->middleware('can:ver tutoriales')->name('tutoriales.index');
+    Route::get('/create', [App\Http\Controllers\TutorialController::class, 'create'])->middleware('can:crear tutoriales')->name('tutoriales.create');
+    Route::post('/', [App\Http\Controllers\TutorialController::class, 'store'])->middleware('can:crear tutoriales')->name('tutoriales.store');
+    Route::get('/{tutorial}', [App\Http\Controllers\TutorialController::class, 'show'])->middleware('can:ver tutoriales')->name('tutoriales.show');
+    Route::get('/{tutorial}/edit', [App\Http\Controllers\TutorialController::class, 'edit'])->middleware('can:editar tutoriales')->name('tutoriales.edit');
+    Route::put('/{tutorial}', [App\Http\Controllers\TutorialController::class, 'update'])->middleware('can:editar tutoriales')->name('tutoriales.update');
+    Route::delete('/{tutorial}', [App\Http\Controllers\TutorialController::class, 'destroy'])->middleware('can:eliminar tutoriales')->name('tutoriales.destroy');
+    Route::post('tutoriales/sort', [App\Http\Controllers\TutorialController::class, 'sort'])->name('tutoriales.sort')->middleware('auth');
+});
+
+
 Route::get('/revision-gestion-academica', [App\Http\Controllers\RevisionAcademicaController::class, 'index'])->middleware('can:ver revisiones')->name('revision.gestion.academica');
 Route::get('/revision-gestion-academica/gestion', [App\Http\Controllers\RevisionAcademicaController::class, 'soloGestion'])->middleware('can:ver revisiones')->name('revision.gestion.academica.gestion');
 
