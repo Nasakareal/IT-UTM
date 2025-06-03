@@ -29,9 +29,10 @@
                                     <option value="" disabled>Seleccione un rol</option>
                                     @foreach ($roles as $role)
                                         <option value="{{ $role->name }}"
-                                                {{ old('role', $user->role) == $role->name ? 'selected' : '' }}>
+                                            {{ old('role', $user->roles->first()->name ?? '') == $role->name ? 'selected' : '' }}>
                                             {{ $role->name }}
                                         </option>
+
                                     @endforeach
                                 </select>
                                 @error('role')

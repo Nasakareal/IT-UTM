@@ -125,7 +125,7 @@
                                             <div class="d-flex justify-content-between align-items-center mb-2">
                                                 <strong>{{ $doc['documento'] }}</strong>
                                                 <div class="d-flex gap-2">
-                                                    @if($doc['archivo'])
+                                                    @if(!$doc['entregado'] && $doc['archivo'])
                                                         <a href="{{ asset('formatos_academicos/'.$doc['archivo']) }}" class="btn btn-sm btn-outline-success" download>
                                                             <i class="fas fa-download"></i> Descargar Plantilla
                                                         </a>
@@ -134,7 +134,7 @@
                                                     @if($doc['entregado'])
                                                         @if($doc['archivo_subido'])
                                                             <a href="{{ asset('storage/'.$doc['archivo_subido']) }}" class="btn btn-sm btn-outline-primary" target="_blank">
-                                                                <i class="fas fa-file-alt"></i>
+                                                                <i class="fas fa-file-alt"></i> Ver Archivo
                                                             </a>
                                                         @endif
                                                         @if($doc['acuse'])

@@ -55,7 +55,17 @@
                                     <td style="text-align: center">{{ $user->nombres }}</td>
                                     <td style="text-align: center">{{ $user->roles->pluck('name')->join(', ') }}</td>
                                     <td style="text-align: center">{{ $user->correo_institucional }}</td>
-                                    <td style="text-align: center">{{ $user->area }}</td>
+                                    <td style="text-align: center">
+                                        @php
+                                            $areas = explode(',', $user->area);
+                                        @endphp
+                                        @if (count($areas) > 2)
+                                            {{ implode(', ', array_slice($areas, 0, 2)) . '...' }}
+                                        @else
+                                            {{ $user->area }}
+                                        @endif
+                                    </td>
+
                                     <td style="text-align: center">{{ $user->estado }}</td>
                                     <td style="text-align: center">
                                         <div class="btn-group" role="group">
