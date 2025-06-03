@@ -144,7 +144,6 @@ class SubmoduloController extends Controller
                 'required',
                 'file',
                 'max:5120',   // 5 MB
-                // ⬇️  YA NO uses “mimes:…”
                 'mimetypes:application/pkcs12,' .
                            'application/x-pkcs12,' .
                            'application/x-pkcs7-certificates,' .

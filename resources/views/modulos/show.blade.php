@@ -220,7 +220,7 @@
                         <label for="oficio_entrega" class="form-label">
                             1. Formato de entrega (PDF máx. 8Mb):
                         </label>
-                        <input type="file" class="form-control" id="oficio_entrega" name="oficio_entrega" accept=".pdf,.doc,.docx,.odt,.txt" required>
+                        <input type="file" class="form-control" id="oficio_entrega" name="oficio_entrega" accept=".pdf,.doc,.docx,.xls,.xlsxm .xml" required>
                     </div>
 
                     <!-- CAMPOS PARA E.FIRMA -->
@@ -377,10 +377,10 @@
             const file = $('#oficio_entrega')[0].files[0];
             if (file) {
                 const ext = file.name.split('.').pop().toLowerCase();
-                const extensionesPermitidas = ['pdf', 'doc', 'docx', 'odt', 'txt'];
+                const extensionesPermitidas = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'xml'];
 
                 if (!extensionesPermitidas.includes(ext)) {
-                    alert('El archivo debe ser PDF, DOC, DOCX, ODT o TXT.');
+                    alert('El archivo debe ser PDF, DOC, DOCX, XLS, XLSX o XML.');
                     return;
                 }
             }
