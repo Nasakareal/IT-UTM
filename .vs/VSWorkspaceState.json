@@ -2,15 +2,12 @@
   "ExpandedNodes": [
     "",
     "\\app",
-    "\\app\\Models",
-    "\\database",
-    "\\database\\migrations",
+    "\\app\\Http",
+    "\\app\\Http\\Controllers",
     "\\resources",
     "\\resources\\views",
-    "\\resources\\views\\partials",
-    "\\resources\\views\\settings\\tutoriales",
-    "\\resources\\views\\tutoriales"
+    "\\resources\\views\\layouts"
   ],
-  "SelectedNode": "\\app\\Models\\Carpeta.php",
+  "SelectedNode": "\\app\\Http\\Controllers\\HomeController.php",
   "PreviewInSolutionExplorer": false
 }

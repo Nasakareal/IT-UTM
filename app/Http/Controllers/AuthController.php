@@ -36,6 +36,10 @@ class AuthController extends Controller
             // Regenerar la sesión para evitar fijación
             $request->session()->regenerate();
 
+            // 🔸 Mostrar aviso de privacidad una sola vez por sesión
+            $request->session()->put('mostrar_aviso', true);
+            $request->session()->reflash();
+
             $user = Auth::user();
 
             // Verificar si debe cambiar su contraseña
@@ -51,6 +55,7 @@ class AuthController extends Controller
             'correo_institucional' => ['Las credenciales no coinciden con nuestros registros.'],
         ]);
     }
+
 
     /**
      * Cierra la sesión del usuario.

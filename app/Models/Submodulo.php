@@ -23,7 +23,7 @@ class Submodulo extends Model
         'orden'
     ];
 
-    public function subseccion()
+    public function subsection()
     {
         return $this->belongsTo(Subsection::class, 'subsection_id');
     }

@@ -159,7 +159,9 @@
             modal.show();
         });
     </script>
+    @php
+        session()->forget('mostrar_aviso');
+    @endphp
 @endif
-
 
 </html>

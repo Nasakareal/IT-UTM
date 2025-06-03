@@ -123,6 +123,8 @@ class HomeController extends Controller
         $comunicados = Comunicado::latest()->get();
         $secciones = Seccion::with('modulos')->orderBy('orden')->get();
 
+       
+
 
         return view('home', compact('documentosPendientes', 'comunicados', 'secciones'));
     }
