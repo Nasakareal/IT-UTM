@@ -58,7 +58,7 @@
                                     $archivo = $archivoMap[$profesor->id][$submodulo->id] ?? null;
                                     $fechaLimite = $submodulo->fecha_limite;
                                     $color = 'bg-warning text-dark'; // default: pendiente
-                                    
+
                                     if ($archivo) {
                                         $color = 'bg-success text-white'; // entregado
                                     } elseif ($fechaLimite && now()->greaterThan($fechaLimite)) {
@@ -67,15 +67,30 @@
                                 @endphp
                                 <td class="{{ $color }}">
                                     @if ($archivo)
-                                        <a href="{{ asset('storage/'.$archivo->ruta) }}" target="_blank">
-                                            Ver archivo
-                                        </a>
+                                        <div class="d-flex justify-content-center align-items-center gap-2">
+                                            <a href="{{ asset('storage/'.$archivo->ruta) }}" 
+                                               target="_blank" 
+                                               class="text-white text-decoration-underline">
+                                                Ver archivo
+                                            </a>
+
+                                            <form action="{{ route('revision.gestion.academica.eliminar', $archivo->id) }}" 
+                                                  method="POST" style="display:inline-block;">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="button" class="btn btn-sm btn-danger delete-btn" title="Eliminar">
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </button>
+                                            </form>
+
+                                        </div>
                                     @else
                                         <span>-</span>
                                     @endif
                                 </td>
                             @endforeach
                         </tr>
+
                     @endforeach
                 </tbody>
             </table>
@@ -97,4 +112,42 @@
         text-decoration: underline;
     }
 </style>
+@endsection
+
+@section('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+$(document).ready(function(){
+    // SweetAlert éxito
+    @if (session('success'))
+        Swal.fire({
+            position: 'center',
+            icon: 'success',
+            title: '{{ session('success') }}',
+            showConfirmButton: false,
+            timer: 2000
+        });
+    @endif
+
+    // Confirmación al eliminar
+    $(document).on('click', '.delete-btn', function (e) {
+        e.preventDefault();
+        let form = $(this).closest('form');
+        Swal.fire({
+            title: '¿Estás seguro de eliminar este documento?',
+            text: "¡No podrás deshacer esta acción!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            }
+        });
+    });
+});
+</script>
 @endsection

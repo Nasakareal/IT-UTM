@@ -10,6 +10,7 @@ use App\Models\Subsection;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use App\Models\SubmoduloUsuario;
 use App\Models\DocumentoSubido;
 
 
@@ -32,9 +33,9 @@ class RevisionAcademicaController extends Controller
 
 
         // 2. Submódulos dentro del módulo 5 (filtrados por subsección si aplica)
-        $query = Submodulo::whereHas('subseccion', function ($q) {
+        $query = Submodulo::whereHas('subsection', function ($q) {
             $q->where('modulo_id', 5); // Solo Gestión Académica
-        })->with('subseccion');
+        })->with('subsection');
 
         if ($request->filled('subseccion_id')) {
             $query->where('subsection_id', $request->subseccion_id);
@@ -257,5 +258,26 @@ class RevisionAcademicaController extends Controller
             'documentos'           => $documentos,
         ]);
     }
+
+    public function eliminarArchivo($id)
+    {
+        $archivo = SubmoduloArchivo::findOrFail($id);
+
+        // Elimina archivo físico si existe
+        if ($archivo->ruta && \Storage::disk('public')->exists($archivo->ruta)) {
+            \Storage::disk('public')->delete($archivo->ruta);
+        }
+
+        // Elimina archivo en base de datos
+        $archivo->delete();
+
+        // También elimina o cambia el estatus en la tabla submodulo_usuario
+        SubmoduloUsuario::where('user_id', $archivo->user_id)
+            ->where('submodulo_id', $archivo->submodulo_id)
+            ->delete(); // ❗️O usa ->update(['estatus' => 'Pendiente']);
+
+        return back()->with('success', 'El archivo ha sido eliminado correctamente.');
+    }
+
 
 }

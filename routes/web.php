@@ -25,6 +25,7 @@ Route::prefix('tutoriales')->middleware('auth')->group(function () {
 
 Route::get('/revision-gestion-academica', [App\Http\Controllers\RevisionAcademicaController::class, 'index'])->middleware('can:ver revisiones')->name('revision.gestion.academica');
 Route::get('/revision-gestion-academica/gestion', [App\Http\Controllers\RevisionAcademicaController::class, 'soloGestion'])->middleware('can:ver revisiones')->name('revision.gestion.academica.gestion');
+Route::delete('/revision/gestion-academica/eliminar/{id}', [App\Http\Controllers\RevisionAcademicaController::class, 'eliminarArchivo'])->name('revision.gestion.academica.eliminar');
 
 
 Route::post('/carpetas/sort', [App\Http\Controllers\CarpetaController::class, 'sort'])->name('carpetas.sort');
