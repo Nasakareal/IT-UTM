@@ -64,15 +64,22 @@ class RevisionAcademicaController extends Controller
         $usuario = auth()->user();
 
         // 1) Obtener todos los profesores del área del usuario
-        $areasUsuario = explode(',', $usuario->area);
+        $areaSubdirector = $usuario->area;
 
+        // Obtener teacher_id que imparten materias en programas del área del subdirector
+        $teacherIds = DB::connection('cargahoraria')
+            ->table('teacher_subjects as ts')
+            ->join('subjects as s', 'ts.subject_id', '=', 's.subject_id')
+            ->join('programs as p', 's.program_id', '=', 'p.program_id')
+            ->where('p.area', $areaSubdirector)
+            ->pluck('ts.teacher_id')
+            ->unique();
+
+        // Obtener usuarios que correspondan a esos teacher_id
         $profesores = User::whereNotNull('teacher_id')
-            ->where(function ($query) use ($areasUsuario) {
-                foreach ($areasUsuario as $area) {
-                    $query->orWhereRaw('FIND_IN_SET(?, area)', [$area]);
-                }
-            })
+            ->whereIn('teacher_id', $teacherIds)
             ->get();
+
 
 
         // 2) Leer filtros (profesor, materia, unidad) desde la query string
@@ -90,9 +97,9 @@ class RevisionAcademicaController extends Controller
             // 4A) Consultar las materias que imparte este profesor
             $materias = DB::connection('cargahoraria')
                 ->table('teacher_subjects as ts')
-                ->join('subjects as s', 'ts.subject_id', '=', 's.subject_id')
-                ->join('programs as p', 's.program_id', '=', 'p.program_id')
-                ->join('groups as g', 'ts.group_id', '=', 'g.group_id')
+                ->join(DB::raw('cargahoraria.subjects as s'), 'ts.subject_id', '=', 's.subject_id')
+                ->join(DB::raw('cargahoraria.programs as p'), 's.program_id', '=', 'p.program_id')
+                ->join(DB::raw('cargahoraria.groups as g'), 'ts.group_id', '=', 'g.group_id')
                 ->select(
                     's.subject_name as materia',
                     's.unidades',
