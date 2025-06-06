@@ -9,6 +9,7 @@ Route::get('/', function () {
 // Ruta para ver el acuse en el navegador
 Route::get('submodulos/{submodulo}/ver-acuse', [App\Http\Controllers\AcuseController::class, 'verAcuse'])->name('submodulos.ver-acuse');
 
+Route::delete('/revision-gestion-academica/eliminar-uno', [App\Http\Controllers\RevisionAcademicaController::class, 'eliminarUno'])->name('revision.gestion.academica.eliminarUno');
 
 // Tutoriales
 Route::prefix('tutoriales')->middleware('auth')->group(function () {

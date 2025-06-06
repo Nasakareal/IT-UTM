@@ -3,24 +3,8 @@
   "WorkspaceRootPath": "C:\\wamp64\\www\\TI-UTM\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\wamp64\\www\\TI-UTM\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Exceptions\\RegisterErrorViewPaths.php||{3B902123-F8A7-4915-9F01-361F908088D0}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Exceptions\\RegisterErrorViewPaths.php||{3B902123-F8A7-4915-9F01-361F908088D0}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\wamp64\\www\\TI-UTM\\resources\\views\\errors\\403.blade.php||{3B902123-F8A7-4915-9F01-361F908088D0}",
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:resources\\views\\errors\\403.blade.php||{3B902123-F8A7-4915-9F01-361F908088D0}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\wamp64\\www\\TI-UTM\\resources\\views\\settings\\index.blade.php||{3B902123-F8A7-4915-9F01-361F908088D0}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:resources\\views\\settings\\index.blade.php||{3B902123-F8A7-4915-9F01-361F908088D0}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\wamp64\\www\\TI-UTM\\database\\seeders\\RolesAndPermissionsSeeder.php||{3B902123-F8A7-4915-9F01-361F908088D0}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:database\\seeders\\RolesAndPermissionsSeeder.php||{3B902123-F8A7-4915-9F01-361F908088D0}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\wamp64\\www\\TI-UTM\\app\\Http\\Controllers\\RevisionAcademicaController.php||{3B902123-F8A7-4915-9F01-361F908088D0}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:app\\Http\\Controllers\\RevisionAcademicaController.php||{3B902123-F8A7-4915-9F01-361F908088D0}"
     }
   ],
   "DocumentGroupContainers": [
@@ -35,66 +19,14 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
-              "Title": "RegisterErrorViewPaths.php",
-              "DocumentMoniker": "C:\\wamp64\\www\\TI-UTM\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Exceptions\\RegisterErrorViewPaths.php",
-              "RelativeDocumentMoniker": "vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Exceptions\\RegisterErrorViewPaths.php",
-              "ToolTip": "C:\\wamp64\\www\\TI-UTM\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Exceptions\\RegisterErrorViewPaths.php",
-              "RelativeToolTip": "vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Exceptions\\RegisterErrorViewPaths.php",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABQAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002338|",
-              "WhenOpened": "2025-06-05T03:37:26.618Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 1,
               "Title": "403.blade.php",
               "DocumentMoniker": "C:\\wamp64\\www\\TI-UTM\\resources\\views\\errors\\403.blade.php",
               "RelativeDocumentMoniker": "resources\\views\\errors\\403.blade.php",
               "ToolTip": "C:\\wamp64\\www\\TI-UTM\\resources\\views\\errors\\403.blade.php",
               "RelativeToolTip": "resources\\views\\errors\\403.blade.php",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAD4BAAAAAAAAAAAAAEQBAAAsAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002338|",
-              "WhenOpened": "2025-06-05T03:31:26.883Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "index.blade.php",
-              "DocumentMoniker": "C:\\wamp64\\www\\TI-UTM\\resources\\views\\settings\\index.blade.php",
-              "RelativeDocumentMoniker": "resources\\views\\settings\\index.blade.php",
-              "ToolTip": "C:\\wamp64\\www\\TI-UTM\\resources\\views\\settings\\index.blade.php",
-              "RelativeToolTip": "resources\\views\\settings\\index.blade.php",
-              "ViewState": "AgIAAM0AAAAAAAAAAAAkwP0AAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002338|",
-              "WhenOpened": "2025-06-05T03:30:13.39Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "RolesAndPermissionsSeeder.php",
-              "DocumentMoniker": "C:\\wamp64\\www\\TI-UTM\\database\\seeders\\RolesAndPermissionsSeeder.php",
-              "RelativeDocumentMoniker": "database\\seeders\\RolesAndPermissionsSeeder.php",
-              "ToolTip": "C:\\wamp64\\www\\TI-UTM\\database\\seeders\\RolesAndPermissionsSeeder.php",
-              "RelativeToolTip": "database\\seeders\\RolesAndPermissionsSeeder.php",
-              "ViewState": "AgIAADwAAAAAAAAAAAAkwG0AAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002338|",
-              "WhenOpened": "2025-06-05T03:16:14.856Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "RevisionAcademicaController.php",
-              "DocumentMoniker": "C:\\wamp64\\www\\TI-UTM\\app\\Http\\Controllers\\RevisionAcademicaController.php",
-              "RelativeDocumentMoniker": "app\\Http\\Controllers\\RevisionAcademicaController.php",
-              "ToolTip": "C:\\wamp64\\www\\TI-UTM\\app\\Http\\Controllers\\RevisionAcademicaController.php",
-              "RelativeToolTip": "app\\Http\\Controllers\\RevisionAcademicaController.php",
-              "ViewState": "AgIAABgAAAAAAAAAAAAAADsAAAAFAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002338|",
-              "WhenOpened": "2025-06-05T02:55:58.758Z",
+              "WhenOpened": "2025-06-05T04:32:32.572Z",
               "EditorCaption": ""
             }
           ]

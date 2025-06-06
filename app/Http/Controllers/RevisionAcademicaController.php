@@ -71,7 +71,13 @@ class RevisionAcademicaController extends Controller
             ->table('teacher_subjects as ts')
             ->join('subjects as s', 'ts.subject_id', '=', 's.subject_id')
             ->join('programs as p', 's.program_id', '=', 'p.program_id')
-            ->where('p.area', $areaSubdirector)
+            ->where(function ($query) use ($areaSubdirector) {
+                $areas = explode(',', $areaSubdirector);
+                foreach ($areas as $area) {
+                    $query->orWhere('p.area', trim($area));
+                }
+            })
+
             ->pluck('ts.teacher_id')
             ->unique();
 
@@ -286,5 +292,24 @@ class RevisionAcademicaController extends Controller
         return back()->with('success', 'El archivo ha sido eliminado correctamente.');
     }
 
+    public function eliminarUno(Request $request)
+    {
+        $doc = DocumentoSubido::where([
+            ['user_id',        $request->user_id],
+            ['materia',        $request->materia],
+            ['grupo',          $request->grupo],
+            ['unidad',         $request->unidad],
+            ['tipo_documento', $request->tipo_documento],
+        ])->first();
+
+        if ($doc) {
+            if ($doc->archivo && \Storage::disk('public')->exists($doc->archivo)) {
+                \Storage::disk('public')->delete($doc->archivo);
+            }
+            $doc->delete();
+        }
+
+        return back()->with('success', 'Documento eliminado correctamente.');
+    }
 
 }

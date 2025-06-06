@@ -69,6 +69,7 @@
                             <th>Unidad</th>
                             <th>Documento</th>
                             <th>Estado</th>
+                            <th>Acciones</th> {{-- Nueva columna --}}
                         </tr>
                     </thead>
                     <tbody>
@@ -90,15 +91,30 @@
                                 <td>{{ $doc['unidad'] }}</td>
                                 <td>{{ $doc['tipo_documento'] }}</td>
                                 <td class="{{ $color }}">{!! $texto !!}</td>
+                                <td>
+                                    @if($doc['entregado'])
+                                        <form action="{{ route('revision.gestion.academica.eliminarUno') }}" method="POST" onsubmit="return confirm('¿Eliminar este documento?');" style="display:inline;">
+                                            @csrf
+                                            @method('DELETE')
+                                            <input type="hidden" name="user_id" value="{{ $profesorSeleccionado->id }}">
+                                            <input type="hidden" name="materia" value="{{ $doc['materia'] }}">
+                                            <input type="hidden" name="grupo" value="{{ $doc['grupo'] }}">
+                                            <input type="hidden" name="unidad" value="{{ $doc['unidad'] }}">
+                                            <input type="hidden" name="tipo_documento" value="{{ $doc['tipo_documento'] }}">
+                                            <button class="btn btn-danger btn-sm" title="Eliminar">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </form>
+                                    @endif
+                                </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="text-center text-muted">
-                                    No hay documentación disponible.
-                                </td>
+                                <td colspan="6" class="text-center text-muted">No hay documentación disponible.</td>
                             </tr>
                         @endforelse
                     </tbody>
+
                 </table>
             </div>
         </div>
