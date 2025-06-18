@@ -22,17 +22,23 @@ class ComunicadoController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'titulo' => 'required|string|max:255',
-            'contenido' => 'nullable|string',
-            'tipo' => 'nullable|string|max:125',
-            'ruta_imagen' => 'nullable|string|max:125',
+            'titulo'      => 'required|string|max:125',
+            'tipo'        => 'required|string|max:125',
+            'contenido'   => 'nullable|string',
+            'ruta_imagen' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx|max:5120',
         ]);
 
-        $data['contenido'] = strip_tags($data['contenido'], '<b><strong><i><em><u><p><br><ul><ol><li>');
+        // Si subió archivo, lo guardamos en storage/app/public/comunicados
+        if ($request->hasFile('ruta_imagen')) {
+            $data['ruta_imagen'] = $request->file('ruta_imagen')
+                                       ->store('comunicados', 'public');
+        }
 
         Comunicado::create($data);
 
-        return redirect()->route('comunicados.index')->with('success', 'Comunicado creado correctamente.');
+        return redirect()
+               ->route('comunicados.index')
+               ->with('success', 'Comunicado creado correctamente.');
     }
 
     public function show(Comunicado $comunicado)

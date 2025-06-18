@@ -101,20 +101,25 @@ class RevisionAcademicaController extends Controller
 
         if ($profesorSeleccionado) {
             // 4A) Consultar las materias que imparte este profesor
-            $materias = DB::connection('cargahoraria')
-                ->table('teacher_subjects as ts')
-                ->join(DB::raw('cargahoraria.subjects as s'), 'ts.subject_id', '=', 's.subject_id')
-                ->join(DB::raw('cargahoraria.programs as p'), 's.program_id', '=', 'p.program_id')
-                ->join(DB::raw('cargahoraria.groups as g'), 'ts.group_id', '=', 'g.group_id')
-                ->select(
-                    's.subject_name as materia',
-                    's.unidades',
-                    'p.program_name as programa',
-                    'g.group_name as grupo'
-                )
-                ->where('ts.teacher_id', $profesorSeleccionado->teacher_id)
-                ->groupBy('s.subject_name', 's.unidades', 'p.program_name', 'g.group_name')
-                ->get();
+            try {
+                $materias = DB::connection('cargahoraria')
+                    ->table('teacher_subjects as ts')
+                    ->join('subjects as s', 'ts.subject_id', '=', 's.subject_id')
+                    ->join('programs as p', 's.program_id', '=', 'p.program_id')
+                    ->join('groups as g', 'ts.group_id', '=', 'g.group_id')
+                    ->select(
+                        's.subject_name as materia',
+                        's.unidades',
+                        'p.program_name as programa',
+                        'g.group_name as grupo'
+                    )
+                    ->where('ts.teacher_id', $profesorSeleccionado->teacher_id)
+                    ->groupBy('s.subject_name', 's.unidades', 'p.program_name', 'g.group_name')
+                    ->get();
+            } catch (\Exception $e) {
+                return response()->view('errors.custom', ['error' => $e->getMessage()]);
+            }
+
 
             // 4B) Filtro por materia: si viene materiaFiltro, filtrar la colección $materias
             if ($materiaFiltro) {

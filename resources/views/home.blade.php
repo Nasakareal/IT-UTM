@@ -49,21 +49,37 @@
             <div class="comunicado-carousel" id="comunicadoCarousel">
                 @foreach($comunicados as $comunicado)
                     <div class="comunicado-slide">
+
                         @if($comunicado->tipo === 'imagen')
                             <!-- Si el comunicado es una imagen -->
                             <div class="comunicado-image">
-                                <img src="{{ asset('storage/'.$comunicado->ruta_imagen) }}" alt="Imagen del comunicado">
+                                <img src="{{ asset('storage/'.$comunicado->ruta_imagen) }}" 
+                                     alt="Imagen del comunicado">
                             </div>
+
                         @else
-                            <!-- Si el comunicado es de texto (o ambos) -->
+                            <!-- Texto + posible documento adjunto -->
                             <div class="comunicado-content">
                                 <div class="comunicado-title">{{ $comunicado->titulo }}</div>
                                 <div class="comunicado-date">{{ $comunicado->fecha }}</div>
+                            
+                                <!-- Si existe un documento, muéstralo -->
+                                @if($comunicado->ruta_imagen)
+                                    <p>
+                                      📄 
+                                      <a href="{{ asset('storage/'.$comunicado->ruta_imagen) }}" 
+                                         target="_blank">
+                                        Descargar documento
+                                      </a>
+                                    </p>
+                                @endif
+
                                 <div class="comunicado-body">
                                     {!! $comunicado->contenido !!}
                                 </div>
                             </div>
                         @endif
+
                     </div>
                 @endforeach
             </div>
@@ -74,6 +90,7 @@
     @else
         <p>No hay comunicados por el momento.</p>
     @endif
+
 
     <br>
 

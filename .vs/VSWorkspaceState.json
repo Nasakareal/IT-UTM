@@ -4,18 +4,13 @@
     "\\app",
     "\\app\\Http",
     "\\app\\Http\\Controllers",
+    "\\app\\Models",
     "\\resources",
     "\\resources\\views",
-    "\\resources\\views\\revision_academica",
-    "\\routes",
-    "\\vendor\\laravel",
-    "\\vendor\\laravel\\framework",
-    "\\vendor\\laravel\\framework\\src",
-    "\\vendor\\laravel\\framework\\src\\Illuminate",
-    "\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation",
-    "\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Exceptions",
-    "\\vendor\\laravel\\framework\\src\\Illuminate\\Foundation\\Exceptions\\views"
+    "\\resources\\views\\settings",
+    "\\resources\\views\\settings\\comunicados",
+    "\\routes"
   ],
-  "SelectedNode": "\\routes\\web.php",
+  "SelectedNode": "\\resources\\views\\home.blade.php",
   "PreviewInSolutionExplorer": false
 }
