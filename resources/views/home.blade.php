@@ -247,6 +247,29 @@
         width: fit-content;
         white-space: nowrap;
     }
+
+    /* Fondo para todo el carrusel */
+    .comunicado-carousel-wrapper {
+        background-color: #B9D4AA;
+        padding: 1rem;           /* opcional, para separación interna */
+        border-radius: 8px;      /* opcional, esquinas redondeadas */
+        border: 2px solid #5A827E;
+    }
+
+    /* —o— si prefieres que cada slide tenga fondo */
+    .comunicado-slide {
+        background-color: #B9D4AA;
+        padding: 1rem;           /* ajusta a tu gusto */
+        border-radius: 5px;      /* opcional */
+    }
+
+    /* —o— solo el contenido de texto */
+    .comunicado-content {
+        background-color: #B9D4AA;
+        padding: 1rem;
+        border-radius: 5px;
+    }
+
 </style>
 @endsection
 
