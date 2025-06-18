@@ -7,9 +7,11 @@
     "\\app\\Models",
     "\\resources",
     "\\resources\\views",
+    "\\resources\\views\\layouts",
     "\\resources\\views\\settings",
     "\\resources\\views\\settings\\comunicados",
     "\\routes"
   ],
+  "SelectedNode": "\\app\\Http\\Controllers\\HomeController.php",
   "PreviewInSolutionExplorer": false
 }

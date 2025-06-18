@@ -32,7 +32,7 @@
               "RelativeDocumentMoniker": "resources\\views\\home.blade.php",
               "ToolTip": "C:\\wamp64\\www\\TI-UTM\\resources\\views\\home.blade.php",
               "RelativeToolTip": "resources\\views\\home.blade.php",
-              "ViewState": "AgIAACsAAAAAAAAAAAAwwC4AAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAN4AAAAAAAAAAAAAAP8AAAAhAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002338|",
               "WhenOpened": "2025-06-18T03:25:10.985Z",
               "EditorCaption": ""
@@ -47,8 +47,7 @@
               "RelativeToolTip": "resources\\views\\settings\\comunicados\\create.blade.php",
               "ViewState": "AgIAAEAAAAAAAAAAAAAwwIYAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002338|",
-              "WhenOpened": "2025-06-18T03:18:20.91Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-06-18T03:18:20.91Z"
             },
             {
               "$type": "Document",
@@ -60,8 +59,7 @@
               "RelativeToolTip": "app\\Http\\Controllers\\ComunicadoController.php",
               "ViewState": "AgIAAAMAAAAAAAAAAAAAABYAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002338|",
-              "WhenOpened": "2025-06-18T03:17:51.694Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-06-18T03:17:51.694Z"
             }
           ]
         }

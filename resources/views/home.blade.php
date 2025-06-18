@@ -49,40 +49,58 @@
             <div class="comunicado-carousel" id="comunicadoCarousel">
                 @foreach($comunicados as $comunicado)
                     <div class="comunicado-slide">
-
-                        @if($comunicado->tipo === 'imagen')
-                            <!-- Si el comunicado es una imagen -->
-                            <div class="comunicado-image">
-                                <img src="{{ asset('storage/'.$comunicado->ruta_imagen) }}" 
-                                     alt="Imagen del comunicado">
+                        <div class="comunicado-content">
+                            <div class="comunicado-header" style="font-weight: bold; margin-bottom: 0.5rem;">
+                                Comunicado {{ $comunicado->id }} 2025
                             </div>
+                            <div class="comunicado-title">{{ $comunicado->titulo }}</div>
 
-                        @else
-                            <!-- Texto + posible documento adjunto -->
-                            <div class="comunicado-content">
-                                <div class="comunicado-title">{{ $comunicado->titulo }}</div>
-                                <div class="comunicado-date">{{ $comunicado->fecha }}</div>
+                            <div class="comunicado-date">{{ $comunicado->fecha }}</div>
+
                             
-                                <!-- Si existe un documento, muéstralo -->
-                                @if($comunicado->ruta_imagen)
-                                    <p>
-                                      📄 
-                                      <a href="{{ asset('storage/'.$comunicado->ruta_imagen) }}" 
-                                         target="_blank">
-                                        Descargar documento
-                                      </a>
-                                    </p>
-                                @endif
 
-                                <div class="comunicado-body">
-                                    {!! $comunicado->contenido !!}
-                                </div>
+                            <div class="comunicado-body">
+                                {!! $comunicado->contenido !!}
                             </div>
-                        @endif
 
+                            @if($comunicado->tipo === 'imagen')
+                                <div class="comunicado-image" style="margin-top: 1rem;">
+                                    <img src="{{ asset('storage/'.$comunicado->ruta_imagen) }}" 
+                                         alt="Imagen del comunicado" style="max-width: 100%;">
+                                </div>
+                            @endif
+
+                            @if($comunicado->ruta_imagen && $comunicado->tipo !== 'imagen')
+                                <p>
+                                    📄 
+                                    <a href="{{ asset('storage/'.$comunicado->ruta_imagen) }}" 
+                                       target="_blank">
+                                        {{ basename($comunicado->ruta_imagen) }}
+                                    </a>
+                                </p>
+                            @endif
+
+                            @if(auth()->check() && auth()->user()->hasRole('Administrador'))
+                                <div class="btn-group mt-3" role="group">
+                                    <a href="{{ route('comunicados.edit', $comunicado->id) }}" class="btn btn-success btn-sm">
+                                        <i class="fa-regular fa-pen-to-square"></i>
+                                    </a>
+                                    <form action="{{ route('comunicados.destroy', $comunicado->id) }}" method="POST" onsubmit="return confirm('¿Estás seguro de eliminar este comunicado?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-danger btn-sm">
+                                            <i class="fa-regular fa-trash-can"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            @endif
+
+
+                        </div>
                     </div>
                 @endforeach
             </div>
+
             <!-- Botones de navegación -->
             <button class="carousel-control prev" id="prevBtn">&lt;</button>
             <button class="carousel-control next" id="nextBtn">&gt;</button>
@@ -250,24 +268,36 @@
 
     /* Fondo para todo el carrusel */
     .comunicado-carousel-wrapper {
-        background-color: #B9D4AA;
-        padding: 1rem;           /* opcional, para separación interna */
-        border-radius: 8px;      /* opcional, esquinas redondeadas */
-        border: 2px solid #5A827E;
+        background-color: #FAFFCA;
+        padding: 2rem;
+        border-radius: 30px;
+        border: 2px solid #B1D7B4;
+        overflow: hidden;
+        position: relative;
     }
 
-    /* —o— si prefieres que cada slide tenga fondo */
+    .comunicado-carousel {
+        display: flex;
+        transition: transform 0.4s ease-in-out;
+        width: 100%;
+    }
+
     .comunicado-slide {
-        background-color: #B9D4AA;
-        padding: 1rem;           /* ajusta a tu gusto */
-        border-radius: 5px;      /* opcional */
+        flex: 0 0 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+        display: flex;
+        justify-content: center;
+        padding: 0 0.5rem; /* da separación real sin romper el marco */
     }
 
-    /* —o— solo el contenido de texto */
     .comunicado-content {
-        background-color: #B9D4AA;
-        padding: 1rem;
-        border-radius: 5px;
+        background-color: #FDFCE5;
+        padding: 1.5rem;
+        border-radius: 20px;
+        width: 100%;
+        max-width: 1000px; /* ✅ asegura que nunca se pase del borde */
+        box-sizing: border-box;
     }
 
 </style>
@@ -280,6 +310,12 @@
         // ---------- Lógica de Carrusel ----------
         const carousel = document.getElementById('comunicadoCarousel');
         const slides = document.querySelectorAll('.comunicado-slide');
+
+        const maxHeight = Math.max(...Array.from(slides).map(s => s.offsetHeight));
+        document.querySelector('.comunicado-carousel-wrapper').style.height = `${maxHeight + 64}px`;
+
+
+
         const prevBtn = document.getElementById('prevBtn');
         const nextBtn = document.getElementById('nextBtn');
 
