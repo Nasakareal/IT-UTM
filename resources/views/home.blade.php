@@ -217,21 +217,17 @@
 
 @section('styles')
 <style>
-/* —=============== 
-   ESTILOS CARRUSEL DE COMUNICADOS 
-   —=============== */
    .comunicado-content {
   position: relative;
-  padding-top: 2.5rem;    /* espacio para el header */
+  padding-top: 2.5rem;
 }
 
 /* Badge sencillo que sobresale */
 .comunicado-header {
   position: absolute;
-  top: 0;                    /* Ponlo pegado al borde superior */
-  left: 1rem;                /* Igual que antes */
-  transform: translateY(-100%); /* Lo sube 100% de su propia altura */
-  /* el resto igual */
+  top: 0;
+  left: 1rem;
+  transform: translateY(-100%);
   background-color: #FAFFCA;
   padding: 0.25rem 0.75rem;
   border-radius: 4px;
@@ -249,8 +245,6 @@
     border-radius: 30px;
     border: 40px solid #FAFFCA;
     position: relative;
-
-    /* Solo ocultar horizontal, dejar crecer vertical */
     overflow-x: hidden;
     overflow-y: visible;
 }
@@ -259,21 +253,21 @@
     display: flex;
     width: 100%;
     transition: transform 0.4s ease-in-out;
-    height: auto;             /* ¡dejar que el contenido marque la altura! */
-    overflow: visible;        /* no cortar nada */
+    height: auto;
+    overflow: visible;
 }
 
 .comunicado-slide {
-    position: relative;    /* para posicionar el badge */
-    padding-top: 2rem;     /* espacio extra arriba para el badge */
+    position: relative;
+    padding-top: 2rem;
 }
 
 .comunicado-badge {
     position: absolute;
-    top: 0;                /* justo en el borde superior */
-    left: 2rem;            /* ajusta según necesites */
+    top: 0;
+    left: 2rem;
     transform: translateY(-50%);
-    background-color: #FAFFCA;  /* igual que el wrapper */
+    background-color: #FAFFCA;
     padding: 0.2rem 0.6rem;
     border-radius: 0.25rem;
     font-weight: bold;
@@ -282,7 +276,7 @@
     pointer-events: none;
     z-index: 5;
 }
-/* Flechas siempre centradas verticalmente */
+
 .carousel-control {
     position: absolute;
     top: 50%;
@@ -291,6 +285,56 @@
 }
 .carousel-control.prev { left: 1rem; }
 .carousel-control.next { right: 1rem; }
+
+
+
+    .module-card {
+        min-height: 180px;
+        display: flex;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .module-left {
+        width: 80px;
+        min-width: 80px;
+        background-color: #009688;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.5rem;
+    }
+
+    .module-right {
+        padding: 1rem;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .card-title {
+        font-size: 1.1rem;
+        font-weight: bold;
+        white-space: normal;
+        overflow: visible;
+    }
+
+    .card-text {
+        flex-grow: 1;
+        font-size: 1rem;
+        color: #444;
+        overflow: visible;
+        display: block;
+        white-space: normal;
+    }
+
+    .btn-ingresar {
+        width: fit-content;
+        white-space: nowrap;
+    }
+
 </style>
 
 @endsection
