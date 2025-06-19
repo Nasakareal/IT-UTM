@@ -44,71 +44,70 @@
     @endif
 
     <!-- 🔹 Carrusel de comunicados -->
-    @if($comunicados->isNotEmpty())
-        <div class="comunicado-carousel-wrapper">
-            <div class="comunicado-carousel" id="comunicadoCarousel">
-                @foreach($comunicados as $comunicado)
-                    <div class="comunicado-slide">
-                        <div class="comunicado-content">
-                            <div class="comunicado-header" style="font-weight: bold; margin-bottom: 0.5rem;">
-                                Comunicado {{ $comunicado->id }} 2025
-                            </div>
-                            <div class="comunicado-title">{{ $comunicado->titulo }}</div>
-
-                            <div class="comunicado-date">{{ $comunicado->fecha }}</div>
-
-                            
-
-                            <div class="comunicado-body">
-                                {!! $comunicado->contenido !!}
-                            </div>
-
-                            @if($comunicado->tipo === 'imagen')
-                                <div class="comunicado-image" style="margin-top: 1rem;">
-                                    <img src="{{ asset('storage/'.$comunicado->ruta_imagen) }}" 
-                                         alt="Imagen del comunicado" style="max-width: 100%;">
-                                </div>
-                            @endif
-
-                            @if($comunicado->ruta_imagen && $comunicado->tipo !== 'imagen')
-                                <p>
-                                    📄 
-                                    <a href="{{ asset('storage/'.$comunicado->ruta_imagen) }}" 
-                                       target="_blank">
-                                        {{ basename($comunicado->ruta_imagen) }}
-                                    </a>
-                                </p>
-                            @endif
-
-                            @if(auth()->check() && auth()->user()->hasRole('Administrador'))
-                                <div class="btn-group mt-3" role="group">
-                                    <a href="{{ route('comunicados.edit', $comunicado->id) }}" class="btn btn-success btn-sm">
-                                        <i class="fa-regular fa-pen-to-square"></i>
-                                    </a>
-                                    <form action="{{ route('comunicados.destroy', $comunicado->id) }}" method="POST" onsubmit="return confirm('¿Estás seguro de eliminar este comunicado?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-danger btn-sm">
-                                            <i class="fa-regular fa-trash-can"></i>
-                                        </button>
-                                    </form>
-                                </div>
-                            @endif
-
-
+@if($comunicados->isNotEmpty())
+    <div class="comunicado-carousel-wrapper">
+        <div class="comunicado-carousel" id="comunicadoCarousel">
+            @foreach($comunicados as $comunicado)
+                <div class="comunicado-slide">
+                    <div class="comunicado-content">
+                        <!-- 1) Aquí, al inicio dentro de comunicado-content -->
+                        <div class="comunicado-header">
+                          Comunicado {{ $comunicado->id }} 2025
                         </div>
+
+                        <div class="comunicado-title">{{ $comunicado->titulo }}</div>
+                        <div class="comunicado-date">{{ $comunicado->fecha }}</div>
+                        <div class="comunicado-body">
+                            {!! $comunicado->contenido !!}
+                        </div>
+
+                        @if($comunicado->tipo === 'imagen')
+                            <div class="comunicado-image mt-3">
+                                <img src="{{ asset('storage/'.$comunicado->ruta_imagen) }}"
+                                     alt="Imagen del comunicado"
+                                     style="max-width: 100%;">
+                            </div>
+                        @endif
+
+                        @if($comunicado->ruta_imagen && $comunicado->tipo !== 'imagen')
+                            <p class="mt-3">
+                                📄 
+                                <a href="{{ asset('storage/'.$comunicado->ruta_imagen) }}"
+                                   target="_blank">
+                                    {{ basename($comunicado->ruta_imagen) }}
+                                </a>
+                            </p>
+                        @endif
+
+                        @if(auth()->check() && auth()->user()->hasRole('Administrador'))
+                            <div class="btn-group mt-3" role="group">
+                                <a href="{{ route('comunicados.edit', $comunicado->id) }}"
+                                   class="btn btn-success btn-sm">
+                                    <i class="fa-regular fa-pen-to-square"></i>
+                                </a>
+                                <form action="{{ route('comunicados.destroy', $comunicado->id) }}"
+                                      method="POST"
+                                      onsubmit="return confirm('¿Estás seguro de eliminar este comunicado?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-danger btn-sm">
+                                        <i class="fa-regular fa-trash-can"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        @endif
                     </div>
-                @endforeach
-            </div>
-
-            <!-- Botones de navegación -->
-            <button class="carousel-control prev" id="prevBtn">&lt;</button>
-            <button class="carousel-control next" id="nextBtn">&gt;</button>
+                </div>
+            @endforeach
         </div>
-    @else
-        <p>No hay comunicados por el momento.</p>
-    @endif
 
+        <!-- Botones de navegación -->
+        <button class="carousel-control prev" id="prevBtn">&lt;</button>
+        <button class="carousel-control next" id="nextBtn">&gt;</button>
+    </div>
+@else
+    <p>No hay comunicados por el momento.</p>
+@endif
 
     <br>
 
@@ -218,89 +217,82 @@
 
 @section('styles')
 <style>
-    .module-card {
-        /* Quitamos altura fija */
-        min-height: 180px;
-        display: flex;
-        border-radius: 10px;
-        overflow: hidden;
-    }
+/* —=============== 
+   ESTILOS CARRUSEL DE COMUNICADOS 
+   —=============== */
+   .comunicado-content {
+  position: relative;
+  padding-top: 2.5rem;    /* espacio para el header */
+}
 
-    .module-left {
-        width: 80px;
-        min-width: 80px;
-        background-color: #009688;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        align-items: center;
-        padding: 0.5rem;
-    }
+/* Badge sencillo que sobresale */
+.comunicado-header {
+  position: absolute;
+  top: 0;                    /* Ponlo pegado al borde superior */
+  left: 1rem;                /* Igual que antes */
+  transform: translateY(-100%); /* Lo sube 100% de su propia altura */
+  /* el resto igual */
+  background-color: #FAFFCA;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 0.9rem;
+  color: #2f4f4f;
+  pointer-events: none;
+  z-index: 2;
+}
 
-    .module-right {
-        padding: 1rem;
-        overflow: hidden;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-    }
 
-    .card-title {
-        font-size: 1.1rem;
-        font-weight: bold;
-        white-space: normal; /* Permite salto de línea */
-        overflow: visible;
-    }
+.comunicado-carousel-wrapper {
+    background-color: #EAF7EC;
+    padding: 2rem;
+    border-radius: 30px;
+    border: 40px solid #FAFFCA;
+    position: relative;
 
-    .card-text {
-        flex-grow: 1;
-        font-size: 1rem;
-        color: #444;
-        overflow: visible;
-        display: block;
-        white-space: normal;
-    }
+    /* Solo ocultar horizontal, dejar crecer vertical */
+    overflow-x: hidden;
+    overflow-y: visible;
+}
 
-    .btn-ingresar {
-        width: fit-content;
-        white-space: nowrap;
-    }
+.comunicado-carousel {
+    display: flex;
+    width: 100%;
+    transition: transform 0.4s ease-in-out;
+    height: auto;             /* ¡dejar que el contenido marque la altura! */
+    overflow: visible;        /* no cortar nada */
+}
 
-    /* Fondo para todo el carrusel */
-    .comunicado-carousel-wrapper {
-        background-color: #FAFFCA;
-        padding: 2rem;
-        border-radius: 30px;
-        border: 2px solid #B1D7B4;
-        overflow: hidden;
-        position: relative;
-    }
+.comunicado-slide {
+    position: relative;    /* para posicionar el badge */
+    padding-top: 2rem;     /* espacio extra arriba para el badge */
+}
 
-    .comunicado-carousel {
-        display: flex;
-        transition: transform 0.4s ease-in-out;
-        width: 100%;
-    }
-
-    .comunicado-slide {
-        flex: 0 0 100%;
-        max-width: 100%;
-        box-sizing: border-box;
-        display: flex;
-        justify-content: center;
-        padding: 0 0.5rem; /* da separación real sin romper el marco */
-    }
-
-    .comunicado-content {
-        background-color: #FDFCE5;
-        padding: 1.5rem;
-        border-radius: 20px;
-        width: 100%;
-        max-width: 1000px; /* ✅ asegura que nunca se pase del borde */
-        box-sizing: border-box;
-    }
-
+.comunicado-badge {
+    position: absolute;
+    top: 0;                /* justo en el borde superior */
+    left: 2rem;            /* ajusta según necesites */
+    transform: translateY(-50%);
+    background-color: #FAFFCA;  /* igual que el wrapper */
+    padding: 0.2rem 0.6rem;
+    border-radius: 0.25rem;
+    font-weight: bold;
+    font-size: 0.9rem;
+    color: #2f4f4f;
+    pointer-events: none;
+    z-index: 5;
+}
+/* Flechas siempre centradas verticalmente */
+.carousel-control {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+}
+.carousel-control.prev { left: 1rem; }
+.carousel-control.next { right: 1rem; }
 </style>
+
 @endsection
 
 
@@ -310,11 +302,6 @@
         // ---------- Lógica de Carrusel ----------
         const carousel = document.getElementById('comunicadoCarousel');
         const slides = document.querySelectorAll('.comunicado-slide');
-
-        const maxHeight = Math.max(...Array.from(slides).map(s => s.offsetHeight));
-        document.querySelector('.comunicado-carousel-wrapper').style.height = `${maxHeight + 64}px`;
-
-
 
         const prevBtn = document.getElementById('prevBtn');
         const nextBtn = document.getElementById('nextBtn');
@@ -329,7 +316,9 @@
 
         function updateCarousel() {
             carousel.style.transform = `translateX(-${currentIndex * 100}%)`;
+
         }
+
 
         function showNextSlide() {
             currentIndex = (currentIndex + 1) % slides.length;
