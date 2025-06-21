@@ -61,12 +61,15 @@ class ModuloController extends Controller
                           ]);
                 },
                 'submodulos' => function ($query) {
-                    $query->orderBy('orden')  // ← y aquí
+                    $query->orderBy('orden')
+                          ->whereHas('categoriasPermitidas', function ($q) {
+                              $q->where('categoria', auth()->user()->categoria);
+                          })
                           ->with([
-                              'archivos' => function($q) {
+                              'archivos' => function ($q) {
                                   $q->where('user_id', auth()->id());
                               },
-                              'submoduloUsuarios' => function($q) {
+                              'submoduloUsuarios' => function ($q) {
                                   $q->where('user_id', auth()->id());
                               },
                           ]);

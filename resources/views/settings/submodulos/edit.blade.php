@@ -150,6 +150,50 @@
                         </div>
                     </div>
 
+                    <!-- Fila: Categorías permitidas (checkbox) -->
+                    <div class="row g-3 mt-4">
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold mb-2">Categorías permitidas para este submódulo:</label>
+
+                            @php
+                                $categoriasDisponibles = [
+                                    'Titular C', 'Titular B', 'Titular A',
+                                    'Asociado C', 'Técnico Académico C',
+                                    'Técnico Académico B', 'Técnico Académico A',
+                                    'Profesor de Asignatura B'
+                                ];
+
+                                // Categorías ya asignadas al submódulo
+                                $asignadas = $submodulo->categoriasPermitidas->pluck('categoria')->toArray();
+                            @endphp
+
+                            <div class="row">
+                                @foreach($categoriasDisponibles as $cat)
+                                    <div class="col-md-4">
+                                        <div class="form-check">
+                                            <input
+                                                class="form-check-input"
+                                                type="checkbox"
+                                                name="categorias[]"
+                                                value="{{ $cat }}"
+                                                id="categoria_{{ Str::slug($cat, '_') }}"
+                                                {{ in_array($cat, old('categorias', $asignadas)) ? 'checked' : '' }}
+                                            >
+                                            <label class="form-check-label" for="categoria_{{ Str::slug($cat, '_') }}">
+                                                {{ $cat }}
+                                            </label>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+
+                            @error('categorias')
+                                <div class="text-danger mt-2">{{ $message }}</div>
+                            @enderror
+                        </div>
+                    </div>
+
+
                     <hr class="mt-4">
 
                     <!-- Botones -->

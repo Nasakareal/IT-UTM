@@ -50,6 +50,8 @@ class SubmoduloController extends Controller
             'fecha_apertura'       => 'nullable|date|before_or_equal:fecha_cierre',
             'fecha_limite'         => 'nullable|date',
             'fecha_cierre'         => 'nullable|date|after_or_equal:fecha_apertura',
+            'categorias'           => 'required|array',
+            'categorias.*'         => 'in:Titular C,Titular B,Titular A,Asociado C,Técnico Académico C,Técnico Académico B,Técnico Académico A,Profesor de Asignatura B'
         ]);
 
         // Guarda la plantilla base y almacena la ruta
@@ -64,6 +66,14 @@ class SubmoduloController extends Controller
 
         $submodulo = Submodulo::create($data);
 
+        // Guarda las categorías permitidas
+        foreach ($request->categorias as $cat) {
+            \App\Models\CategoriaSubmodulo::create([
+                'submodulo_id' => $submodulo->id,
+                'categoria' => $cat,
+            ]);
+        }
+
         // Forzar Incumplimiento si ya venció
         if ($submodulo->fecha_cierre && now()->gt($submodulo->fecha_cierre)) {
             $submodulo->update(['estatus' => 'Incumplimiento']);
@@ -73,6 +83,7 @@ class SubmoduloController extends Controller
             ->route('submodulos.index')
             ->with('success', 'Submódulo creado correctamente.');
     }
+
 
     public function show(Submodulo $submodulo)
     {
@@ -95,19 +106,31 @@ class SubmoduloController extends Controller
             'fecha_apertura'       => 'nullable|date|before_or_equal:fecha_cierre',
             'fecha_limite'         => 'nullable|date',
             'fecha_cierre'         => 'nullable|date|after_or_equal:fecha_apertura',
+            'categorias'           => 'required|array',
+            'categorias.*'         => 'in:Titular C,Titular B,Titular A,Asociado C,Técnico Académico C,Técnico Académico B,Técnico Académico A,Profesor de Asignatura B'
         ]);
 
-        // ← Aquí procesas la subida si vino nuevo archivo
+        // Procesar nuevo archivo si viene
         if ($request->hasFile('documento_solicitado')) {
             $data['documento_solicitado'] = $request
                 ->file('documento_solicitado')
                 ->store('plantillas', 'public');
         }
 
-        // ahora sí actualizas
+        // Actualizar submódulo
         $submodulo->update($data);
 
-        // y luego tu lógica de vencimiento…
+        // Reemplazar las categorías permitidas
+        $submodulo->categoriasPermitidas()->delete();
+
+        foreach ($request->categorias as $cat) {
+            \App\Models\CategoriaSubmodulo::create([
+                'submodulo_id' => $submodulo->id,
+                'categoria' => $cat,
+            ]);
+        }
+
+        // Forzar Incumplimiento si ya venció
         if ($submodulo->fecha_cierre && now()->gt($submodulo->fecha_cierre)) {
             $submodulo->update(['estatus' => 'Incumplimiento']);
         }
@@ -116,6 +139,7 @@ class SubmoduloController extends Controller
             ->route('submodulos.index')
             ->with('success', 'Submódulo actualizado correctamente.');
     }
+
 
 
     public function destroy(Submodulo $submodulo)

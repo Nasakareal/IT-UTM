@@ -52,7 +52,7 @@
                     <div class="comunicado-content">
                         <!-- 1) Aquí, al inicio dentro de comunicado-content -->
                         <div class="comunicado-header">
-                          Comunicado {{ $comunicado->id }} 2025
+                          Comunicado {{ $comunicado->id }}/2025
                         </div>
 
                         <div class="comunicado-title">{{ $comunicado->titulo }}</div>

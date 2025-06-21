@@ -37,4 +37,9 @@ class Submodulo extends Model
     {
         return $this->hasMany(\App\Models\SubmoduloUsuario::class);
     }
+
+    public function categoriasPermitidas()
+    {
+        return $this->hasMany(CategoriaSubmodulo::class);
+    }
 }

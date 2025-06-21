@@ -26,6 +26,9 @@ class HomeController extends Controller
         // 🔸 1. Lógica original: Submódulos pendientes
         if (!$user->hasAnyRole(['Administrador', 'Subdirector'])) {
             $documentosPendientes = Submodulo::whereNotNull('fecha_limite')
+                ->whereHas('categoriasPermitidas', function ($q) use ($user) {
+                    $q->where('categoria', $user->categoria);
+                })
                 ->where(function ($query) use ($user) {
                     $query->whereDoesntHave('submoduloUsuarios', function ($q) use ($user) {
                             $q->where('user_id', $user->id)
