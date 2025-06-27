@@ -93,6 +93,7 @@
                                 <td class="{{ $color }}">{!! $texto !!}</td>
                                 <td>
                                     @if($doc['entregado'])
+                                        {{-- Botón Eliminar --}}
                                         <form action="{{ route('revision.gestion.academica.eliminarUno') }}" method="POST" onsubmit="return confirm('¿Eliminar este documento?');" style="display:inline;">
                                             @csrf
                                             @method('DELETE')
@@ -105,7 +106,27 @@
                                                 <i class="fas fa-trash-alt"></i>
                                             </button>
                                         </form>
+
+                                        {{-- Formulario Calificación --}}
+                                        <form action="{{ route('revision.gestion.academica.calificar') }}" method="POST" style="display:inline-block; margin-top: 5px;">
+                                            @csrf
+                                            <input type="hidden" name="documento_id" value="{{ $doc['id'] ?? null }}">
+
+                                            <select name="calificacion" class="form-select form-select-sm d-inline-block w-auto" required>
+                                                <option value="">Calificar</option>
+                                                @for ($i = 1; $i <= 10; $i++)
+                                                    <option value="{{ $i }}" {{ isset($doc['mi_calificacion']) && $doc['mi_calificacion'] == $i ? 'selected' : '' }}>
+                                                        {{ $i }}
+                                                    </option>
+                                                @endfor
+                                            </select>
+
+                                            <button type="submit" class="btn btn-sm btn-success" title="Guardar calificación">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        </form>
                                     @endif
+
                                 </td>
                             </tr>
                         @empty

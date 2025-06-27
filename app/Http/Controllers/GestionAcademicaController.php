@@ -98,6 +98,7 @@ class GestionAcademicaController extends Controller
                             'archivo_subido' => $registro->archivo    ?? null,
                             'acuse'          => $registro->acuse_pdf  ?? null,
                             'es_actual'      => $unidadActual === 1,
+                            'editable'       => $registro && $registro->created_at && $registro->created_at->gt(now()->subMinutes(30)),
                         ];
                     }
                 }
@@ -123,6 +124,7 @@ class GestionAcademicaController extends Controller
                         'archivo_subido' => $registro->archivo    ?? null,
                         'acuse'          => $registro->acuse_pdf  ?? null,
                         'es_actual'      => $u === $unidadActual,
+                        'editable'       => $registro && $registro->created_at && $registro->created_at->gt(now()->subMinutes(30)),
                     ];
                 }
 

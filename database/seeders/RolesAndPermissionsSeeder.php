@@ -69,6 +69,7 @@ class RolesAndPermissionsSeeder extends Seeder
             'eliminar revisiones',
 
             'ver documentos profesores',
+            'calificar documentos',
 
             'ver tutoriales',
             'crear tutoriales',

@@ -72,7 +72,7 @@
             background: #fff;
             margin-bottom: 1rem;
         }
-    </style>
+</style>
 
     <div class="row gx-4 gy-4">
         @foreach(collect($documentos)->groupBy(fn($d) => $d['materia'].'|'.$d['grupo']) as $key => $docs)
@@ -142,12 +142,14 @@
                                                                 <i class="fa fa-file-pdf"></i> Ver Acuse
                                                             </a>
                                                         @endif
-                                                        <i class="fas fa-lock text-muted" title="Ya entregado"></i>
+                                                            @if($doc['entregado'] && !$doc['editable'])
+                                                                <i class="fas fa-lock text-danger" title="Ya no se puede editar este documento (fuera del tiempo permitido)"></i>
+                                                            @endif
                                                     @endif
                                                 </div>
                                             </div>
 
-                                            @unless($doc['entregado'])
+                                            @if(!$doc['entregado'] || ($doc['entregado'] && $doc['editable']))
                                                 <form action="{{ route('documentos.subir') }}" method="POST" enctype="multipart/form-data" class="row g-2 align-items-end">
                                                     @csrf
                                                     <input type="hidden" name="materia"        value="{{ $doc['materia'] }}">
@@ -186,7 +188,7 @@
                                                         </button>
                                                     </div>
                                                 </form>
-                                            @endunless
+                                            @endif
                                         </div>
                                     @endforeach
                                 </div>
