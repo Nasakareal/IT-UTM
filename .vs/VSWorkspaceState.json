@@ -12,6 +12,6 @@
     "\\resources\\views\\modulos",
     "\\resources\\views\\revision_academica"
   ],
-  "SelectedNode": "\\resources\\views\\revision_academica\\index.blade.php",
+  "SelectedNode": "\\app\\Http\\Controllers\\SeccionController.php",
   "PreviewInSolutionExplorer": false
 }

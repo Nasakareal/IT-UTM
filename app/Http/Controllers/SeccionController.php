@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Seccion;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class SeccionController extends Controller
 {
@@ -34,11 +35,16 @@ class SeccionController extends Controller
             'nombre' => 'required|string|max:255'
         ]);
 
-        $data['slug'] = 'generico';
+        $data['slug'] = Str::slug($data['nombre']);
+        $i = 1;
+        $baseSlug = $data['slug'];
+        while (Seccion::where('slug', $data['slug'])->exists()) {
+            $data['slug'] = $baseSlug . '-' . $i++;
+        }
 
         Seccion::create($data);
 
-        return redirect()->route('secciones.index')->with('success', 'Sección creado correctamente.');
+        return redirect()->route('secciones.index')->with('success', 'Sección creada correctamente.');
     }
 
     public function show(Seccion $seccion)
@@ -58,7 +64,12 @@ class SeccionController extends Controller
             'nombre' => 'required|string|max:255'
         ]);
 
-        $data['slug'] = 'generico';
+        $data['slug'] = Str::slug($data['nombre']);
+        $i = 1;
+        $baseSlug = $data['slug'];
+        while (Seccion::where('slug', $data['slug'])->where('id', '!=', $seccion->id)->exists()) {
+            $data['slug'] = $baseSlug . '-' . $i++;
+        }
 
         $seccion->update($data);
 
