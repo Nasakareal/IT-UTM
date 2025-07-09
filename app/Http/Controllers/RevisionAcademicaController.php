@@ -18,44 +18,70 @@ class RevisionAcademicaController extends Controller
     /* 1) SUBMÓDULOS – VISTA GENERAL (sin cambios)                        */
     /* ------------------------------------------------------------------ */
     public function index(Request $request)
-    {
-        $usuario = auth()->user();
+{
+    $usuario = auth()->user();
 
-        // 1. Profesores del MISMO área
-        $areasUsuario = explode(',', $usuario->area);
-        $profesores   = User::whereNotNull('teacher_id')
-            ->where(function ($query) use ($areasUsuario) {
-                foreach ($areasUsuario as $area) {
-                    $query->orWhereRaw('FIND_IN_SET(?, area)', [$area]);
-                }
-            })
-            ->get();
+    // 1. Profesores del MISMO área
+    $areasUsuario = explode(',', $usuario->area);
+    $profesores = User::whereNotNull('teacher_id')
+        ->where(function ($query) use ($areasUsuario) {
+            foreach ($areasUsuario as $area) {
+                $query->orWhereRaw('FIND_IN_SET(?, area)', [$area]);
+            }
+        })
+        ->orderBy('nombres')
+        ->get();
 
-        // 2. Submódulos del módulo 5
-        $query = Submodulo::whereHas('subsection', fn ($q) => $q->where('modulo_id', 5))
-            ->with('subsection');
+    // 2. Submódulos del módulo 5
+    $query = Submodulo::whereHas('subsection', fn ($q) => $q->where('modulo_id', 5))
+        ->with('subsection');
 
-        if ($request->filled('subseccion_id')) {
-            $query->where('subsection_id', $request->subseccion_id);
-        }
-
-        $submodulos             = $query->get();
-        $subseccionesDisponibles = \App\Models\Subsection::where('modulo_id', 5)->get();
-
-        // 3. Archivos entregados
-        $archivos = SubmoduloArchivo::whereIn('user_id',  $profesores->pluck('id'))
-            ->whereIn('submodulo_id', $submodulos->pluck('id'))
-            ->get();
-
-        $archivoMap = [];
-        foreach ($archivos as $archivo) {
-            $archivoMap[$archivo->user_id][$archivo->submodulo_id] = $archivo;
-        }
-
-        return view('revision_academica.index', compact(
-            'profesores', 'submodulos', 'archivoMap', 'subseccionesDisponibles'
-        ));
+    if ($request->filled('subseccion_id')) {
+        $query->where('subsection_id', $request->subseccion_id);
     }
+
+    $submodulos = $query->get();
+
+    // Orden personalizado de submódulos por el campo 'titulo'
+    $ordenDeseado = [
+        'Presentación del Tutor',
+        '1er Tutoría Grupal',
+        '2da Tutoría Grupal',
+        '3er Tutoría Grupal',
+        'Registro de Proyecto Institucional',
+        'Informe Parcial',
+        'Informe Global',
+        
+        
+    ];
+
+    $submodulos = $submodulos->sortBy(function ($submodulo) use ($ordenDeseado) {
+        return array_search($submodulo->titulo, $ordenDeseado);
+    })->values();
+
+    // Subsecciones disponibles para el filtro
+    $subseccionesDisponibles = \App\Models\Subsection::where('modulo_id', 5)
+        ->orderBy('nombre')
+        ->get();
+
+    // 3. Archivos entregados
+    $archivos = SubmoduloArchivo::whereIn('user_id', $profesores->pluck('id'))
+        ->whereIn('submodulo_id', $submodulos->pluck('id'))
+        ->get();
+
+    $archivoMap = [];
+    foreach ($archivos as $archivo) {
+        $archivoMap[$archivo->user_id][$archivo->submodulo_id] = $archivo;
+    }
+
+    return view('revision_academica.index', compact(
+        'profesores',
+        'submodulos',
+        'archivoMap',
+        'subseccionesDisponibles'
+    ));
+}
+
 
     /* ------------------------------------------------------------------ */
     /* 2) SOLO GESTIÓN ACADÉMICA – CON CALIFICACIONES                     */

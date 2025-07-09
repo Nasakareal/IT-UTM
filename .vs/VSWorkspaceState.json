@@ -4,14 +4,10 @@
     "\\app",
     "\\app\\Http",
     "\\app\\Http\\Controllers",
-    "\\app\\Models",
-    "\\database",
-    "\\database\\seeders",
     "\\resources",
     "\\resources\\views",
-    "\\resources\\views\\modulos",
-    "\\resources\\views\\revision_academica"
+    "\\resources\\views\\layouts"
   ],
-  "SelectedNode": "\\app\\Http\\Controllers\\SeccionController.php",
+  "SelectedNode": "\\resources\\views\\layouts\\app.blade.php",
   "PreviewInSolutionExplorer": false
 }
