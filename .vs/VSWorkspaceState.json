@@ -6,8 +6,8 @@
     "\\app\\Http\\Controllers",
     "\\resources",
     "\\resources\\views",
-    "\\resources\\views\\layouts"
+    "\\resources\\views\\modulos"
   ],
-  "SelectedNode": "\\resources\\views\\layouts\\app.blade.php",
+  "SelectedNode": "\\app\\Http\\Controllers\\GestionAcademicaController.php",
   "PreviewInSolutionExplorer": false
 }

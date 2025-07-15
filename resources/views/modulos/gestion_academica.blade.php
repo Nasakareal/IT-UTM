@@ -142,7 +142,8 @@
                                                                 <i class="fa fa-file-pdf"></i> Ver Acuse
                                                             </a>
                                                         @endif
-                                                            @if($doc['entregado'] && !$doc['editable'])
+                                                            @if($doc['entregado'] && (!isset($doc['editable']) || !$doc['editable']))
+
                                                                 <i class="fas fa-lock text-danger" title="Ya no se puede editar este documento (fuera del tiempo permitido)"></i>
                                                             @endif
                                                     @endif

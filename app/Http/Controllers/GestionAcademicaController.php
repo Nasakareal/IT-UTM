@@ -151,6 +151,7 @@ class GestionAcademicaController extends Controller
                         'archivo_subido' => $registroFinal->archivo   ?? null,
                         'acuse'          => $registroFinal->acuse_pdf ?? null,
                         'es_actual'      => $u === $unidadActual,
+                        'editable'       => $registroFinal && $registroFinal->created_at && $registroFinal->created_at->gt(now()->subMinutes(30)),
                     ];
                 }
             }
