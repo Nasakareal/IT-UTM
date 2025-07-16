@@ -26,10 +26,10 @@ class DocumentoSubidoController extends Controller
         /* ------------------------------------------------------------------ *
          * 1. DETERMINAR LA ACCIÓN                                             *
          * ------------------------------------------------------------------ */
-        $action = $request->input('action', 'sign_upload');   // sign_upload | upload_only
+        $action = $request->input('action', 'sign_upload');
 
         /* ------------------------------------------------------------------ *
-         * 2. VALIDACIÓN DINÁMICA (ahora incluye GRUPO)                       *
+         * 2. VALIDACIÓN DINÁMICA                                             *
          * ------------------------------------------------------------------ */
         $rules = [
             'materia'        => 'required|string',
@@ -45,7 +45,7 @@ class DocumentoSubidoController extends Controller
         $request->validate($rules);
 
         /* ------------------------------------------------------------------ *
-         * 3. SUBIR ARCHIVO AL STORAGE                                         *
+         * 3. SUBIR ARCHIVO AL STORAGE                                        *
          * ------------------------------------------------------------------ */
         if (!Storage::disk('public')->exists('documentos_subidos')) {
             Storage::disk('public')->makeDirectory('documentos_subidos');

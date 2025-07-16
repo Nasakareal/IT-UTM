@@ -11,7 +11,7 @@
         <div class="alert alert-success">{{ session('success') }}</div>
     @endif
 
-    <style>
+<style>
         /* Asegura que el navbar quede por debajo del modal */
         .navbar, .navbar-fixed-top {
             z-index: 1000 !important;
@@ -34,7 +34,7 @@
             box-shadow: 0 8px 20px rgba(0,0,0,.1);
         }
         .folder-icon {
-            font-size: 4rem;
+            font-size: 2rem;
             color: #ffc107;
         }
         .input-label {
@@ -72,6 +72,14 @@
             background: #fff;
             margin-bottom: 1rem;
         }
+
+        .folder-card h5 {
+            font-size: 1rem;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 0.25rem;
+        }
+
 </style>
 
     <div class="row gx-4 gy-4">
@@ -86,7 +94,7 @@
                 <div class="folder-card" data-bs-toggle="modal" data-bs-target="#modal-{{ $slug }}">
                     <i class="fas fa-folder-open folder-icon"></i>
                     <h5 class="mt-2">{{ $materia }}</h5>
-                    <small class="text-muted">{{ $programa }} — Grupo {{ $grupo }}</small>
+                    <small class="text-muted">{{ $programa }} <br> Grupo {{ $grupo }}</small>
                 </div>
             </div>
         @endforeach
