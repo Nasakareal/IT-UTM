@@ -79,7 +79,6 @@
             text-align: center;
             margin-bottom: 0.25rem;
         }
-
 </style>
 
     <div class="row gx-4 gy-4">
@@ -139,21 +138,20 @@
                                                         </a>
                                                     @endif
 
-                                                    @if($doc['entregado'])
-                                                        @if($doc['archivo_subido'])
-                                                            <a href="{{ asset('storage/'.$doc['archivo_subido']) }}" class="btn btn-sm btn-outline-primary" target="_blank">
-                                                                <i class="fas fa-file-alt"></i> Ver Archivo
-                                                            </a>
-                                                        @endif
-                                                        @if($doc['acuse'])
-                                                            <a href="{{ asset('storage/'.$doc['acuse']) }}" class="btn btn-sm btn-outline-secondary" target="_blank">
-                                                                <i class="fa fa-file-pdf"></i> Ver Acuse
-                                                            </a>
-                                                        @endif
-                                                            @if($doc['entregado'] && (!isset($doc['editable']) || !$doc['editable']))
+                                                    @if($doc['entregado'] && $doc['archivo_subido'])
+                                                        <a href="{{ asset('storage/'.$doc['archivo_subido']) }}" class="btn btn-sm btn-outline-primary" target="_blank">
+                                                            <i class="fas fa-file-alt"></i> Ver Archivo
+                                                        </a>
+                                                    @endif
 
-                                                                <i class="fas fa-lock text-danger" title="Ya no se puede editar este documento (fuera del tiempo permitido)"></i>
-                                                            @endif
+                                                    @if($doc['acuse'])
+                                                        <a href="{{ asset('storage/'.$doc['acuse']) }}" class="btn btn-sm btn-outline-secondary" target="_blank">
+                                                            <i class="fa fa-file-pdf"></i> Ver Acuse
+                                                        </a>
+                                                    @endif
+
+                                                    @if($doc['entregado'] && (!isset($doc['editable']) || !$doc['editable']))
+                                                        <i class="fas fa-lock text-danger" title="Ya no se puede editar este documento (fuera del tiempo permitido)"></i>
                                                     @endif
                                                 </div>
                                             </div>

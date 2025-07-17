@@ -5,7 +5,7 @@
 @section('content')
 <form method="GET" action="{{ route('revision.gestion.academica.gestion') }}">
     <div class="row mb-3">
-        <div class="col-md-4">
+        <div class="col-md-3">
             <label class="input-group-text"><i class="fa-solid fa-user"></i> Profesor:</label>
             <select name="profesor_id" class="form-select">
                 <option value="">-- Todos los profesores --</option>
@@ -17,7 +17,19 @@
             </select>
         </div>
 
-        <div class="col-md-4">
+        <div class="col-md-3">
+            <label class="input-group-text"><i class="fa-solid fa-people-group"></i> Grupo:</label>
+            <select name="grupo" class="form-select">
+                <option value="">-- Todos los grupos --</option>
+                @foreach ($gruposDisponibles as $g)
+                    <option value="{{ $g }}" {{ request('grupo') == $g ? 'selected' : '' }}>
+                        {{ $g }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+
+        <div class="col-md-3">
             <label class="input-group-text"><i class="fa-solid fa-book"></i> Materia:</label>
             <select name="materia" class="form-select">
                 <option value="">-- Todas las materias --</option>
@@ -29,7 +41,7 @@
             </select>
         </div>
 
-        <div class="col-md-4">
+        <div class="col-md-3">
             <label class="input-group-text"><i class="fa-solid fa-layer-group"></i> Unidad:</label>
             <select name="unidad" class="form-select">
                 <option value="">-- Todas las unidades --</option>
@@ -68,8 +80,9 @@
                             <th>Grupo</th>
                             <th>Unidad</th>
                             <th>Documento</th>
+                            <th>Fecha de subida</th> {{-- NUEVA COLUMNA --}}
                             <th>Estado</th>
-                            <th>Acciones</th> {{-- Nueva columna --}}
+                            <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -90,6 +103,13 @@
                                 <td>{{ $doc['grupo'] }}</td>
                                 <td>{{ $doc['unidad'] }}</td>
                                 <td>{{ $doc['tipo_documento'] }}</td>
+                                <td>
+                                    @if($doc['entregado'] && isset($doc['created_at']))
+                                        {{ \Carbon\Carbon::parse($doc['created_at'])->format('d/m/Y H:i') }}
+                                    @else
+                                        -
+                                    @endif
+                                </td>
                                 <td class="{{ $color }}">{!! $texto !!}</td>
                                 <td>
                                     @if($doc['entregado'])

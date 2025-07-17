@@ -109,6 +109,7 @@ class RevisionAcademicaController extends Controller
         $profesorId    = $request->profesor_id;
         $materiaFiltro = $request->materia;
         $unidadFiltro  = $request->unidad;
+        $grupoFiltro = $request->grupo;
 
         $profesorSeleccionado = $profesores->firstWhere('id', $profesorId);
         $documentos           = [];
@@ -194,6 +195,7 @@ class RevisionAcademicaController extends Controller
                                 'grupo'           => $m->grupo,
                                 'unidad'          => 1,
                                 'tipo_documento'  => $tipo,
+                                'created_at' => $registro->created_at ?? null,
                                 'plantilla'       => $plantilla,
                                 'entregado'       => (bool) $registro,
                                 'archivo_subido'  => $registro->archivo ?? null,
@@ -228,6 +230,7 @@ class RevisionAcademicaController extends Controller
                             'grupo'           => $m->grupo,
                             'unidad'          => $u,
                             'tipo_documento'  => $tipo,
+                            'created_at' => $registro->created_at ?? null,
                             'plantilla'       => $plantilla,
                             'entregado'       => (bool) $registro,
                             'archivo_subido'  => $registro->archivo ?? null,
@@ -262,6 +265,7 @@ class RevisionAcademicaController extends Controller
                             'grupo'           => $m->grupo,
                             'unidad'          => $u,
                             'tipo_documento'  => $tipoFinal,
+                            'created_at' => $registro->created_at ?? null,
                             'plantilla'       => null,
                             'entregado'       => (bool) $registroFinal,
                             'archivo_subido'  => $registroFinal->archivo ?? null,
@@ -277,6 +281,7 @@ class RevisionAcademicaController extends Controller
         /* 2.4) Opciones de filtros */
         $materiasDisponibles = collect($documentos)->pluck('materia')->unique()->sort()->values();
         $unidadesDisponibles = collect($documentos)->pluck('unidad')->unique()->sort()->values();
+        $gruposDisponibles = collect($documentos)->pluck('grupo')->unique()->sort()->values();
 
         return view('revision_academica.solo_gestion', [
             'profesores'           => $profesores,
@@ -284,6 +289,7 @@ class RevisionAcademicaController extends Controller
             'materiasDisponibles'  => $materiasDisponibles,
             'unidadesDisponibles'  => $unidadesDisponibles,
             'documentos'           => $documentos,
+            'gruposDisponibles'    => $gruposDisponibles,
         ]);
     }
 
