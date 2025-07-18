@@ -252,10 +252,12 @@ class DocumentoSubidoController extends Controller
          * ------------------------------------------------------------------ */
         $programa = DB::connection('cargahoraria')
             ->table('teacher_subjects as ts')
-            ->join('subjects as s', 'ts.subject_id', '=', 's.subject_id')
-            ->join('programs as p', 's.program_id', '=', 'p.program_id')
+            ->join('subjects as s',  'ts.subject_id', '=', 's.subject_id')
+            ->join('groups   as g',  'ts.group_id',   '=', 'g.group_id')
+            ->join('programs as p',  's.program_id',  '=', 'p.program_id')
             ->where('ts.teacher_id', Auth::user()->teacher_id)
             ->where('s.subject_name', $request->materia)
+            ->where('g.group_name',   $request->grupo)
             ->value('p.program_name') ?? 'Programa desconocido';
 
         $pdf = Pdf::loadView('pdf.acuse_individual', [
