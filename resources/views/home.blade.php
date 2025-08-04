@@ -55,6 +55,13 @@
                           Comunicado {{ $comunicado->id }}/2025
                         </div>
 
+                        <!-- Fecha de creación debajo del encabezado -->
+                        <div class="comunicado-fecha-creacion-wrapper" style="text-align: right; margin-top: -1rem; margin-bottom: 1rem;">
+                            <span style="font-size: 0.9rem; color: #555;">
+                                {{ \Carbon\Carbon::parse($comunicado->created_at)->translatedFormat('d \d\e F \d\e Y') }}
+                            </span>
+                        </div>
+
                         <div class="comunicado-title">{{ $comunicado->titulo }}</div>
                         <div class="comunicado-date">{{ $comunicado->fecha }}</div>
                         <div class="comunicado-body">
@@ -221,6 +228,10 @@
   position: relative;
   padding-top: 2.5rem;
 }
+.comunicado-fecha-creacion {
+  margin-top: -0.5rem;
+}
+
 
 /* Badge sencillo que sobresale */
 .comunicado-header {
