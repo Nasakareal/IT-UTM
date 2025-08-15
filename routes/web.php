@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Admin\SnapshotController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -228,4 +229,6 @@ Route::prefix('settings')->middleware('auth', 'password.changed', 'can:ver confi
         // Eliminar un documento subido por profesor
         Route::delete('/eliminar/{id}', [App\Http\Controllers\ProfesorDocumentoController::class, 'destroy'])->name('documentos-profesores.destroy');
     });
+
+    Route::post('/settings/snapshot-cargahoraria', [SnapshotController::class, 'store'])->middleware(['auth','can:ver configuraciones'])->name('admin.snapshot.cargahoraria');
 });

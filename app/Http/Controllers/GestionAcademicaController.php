@@ -17,27 +17,7 @@ class GestionAcademicaController extends Controller
             return back()->with('error', 'Este usuario no tiene asignado un teacher_id.');
         }
 
-        // 1) Materias del docente
-        $materias = DB::connection('cargahoraria')
-            ->table('teacher_subjects as ts')
-            ->join('subjects as s', 'ts.subject_id', '=', 's.subject_id')
-            ->join('programs as p', 's.program_id', '=', 'p.program_id')
-            ->join('groups as g', 'ts.group_id', '=', 'g.group_id')
-            ->select(
-                's.subject_name as materia',
-                's.unidades',
-                'p.program_name as programa',
-                'g.group_name as grupo'
-            )
-            ->where('ts.teacher_id', $user->teacher_id)
-            ->groupBy('s.subject_name', 's.unidades', 'p.program_name', 'g.group_name')
-            ->get();
-
-        if ($materias->isEmpty()) {
-            return back()->with('error', 'No se encontraron materias asignadas.');
-        }
-
-        // 2) Cuatrimestre activo
+        // 1) Cuatrimestre activo (lo moví arriba para filtrar el snapshot por cuatrimestre)
         $hoy    = Carbon::now();
         $cuatri = DB::table('cuatrimestres')
             ->whereDate('fecha_inicio', '<=', $hoy)
@@ -53,29 +33,101 @@ class GestionAcademicaController extends Controller
         $totalDias         = $inicio->diffInDays($fin) + 1;
         $diasTranscurridos = $inicio->diffInDays($hoy) + 1;
 
-        // 3) Tipos de documento
+        // 2) Materias del docente — PRIMERO desde el SNAPSHOT local
+        $materias = DB::table('materias_docentes_snapshots')
+            ->select('materia','unidades','programa','grupo')
+            ->where('teacher_id', $user->teacher_id)
+            ->when(isset($cuatri->id), fn($q) => $q->where('cuatrimestre_id', $cuatri->id))
+            ->orderBy('programa')
+            ->orderBy('materia')
+            ->orderBy('grupo')
+            ->get();
+
+        // 2b) Si el snapshot está vacío, intenta leer de cargahoraria y (opcional) grabar snapshot al vuelo
+        if ($materias->isEmpty()) {
+            $remotas = DB::connection('cargahoraria')
+                ->table('teacher_subjects as ts')
+                ->join('subjects as s', 'ts.subject_id', '=', 's.subject_id')
+                ->join('programs as p', 's.program_id', '=', 'p.program_id')
+                ->join('groups as g', 'ts.group_id', '=', 'g.group_id')
+                ->select(
+                    's.subject_name as materia',
+                    's.unidades',
+                    'p.program_name as programa',
+                    'g.group_name as grupo',
+                    'ts.teacher_id',
+                    's.subject_id',
+                    'g.group_id',
+                    'p.program_id'
+                )
+                ->where('ts.teacher_id', $user->teacher_id)
+                ->groupBy(
+                    's.subject_name','s.unidades','p.program_name','g.group_name',
+                    'ts.teacher_id','s.subject_id','g.group_id','p.program_id'
+                )
+                ->orderBy('p.program_name')->orderBy('s.subject_name')->orderBy('g.group_name')
+                ->get();
+
+            if ($remotas->isEmpty()) {
+                return back()->with('error', 'No se encontraron materias asignadas (ni en snapshot ni en cargahoraria).');
+            }
+
+            // (Opcional pero recomendado) Persistir snapshot para no depender más de cargahoraria
+            foreach ($remotas as $r) {
+                DB::table('materias_docentes_snapshots')->updateOrInsert(
+                    [
+                        'teacher_id'      => $r->teacher_id,
+                        'materia'         => $r->materia,
+                        'grupo'           => $r->grupo,
+                        'programa'        => $r->programa,
+                        'cuatrimestre_id' => $cuatri->id ?? null,
+                    ],
+                    [
+                        'unidades'     => (int) $r->unidades,
+                        'subject_id'   => $r->subject_id,
+                        'group_id'     => $r->group_id,
+                        'program_id'   => $r->program_id,
+                        'quarter_name' => $cuatri->nombre ?? null,
+                        'source'       => 'cargahoraria',
+                        'captured_at'  => now(),
+                        'updated_at'   => now(),
+                        'created_at'   => now(),
+                    ]
+                );
+            }
+
+            // usa las remotas para seguir con la vista actual
+            $materias = $remotas->map(fn($r) => (object)[
+                'materia'  => $r->materia,
+                'unidades' => (int)$r->unidades,
+                'programa' => $r->programa,
+                'grupo'    => $r->grupo,
+            ]);
+        }
+
+        // 3) Tipos de documento (igual que lo tenías)
         $tipos = [
             'Reporte de Evaluación Continua por Unidad de Aprendizaje (SIGO)' => null,
             'Informe de Estudiantes No Acreditados'                           => 'F-DA-GA-05 Informe de Estudiantes No Acreditados.xlsx',
             'Control de Asesorías'                                            => 'F-DA-GA-06 Control de Asesorías.xlsx',
-            'Seguimiento de la Planeación'     => 'F-DA-GA-03 Seguimiento de la Planeación Didáctica.xlsx',
+            'Seguimiento de la Planeación'                                    => 'F-DA-GA-03 Seguimiento de la Planeación Didáctica.xlsx',
         ];
 
         $documentos = [];
 
-        // 4) Generar entradas por materia y unidad
+        // 4) Generar entradas por materia y unidad (idéntico)
         foreach ($materias as $m) {
-            $totalUnidades = $m->unidades;
-            $diasPorUnidad = (int) ceil($totalDias / $totalUnidades);
-            $unidadActual  = min($totalUnidades, (int) ceil($diasTranscurridos / $diasPorUnidad));
+            $totalUnidades = (int)$m->unidades;
+            $diasPorUnidad = (int) ceil($totalDias / max(1, $totalUnidades));
+            $unidadActual  = min($totalUnidades, (int) ceil($diasTranscurridos / max(1, $diasPorUnidad)));
 
             for ($u = 1; $u <= $totalUnidades; $u++) {
 
                 // Documentos especiales en unidad 1
                 if ($u === 1) {
                     $documentosEspeciales = [
-                        'Presentación de la Asignatura'     => 'F-DA-GA-01 Presentación de la asignatura.xlsx',
-                        'Planeación didáctica'             => 'F-DA-GA-02 Planeación didáctica del programa de asignatura.docx',
+                        'Presentación de la Asignatura' => 'F-DA-GA-01 Presentación de la asignatura.xlsx',
+                        'Planeación didáctica'          => 'F-DA-GA-02 Planeación didáctica del programa de asignatura.docx',
                     ];
 
                     foreach ($documentosEspeciales as $tipo => $plantilla) {
