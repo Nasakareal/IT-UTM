@@ -1,16 +1,11 @@
 {
   "ExpandedNodes": [
     "",
-    "\\app",
-    "\\app\\Http",
-    "\\app\\Http\\Controllers",
-    "\\app\\Http\\Controllers\\Admin",
     "\\resources",
     "\\resources\\views",
     "\\resources\\views\\layouts",
-    "\\resources\\views\\modulos",
-    "\\routes"
+    "\\resources\\views\\modulos"
   ],
-  "SelectedNode": "\\resources\\views\\layouts\\app.blade.php",
+  "SelectedNode": "\\resources\\views\\modulos\\gestion_academica.blade.php",
   "PreviewInSolutionExplorer": false
 }
