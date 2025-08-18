@@ -80,40 +80,62 @@
                             <th>Grupo</th>
                             <th>Unidad</th>
                             <th>Documento</th>
-                            <th>Fecha de subida</th> {{-- NUEVA COLUMNA --}}
+                            <th>Fecha de subida</th>
                             <th>Estado</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse ($documentos as $doc)
-                            @php
-                                $color = 'bg-warning text-dark';
-                                $texto = '-';
-                                if ($doc['entregado']) {
-                                    $color = 'bg-success text-white';
-                                    $texto = '<a href="'.asset('storage/'.$doc['archivo_subido']).'" target="_blank">Ver archivo</a>';
-                                } elseif (!$doc['entregado'] && !$doc['es_actual']) {
-                                    $color = 'bg-danger text-white';
-                                    $texto = '-';
-                                }
-                            @endphp
                             <tr>
                                 <td>{{ $doc['materia'] }}</td>
                                 <td>{{ $doc['grupo'] }}</td>
                                 <td>{{ $doc['unidad'] }}</td>
                                 <td>{{ $doc['tipo_documento'] }}</td>
                                 <td>
-                                    @if($doc['entregado'] && isset($doc['created_at']))
+                                    @if(!empty($doc['entregado']) && !empty($doc['created_at']))
                                         {{ \Carbon\Carbon::parse($doc['created_at'])->format('d/m/Y H:i') }}
                                     @else
                                         -
                                     @endif
                                 </td>
-                                <td class="{{ $color }}">{!! $texto !!}</td>
                                 <td>
-                                    @if($doc['entregado'])
-                                        {{-- Botón Eliminar --}}
+                                    @if(empty($doc['entregado']))
+                                        <span class="badge badge-danger">
+                                            <i class="fas fa-times-circle"></i> Pendiente
+                                        </span>
+                                    @else
+                                        @if(!empty($doc['firmado']))
+                                            <span class="badge badge-success">
+                                                <i class="fas fa-file-signature"></i>
+                                                Firmado {{ $doc['modo_firma']==='lote' ? '(Lote)' : '(Individual)' }}
+                                            </span>
+                                            <div class="mt-1 small">
+                                                <a href="{{ asset('storage/'.$doc['archivo_subido']) }}" target="_blank">
+                                                    <i class="fas fa-file-alt"></i> Ver archivo
+                                                </a>
+                                                @if(!empty($doc['acuse_pdf']))
+                                                    &nbsp;|&nbsp;
+                                                    <a href="{{ asset('storage/'.$doc['acuse_pdf']) }}" target="_blank">
+                                                        <i class="fa fa-file-pdf"></i> Acuse
+                                                    </a>
+                                                @endif
+                                            </div>
+                                        @else
+                                            <span class="badge badge-warning text-dark">
+                                                <i class="fas fa-upload"></i> Subido (sin firma)
+                                            </span>
+                                            <div class="mt-1 small">
+                                                <a href="{{ asset('storage/'.$doc['archivo_subido']) }}" target="_blank">
+                                                    <i class="fas fa-file-alt"></i> Ver archivo
+                                                </a>
+                                            </div>
+                                        @endif
+                                    @endif
+                                </td>
+                                <td>
+                                    @if(!empty($doc['entregado']))
+                                        {{-- Eliminar --}}
                                         <form action="{{ route('revision.gestion.academica.eliminarUno') }}" method="POST" onsubmit="return confirm('¿Eliminar este documento?');" style="display:inline;">
                                             @csrf
                                             @method('DELETE')
@@ -127,11 +149,10 @@
                                             </button>
                                         </form>
 
-                                        {{-- Formulario Calificación --}}
-                                        <form action="{{ route('revision.gestion.academica.calificar') }}" method="POST" style="display:inline-block; margin-top: 5px;">
+                                        {{-- Calificar --}}
+                                        <form action="{{ route('revision.gestion.academica.calificar') }}" method="POST" style="display:inline-block; margin-top:5px;">
                                             @csrf
                                             <input type="hidden" name="documento_id" value="{{ $doc['id'] ?? null }}">
-
                                             <select name="calificacion" class="form-select form-select-sm d-inline-block w-auto" required>
                                                 <option value="">Calificar</option>
                                                 @for ($i = 1; $i <= 10; $i++)
@@ -140,22 +161,19 @@
                                                     </option>
                                                 @endfor
                                             </select>
-
                                             <button type="submit" class="btn btn-sm btn-success" title="Guardar calificación">
                                                 <i class="fas fa-check"></i>
                                             </button>
                                         </form>
                                     @endif
-
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="text-center text-muted">No hay documentación disponible.</td>
+                                <td colspan="7" class="text-center text-muted">No hay documentación disponible.</td>
                             </tr>
                         @endforelse
                     </tbody>
-
                 </table>
             </div>
         </div>
@@ -169,9 +187,7 @@
         text-align: center;
         vertical-align: middle;
     }
-    .bg-success a, .bg-danger a {
-        color: #fff;
-        text-decoration: underline;
-    }
+    .badge { font-size: 90%; }
+    .small a { text-decoration: underline; }
 </style>
 @endsection

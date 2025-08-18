@@ -13,18 +13,18 @@ class GestionAcademicaController extends Controller
     public function index()
     {
         $user = Auth::user();
-        if (! $user->teacher_id) {
+        if (!$user->teacher_id) {
             return back()->with('error', 'Este usuario no tiene asignado un teacher_id.');
         }
 
-        // 1) Cuatrimestre activo (lo moví arriba para filtrar el snapshot por cuatrimestre)
+        // 1) Cuatrimestre activo
         $hoy    = Carbon::now();
         $cuatri = DB::table('cuatrimestres')
             ->whereDate('fecha_inicio', '<=', $hoy)
             ->whereDate('fecha_fin',   '>=', $hoy)
             ->first();
 
-        if (! $cuatri) {
+        if (!$cuatri) {
             return back()->with('error', 'No hay cuatrimestre activo configurado.');
         }
 
@@ -33,17 +33,15 @@ class GestionAcademicaController extends Controller
         $totalDias         = $inicio->diffInDays($fin) + 1;
         $diasTranscurridos = $inicio->diffInDays($hoy) + 1;
 
-        // 2) Materias del docente — PRIMERO desde el SNAPSHOT local
+        // 2) Materias del docente — primero snapshot local
         $materias = DB::table('materias_docentes_snapshots')
             ->select('materia','unidades','programa','grupo')
             ->where('teacher_id', $user->teacher_id)
             ->when(isset($cuatri->id), fn($q) => $q->where('cuatrimestre_id', $cuatri->id))
-            ->orderBy('programa')
-            ->orderBy('materia')
-            ->orderBy('grupo')
+            ->orderBy('programa')->orderBy('materia')->orderBy('grupo')
             ->get();
 
-        // 2b) Si el snapshot está vacío, intenta leer de cargahoraria y (opcional) grabar snapshot al vuelo
+        // Si snapshot vacío, intentar en cargahoraria y persistir snapshot
         if ($materias->isEmpty()) {
             $remotas = DB::connection('cargahoraria')
                 ->table('teacher_subjects as ts')
@@ -72,7 +70,6 @@ class GestionAcademicaController extends Controller
                 return back()->with('error', 'No se encontraron materias asignadas (ni en snapshot ni en cargahoraria).');
             }
 
-            // (Opcional pero recomendado) Persistir snapshot para no depender más de cargahoraria
             foreach ($remotas as $r) {
                 DB::table('materias_docentes_snapshots')->updateOrInsert(
                     [
@@ -96,7 +93,6 @@ class GestionAcademicaController extends Controller
                 );
             }
 
-            // usa las remotas para seguir con la vista actual
             $materias = $remotas->map(fn($r) => (object)[
                 'materia'  => $r->materia,
                 'unidades' => (int)$r->unidades,
@@ -105,7 +101,7 @@ class GestionAcademicaController extends Controller
             ]);
         }
 
-        // 3) Tipos de documento (igual que lo tenías)
+        // 3) Tipos de documento
         $tipos = [
             'Reporte de Evaluación Continua por Unidad de Aprendizaje (SIGO)' => null,
             'Informe de Estudiantes No Acreditados'                           => 'F-DA-GA-05 Informe de Estudiantes No Acreditados.xlsx',
@@ -113,9 +109,10 @@ class GestionAcademicaController extends Controller
             'Seguimiento de la Planeación'                                    => 'F-DA-GA-03 Seguimiento de la Planeación Didáctica.xlsx',
         ];
 
-        $documentos = [];
+        $documentos         = [];
+        $VENTANA_EDIT_MIN   = config('academico.minutos_edicion', 120);
 
-        // 4) Generar entradas por materia y unidad (idéntico)
+        // 4) Entradas por materia y unidad
         foreach ($materias as $m) {
             $totalUnidades = (int)$m->unidades;
             $diasPorUnidad = (int) ceil($totalDias / max(1, $totalUnidades));
@@ -123,7 +120,7 @@ class GestionAcademicaController extends Controller
 
             for ($u = 1; $u <= $totalUnidades; $u++) {
 
-                // Documentos especiales en unidad 1
+                // Especiales (unidad 1)
                 if ($u === 1) {
                     $documentosEspeciales = [
                         'Presentación de la Asignatura' => 'F-DA-GA-01 Presentación de la asignatura.xlsx',
@@ -139,23 +136,41 @@ class GestionAcademicaController extends Controller
                             ['tipo_documento', $tipo],
                         ])->first();
 
+                        // --- cálculo de edición / deadline
+                        $createdAtIso     = $registro?->created_at?->toIso8601String();
+                        $deadlineIso      = null;
+                        $editable         = false;
+                        $firmado          = false;
+
+                        if ($registro && $registro->created_at) {
+                            $deadline  = $registro->created_at->copy()->addMinutes($VENTANA_EDIT_MIN);
+                            $deadlineIso = $deadline->toIso8601String();
+                            $editable = now()->lt($deadline);
+                        }
+                        if ($registro && ($registro->fecha_firma || $registro->firma_sig)) {
+                            $firmado = true;
+                        }
+
                         $documentos[] = [
-                            'materia'        => $m->materia,
-                            'programa'       => $m->programa,
-                            'grupo'          => $m->grupo,
-                            'unidad'         => 1,
-                            'documento'      => $tipo,
-                            'archivo'        => $plantilla,
-                            'entregado'      => (bool) $registro,
-                            'archivo_subido' => $registro->archivo    ?? null,
-                            'acuse'          => $registro->acuse_pdf  ?? null,
-                            'es_actual'      => $unidadActual === 1,
-                            'editable'       => $registro && $registro->created_at && $registro->created_at->gt(now()->subMinutes(30)),
+                            'materia'            => $m->materia,
+                            'programa'           => $m->programa,
+                            'grupo'              => $m->grupo,
+                            'unidad'             => 1,
+                            'documento'          => $tipo,
+                            'archivo'            => $plantilla,
+                            'entregado'          => (bool) $registro,
+                            'archivo_subido'     => $registro->archivo    ?? null,
+                            'acuse'              => $registro->acuse_pdf  ?? null,
+                            'es_actual'          => $unidadActual === 1,
+                            'editable'           => $editable,
+                            'created_at'         => $createdAtIso,
+                            'cierre_edicion_iso' => $editable ? $deadlineIso : null,
+                            'firmado'            => $firmado,
                         ];
                     }
                 }
 
-                // Documentos estándar por unidad
+                // Estándar por unidad
                 foreach ($tipos as $tipo => $plantilla) {
                     $registro = DocumentoSubido::where([
                         ['user_id',        $user->id],
@@ -165,22 +180,39 @@ class GestionAcademicaController extends Controller
                         ['tipo_documento', $tipo],
                     ])->first();
 
+                    $createdAtIso     = $registro?->created_at?->toIso8601String();
+                    $deadlineIso      = null;
+                    $editable         = false;
+                    $firmado          = false;
+
+                    if ($registro && $registro->created_at) {
+                        $deadline  = $registro->created_at->copy()->addMinutes($VENTANA_EDIT_MIN);
+                        $deadlineIso = $deadline->toIso8601String();
+                        $editable = now()->lt($deadline);
+                    }
+                    if ($registro && ($registro->fecha_firma || $registro->firma_sig)) {
+                        $firmado = true;
+                    }
+
                     $documentos[] = [
-                        'materia'        => $m->materia,
-                        'programa'       => $m->programa,
-                        'grupo'          => $m->grupo,
-                        'unidad'         => $u,
-                        'documento'      => $tipo,
-                        'archivo'        => $plantilla,
-                        'entregado'      => (bool) $registro,
-                        'archivo_subido' => $registro->archivo    ?? null,
-                        'acuse'          => $registro->acuse_pdf  ?? null,
-                        'es_actual'      => $u === $unidadActual,
-                        'editable'       => $registro && $registro->created_at && $registro->created_at->gt(now()->subMinutes(30)),
+                        'materia'            => $m->materia,
+                        'programa'           => $m->programa,
+                        'grupo'              => $m->grupo,
+                        'unidad'             => $u,
+                        'documento'          => $tipo,
+                        'archivo'            => $plantilla,
+                        'entregado'          => (bool) $registro,
+                        'archivo_subido'     => $registro->archivo    ?? null,
+                        'acuse'              => $registro->acuse_pdf  ?? null,
+                        'es_actual'          => $u === $unidadActual,
+                        'editable'           => $editable,
+                        'created_at'         => $createdAtIso,
+                        'cierre_edicion_iso' => $editable ? $deadlineIso : null,
+                        'firmado'            => $firmado,
                     ];
                 }
 
-                // Documento final en última unidad
+                // Final en última unidad
                 if ($u === $totalUnidades) {
                     $tipoFinal = 'Reporte Cuatrimestral de la Evaluación Continua (SIGO)';
 
@@ -192,24 +224,40 @@ class GestionAcademicaController extends Controller
                         ['tipo_documento', $tipoFinal],
                     ])->first();
 
+                    $createdAtIso     = $registroFinal?->created_at?->toIso8601String();
+                    $deadlineIso      = null;
+                    $editable         = false;
+                    $firmado          = false;
+
+                    if ($registroFinal && $registroFinal->created_at) {
+                        $deadline  = $registroFinal->created_at->copy()->addMinutes($VENTANA_EDIT_MIN);
+                        $deadlineIso = $deadline->toIso8601String();
+                        $editable = now()->lt($deadline);
+                    }
+                    if ($registroFinal && ($registroFinal->fecha_firma || $registroFinal->firma_sig)) {
+                        $firmado = true;
+                    }
+
                     $documentos[] = [
-                        'materia'        => $m->materia,
-                        'programa'       => $m->programa,
-                        'grupo'          => $m->grupo,
-                        'unidad'         => $u,
-                        'documento'      => $tipoFinal,
-                        'archivo'        => null,
-                        'entregado'      => (bool) $registroFinal,
-                        'archivo_subido' => $registroFinal->archivo   ?? null,
-                        'acuse'          => $registroFinal->acuse_pdf ?? null,
-                        'es_actual'      => $u === $unidadActual,
-                        'editable'       => $registroFinal && $registroFinal->created_at && $registroFinal->created_at->gt(now()->subMinutes(30)),
+                        'materia'            => $m->materia,
+                        'programa'           => $m->programa,
+                        'grupo'              => $m->grupo,
+                        'unidad'             => $u,
+                        'documento'          => $tipoFinal,
+                        'archivo'            => null,
+                        'entregado'          => (bool) $registroFinal,
+                        'archivo_subido'     => $registroFinal->archivo   ?? null,
+                        'acuse'              => $registroFinal->acuse_pdf ?? null,
+                        'es_actual'          => $u === $unidadActual,
+                        'editable'           => $editable,
+                        'created_at'         => $createdAtIso,
+                        'cierre_edicion_iso' => $editable ? $deadlineIso : null,
+                        'firmado'            => $firmado,
                     ];
                 }
             }
         }
 
-        // 5) Pasamos todo a la vista
         return view('modulos.gestion_academica', compact('documentos'));
     }
 }

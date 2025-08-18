@@ -91,12 +91,6 @@ class RolesAndPermissionsSeeder extends Seeder
                 'ver usuarios',
                 'ver roles',
             ],
-            'Empleado' => [
-                'ver requisiciones',
-            ],
-            'Observador' => [
-                'ver requisiciones',
-            ],
         ];
 
         // Crear roles y asignar permisos

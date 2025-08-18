@@ -16,6 +16,8 @@
 
 @php
     use Illuminate\Support\Str;
+    // Ventana de edición en minutos (por defecto 120 si no existe el config)
+    $VENTANA_EDIT_MIN = config('academico.minutos_edicion', 120);
 @endphp
 
 <style>
@@ -50,6 +52,11 @@
     }
     .batch-sign .status { font-size: .9rem; }
     .batch-sign .missing { color: #cc0000; font-size: .85rem; margin-top: .25rem; }
+
+    /* Countdown badge */
+    .badge-info.edit-countdown { font-weight: 600; }
+    .badge-danger.edit-countdown { font-weight: 700; }
+    .countdown-muted { font-size:.85rem; color:#6c757d; }
 </style>
 
     <div class="row">
@@ -113,9 +120,33 @@
                                 {{-- ================= LISTA DE DOCUMENTOS (SOLO SUBIR) ================ --}}
                                 <div class="list-group">
                                     @foreach($docsUnidad as $doc)
-                                        <div class="list-group-item">
+                                        @php
+                                            // Determinar deadline ISO si aplica (prioriza un cierre explícito si te llega en el arreglo)
+                                            $deadlineIso = $doc['cierre_edicion_iso'] ?? null;
+                                            if (!$deadlineIso && !empty($doc['entregado']) && (!isset($doc['editable']) || $doc['editable'])) {
+                                                if (!empty($doc['created_at'])) {
+                                                    $deadlineIso = \Carbon\Carbon::parse($doc['created_at'])
+                                                                    ->addMinutes($VENTANA_EDIT_MIN)
+                                                                    ->toIso8601String();
+                                                }
+                                            }
+                                        @endphp
+                                        <div class="list-group-item" @if($deadlineIso) data-lock-after="{{ $deadlineIso }}" @endif>
                                             <div class="d-flex justify-content-between align-items-center mb-2">
-                                                <strong>{{ $doc['documento'] }}</strong>
+                                                <div class="d-flex align-items-center">
+                                                    <strong>{{ $doc['documento'] }}</strong>
+
+                                                    {{-- Badge de countdown si hay ventana vigente --}}
+                                                    @if($deadlineIso)
+                                                        <span class="badge badge-info ml-2 edit-countdown"
+                                                              data-deadline="{{ $deadlineIso }}">
+                                                            <i class="far fa-clock"></i>
+                                                            <span class="t">--:--:--</span>
+                                                        </span>
+                                                        <span class="countdown-muted ml-2">(tiempo para editar)</span>
+                                                    @endif
+                                                </div>
+
                                                 <div class="d-flex align-items-center">
                                                     @if(!$doc['entregado'] && $doc['archivo'])
                                                         <a href="{{ asset('formatos_academicos/'.$doc['archivo']) }}" class="btn btn-sm btn-outline-success">
@@ -274,6 +305,56 @@ document.addEventListener('DOMContentLoaded', function(){
             reader.readAsDataURL(file);
         });
     });
+
+    // ===== Countdown edición por documento =====
+    (function(){
+      function fmt(n){ return n < 10 ? '0'+n : ''+n; }
+
+      function renderCountdown(el){
+        const deadlineStr = el.dataset.deadline;
+        if(!deadlineStr) return;
+        const deadline = new Date(deadlineStr);
+        const now = new Date();
+
+        let diff = Math.floor((deadline - now)/1000);
+        if (isNaN(diff)) return;
+
+        const tSpan = el.querySelector('.t');
+
+        if (diff <= 0) {
+          if (tSpan) tSpan.textContent = '00:00:00';
+          el.classList.remove('badge-info');
+          el.classList.add('badge-danger');
+          el.innerHTML = '<i class="fas fa-lock"></i> Edición cerrada';
+
+          // Bloquear UI del item correspondiente
+          const item = el.closest('.list-group-item');
+          if (item) {
+            item.querySelectorAll('form input, form button, form select').forEach(x => { x.disabled = true; });
+            // Mostrar un candado si existe alguno
+            const lockIcon = item.querySelector('.fa-lock');
+            if (lockIcon) { lockIcon.classList.remove('text-muted'); lockIcon.classList.add('text-danger'); }
+          }
+          return;
+        }
+
+        const d = Math.floor(diff / 86400); diff -= d * 86400;
+        const h = Math.floor(diff / 3600);  diff -= h * 3600;
+        const m = Math.floor(diff / 60);    diff -= m * 60;
+        const s = diff;
+
+        if (tSpan) {
+          if (d > 0) tSpan.textContent = `${d}d ${fmt(h)}:${fmt(m)}:${fmt(s)}`;
+          else       tSpan.textContent = `${fmt(h)}:${fmt(m)}:${fmt(s)}`;
+        }
+      }
+
+      function tick(){
+        document.querySelectorAll('.edit-countdown').forEach(renderCountdown);
+      }
+      tick();
+      setInterval(tick, 1000);
+    })();
 });
 </script>
 @endpush
