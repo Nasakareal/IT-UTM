@@ -1,11 +1,9 @@
 {
   "ExpandedNodes": [
     "",
-    "\\resources",
-    "\\resources\\views",
-    "\\resources\\views\\layouts",
-    "\\resources\\views\\modulos"
+    "\\database",
+    "\\database\\seeders"
   ],
-  "SelectedNode": "\\resources\\views\\modulos\\gestion_academica.blade.php",
+  "SelectedNode": "\\database\\seeders\\EnsurePermissionsSeeder.php",
   "PreviewInSolutionExplorer": false
 }

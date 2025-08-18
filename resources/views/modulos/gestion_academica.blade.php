@@ -7,12 +7,18 @@
 @stop
 
 @section('content')
-    @if(session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
-    @endif
+@if($errors->any())
+  <div class="alert alert-danger">{{ $errors->first() }}</div>
+@endif
+@if(session('success'))
+    <div class="alert alert-success">{{ session('success') }}</div>
+@endif
+
+@php
+    use Illuminate\Support\Str;
+@endphp
 
 <style>
-    /* Asegura que el navbar quede por debajo del modal */
     .navbar, .navbar-fixed-top { z-index: 1000 !important; }
 
     .folder-card {
@@ -25,11 +31,9 @@
     .folder-icon { font-size: 2rem; color: #ffc107; }
     .input-label { font-size: .85rem; font-weight: 500; }
 
-    /* Asegura que el backdrop y el modal estén por encima de todo */
     .modal-backdrop { z-index: 1050 !important; }
     .modal { z-index: 1060 !important; }
 
-    /* Ajustes internos del modal */
     .modal-header.d-flex { padding-bottom: 0; }
     .modal-header.d-flex .modal-title {
         white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
@@ -39,12 +43,19 @@
     .docs-unidad { padding: 1rem; border: 1px solid #ccc; border-radius: 8px; background: #fff; margin-bottom: 1rem; }
 
     .folder-card h5 { font-size: 1rem; font-weight: 600; text-align: center; margin-bottom: 0.25rem; }
+
+    /* Bloque Firmar Todo */
+    .batch-sign {
+        background: #f1f8ff; border: 1px dashed #69a7ff; border-radius: 8px; padding: .75rem 1rem; margin-top: .75rem;
+    }
+    .batch-sign .status { font-size: .9rem; }
+    .batch-sign .missing { color: #cc0000; font-size: .85rem; margin-top: .25rem; }
 </style>
 
     <div class="row">
         @foreach(collect($documentos)->groupBy(fn($d) => $d['materia'].'|'.$d['grupo']) as $key => $docs)
             @php
-                list($materia, $grupo) = explode('|', $key);
+                [$materia, $grupo] = explode('|', $key);
                 $slug     = Str::slug($materia.'-'.$grupo);
                 $programa = $docs->first()['programa'];
             @endphp
@@ -61,7 +72,7 @@
 
     @foreach(collect($documentos)->groupBy(fn($d) => $d['materia'].'|'.$d['grupo']) as $key => $docs)
         @php
-            list($materia, $grupo) = explode('|', $key);
+            [$materia, $grupo] = explode('|', $key);
             $slug     = Str::slug($materia.'-'.$grupo);
             $unidades = $docs->pluck('unidad')->unique()->sort()->values();
             $default  = $unidades->first();
@@ -76,14 +87,12 @@
                             {{ $materia }} — Grupo {{ $grupo }} (Unidad <span class="unidad-display">{{ $default }}</span>)
                         </h5>
 
-                        {{-- En BS4 usa custom-select o form-control --}}
                         <select id="unidad_select_{{ $slug }}" class="custom-select custom-select-sm w-auto mx-3">
                             @foreach($unidades as $u)
                                 <option value="{{ $u }}" @if($u==$default) selected @endif>Unidad {{ $u }}</option>
                             @endforeach
                         </select>
 
-                        {{-- Botón cerrar en BS4 --}}
                         <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
                             <span aria-hidden="true">&times;</span>
                         </button>
@@ -91,7 +100,17 @@
 
                     <div class="modal-body">
                         @foreach($docs->groupBy('unidad') as $u => $docsUnidad)
+                            @php
+                                $totalUnidad   = $docsUnidad->count();
+                                $entregados    = $docsUnidad->where('entregado', true)->count();
+                                $faltantes     = $docsUnidad->filter(fn($d)=>!$d['entregado'])->pluck('documento')->values();
+                                $completa      = $entregados === $totalUnidad && $totalUnidad > 0;
+                                $batchId       = $slug.'_'.$u;
+                            @endphp
+
                             <div class="docs-unidad docs-unidad-{{ $u }}" @if($u!=$default) style="display:none" @endif>
+
+                                {{-- ================= LISTA DE DOCUMENTOS (SOLO SUBIR) ================ --}}
                                 <div class="list-group">
                                     @foreach($docsUnidad as $doc)
                                         <div class="list-group-item">
@@ -99,8 +118,8 @@
                                                 <strong>{{ $doc['documento'] }}</strong>
                                                 <div class="d-flex align-items-center">
                                                     @if(!$doc['entregado'] && $doc['archivo'])
-                                                        <a href="{{ asset('formatos_academicos/'.$doc['archivo']) }}" class="btn btn-sm btn-outline-success" download>
-                                                            <i class="fas fa-download"></i> Descargar Plantilla
+                                                        <a href="{{ asset('formatos_academicos/'.$doc['archivo']) }}" class="btn btn-sm btn-outline-success">
+                                                            <i class="fas fa-download"></i> Plantilla
                                                         </a>
                                                     @endif
 
@@ -112,12 +131,12 @@
 
                                                     @if($doc['acuse'])
                                                         <a href="{{ asset('storage/'.$doc['acuse']) }}" class="btn btn-sm btn-outline-secondary ml-2" target="_blank">
-                                                            <i class="fa fa-file-pdf"></i> Ver Acuse
+                                                            <i class="fa fa-file-pdf"></i> Acuse
                                                         </a>
                                                     @endif
 
                                                     @if($doc['entregado'] && (!isset($doc['editable']) || !$doc['editable']))
-                                                        <i class="fas fa-lock text-danger ml-2" title="Ya no se puede editar este documento (fuera del tiempo permitido)"></i>
+                                                        <i class="fas fa-lock text-danger ml-2" title="Ya no se puede editar este documento"></i>
                                                     @endif
                                                 </div>
                                             </div>
@@ -130,32 +149,19 @@
                                                     <input type="hidden" name="unidad"         value="{{ $u }}">
                                                     <input type="hidden" name="tipo_documento" value="{{ $doc['documento'] }}">
 
-                                                    <div class="col-md-4">
-                                                        <label class="input-label" for="archivo_{{ $slug }}_{{ $u }}">Archivo (PDF/DOC/XLS)</label>
-                                                        <input type="file" id="archivo_{{ $slug }}_{{ $u }}" name="archivo" accept=".pdf,.doc,.docx,.xls,.xlsx"
+                                                    <div class="col-md-8">
+                                                        <label class="input-label" for="archivo_{{ $slug }}_{{ $u }}_{{ Str::slug($doc['documento']) }}">Archivo (PDF/DOC/XLS)</label>
+                                                        <input type="file" id="archivo_{{ $slug }}_{{ $u }}_{{ Str::slug($doc['documento']) }}" name="archivo" accept=".pdf,.doc,.docx,.xls,.xlsx"
                                                                class="form-control form-control-sm @error('archivo') is-invalid @enderror" required>
                                                         @error('archivo')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                                     </div>
-                                                    <div class="col-md-3">
-                                                        <label class="input-label">Certificado (.p12)</label>
-                                                        <input type="file" id="certFile_{{ $slug }}_{{ $u }}" accept=".p12" class="form-control form-control-sm" required>
-                                                        <input type="hidden" name="firma_sat" id="firma_sat_{{ $slug }}_{{ $u }}">
-                                                        @error('firma_sat')<div class="text-danger">{{ $message }}</div>@enderror
-                                                    </div>
-                                                    <div class="col-md-3">
-                                                        <label class="input-label" for="efirma_pass_{{ $slug }}_{{ $u }}">Contraseña e.firma</label>
-                                                        <input type="password" id="efirma_pass_{{ $slug }}_{{ $u }}" name="efirma_pass"
-                                                               class="form-control form-control-sm @error('efirma_pass') is-invalid @enderror" required>
-                                                        @error('efirma_pass')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                                                    </div>
-                                                    <div class="col-md-2 text-right">
-                                                        <button type="submit" name="action" value="sign_upload" class="btn btn-sm btn-primary">
-                                                            <i class="fas fa-upload"></i> Firmar y Subir
-                                                        </button>
+
+                                                    <div class="col-md-4 text-right">
+                                                        {{-- SOLO SUBIR --}}
                                                         <button type="submit"
                                                                 name="action"
                                                                 value="upload_only"
-                                                                class="btn btn-sm btn-secondary ml-2"
+                                                                class="btn btn-sm btn-secondary"
                                                                 formnovalidate>
                                                             <i class="fas fa-upload"></i> Solo Subir
                                                         </button>
@@ -165,6 +171,61 @@
                                         </div>
                                     @endforeach
                                 </div>
+                                {{-- ================= FIN LISTA DOCUMENTOS ================= --}}
+
+                                {{-- =================== FIRMAR TODO (AL FINAL) =================== --}}
+                                <div class="batch-sign">
+                                    <div class="status">
+                                        <strong>Unidad {{ $u }}:</strong>
+                                        {{ $entregados }} / {{ $totalUnidad }} documentos cargados.
+                                        @if(!$completa)
+                                            <div class="missing">
+                                                Faltan por subir: {{ $faltantes->implode(', ') }}
+                                            </div>
+                                        @endif
+                                    </div>
+
+                                    <form action="{{ route('documentos.firmarLote') }}" method="POST" class="row align-items-end mt-2">
+                                        @csrf
+                                        <input type="hidden" name="materia" value="{{ $materia }}">
+                                        <input type="hidden" name="grupo"   value="{{ $grupo }}">
+                                        <input type="hidden" name="unidad"  value="{{ $u }}">
+
+                                        {{-- Tipos requeridos = todos los tipos mostrados para esta unidad --}}
+                                        @foreach($docsUnidad as $docu)
+                                            <input type="hidden" name="tipos_requeridos[]" value="{{ $docu['documento'] }}">
+                                        @endforeach
+
+                                        <div class="col-md-5">
+                                            <label class="input-label">Certificado (.p12)</label>
+                                            <input type="file"
+                                                   id="certFileBatch_{{ $slug }}_{{ $u }}"
+                                                   accept=".p12"
+                                                   class="form-control form-control-sm"
+                                                   @if($completa) required @endif>
+                                            <input type="hidden" name="firma_sat" id="firma_sat_batch_{{ $slug }}_{{ $u }}">
+                                            @error('firma_sat')<div class="text-danger">{{ $message }}</div>@enderror
+                                        </div>
+
+                                        <div class="col-md-4">
+                                            <label class="input-label" for="efirma_pass_batch_{{ $slug }}_{{ $u }}">Contraseña e.firma</label>
+                                            <input type="password"
+                                                   id="efirma_pass_batch_{{ $slug }}_{{ $u }}"
+                                                   name="efirma_pass"
+                                                   class="form-control form-control-sm"
+                                                   @if($completa) required @endif>
+                                            @error('efirma_pass')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                                        </div>
+
+                                        <div class="col-md-3 text-right">
+                                            <button type="submit" class="btn btn-sm btn-primary" @if(!$completa) disabled @endif>
+                                                <i class="fas fa-file-signature"></i> Firmar Todo
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                                {{-- ================= FIN FIRMAR TODO ================= --}}
+
                             </div>
                         @endforeach
                     </div>
@@ -181,40 +242,38 @@
 
 @push('scripts')
 <script>
-    document.addEventListener('DOMContentLoaded', function(){
-        // Mover todos los modales al body para evitar stacking contexts
-        document.querySelectorAll('.modal').forEach(function(modal){
-            document.body.appendChild(modal);
-        });
+document.addEventListener('DOMContentLoaded', function(){
+    // Mover modales al body
+    document.querySelectorAll('.modal').forEach(function(modal){
+        document.body.appendChild(modal);
+    });
 
-        // Cambiar unidad visible
-        document.querySelectorAll('[id^="unidad_select_"]').forEach(function(sel){
-            sel.addEventListener('change', function(){
-                var val = this.value;
-                var modalContent = this.closest('.modal-content');
-                modalContent.querySelector('.unidad-display').textContent = val;
-                modalContent.querySelectorAll('.docs-unidad').forEach(function(div){
-                    if (div.classList.contains('docs-unidad-' + val)) {
-                        div.style.display = 'block';
-                    } else {
-                        div.style.display = 'none';
-                    }
-                });
-            });
-        });
-
-        // Leer .p12 y guardar Base64
-        document.querySelectorAll('[id^="certFile_"]').forEach(function(input){
-            input.addEventListener('change', function(){
-                var file = this.files[0];
-                if (!file) return;
-                var reader = new FileReader();
-                reader.onload = function(evt){
-                    input.nextElementSibling.value = evt.target.result.split(',')[1];
-                };
-                reader.readAsDataURL(file);
+    // Cambiar unidad visible en modal
+    document.querySelectorAll('[id^="unidad_select_"]').forEach(function(sel){
+        sel.addEventListener('change', function(){
+            var val = this.value;
+            var modalContent = this.closest('.modal-content');
+            modalContent.querySelector('.unidad-display').textContent = val;
+            modalContent.querySelectorAll('.docs-unidad').forEach(function(div){
+                div.style.display = div.classList.contains('docs-unidad-' + val) ? 'block' : 'none';
             });
         });
     });
+
+    // Leer .p12 del bloque "Firmar Todo" y guardar Base64 en su hidden
+    document.querySelectorAll('[id^="certFileBatch_"]').forEach(function(input){
+        input.addEventListener('change', function(){
+            var file = this.files[0];
+            if (!file) return;
+            var reader = new FileReader();
+            reader.onload = function(evt){
+                var base64 = evt.target.result.split(',')[1];
+                var hidden = document.getElementById(this._targetHiddenId);
+                if (hidden) hidden.value = base64;
+            }.bind({ _targetHiddenId: this.id.replace('certFileBatch_', 'firma_sat_batch_') });
+            reader.readAsDataURL(file);
+        });
+    });
+});
 </script>
 @endpush

@@ -180,5 +180,6 @@
         </script>
         @php session()->forget('mostrar_aviso'); @endphp
     @endif
+    @stack('scripts')
 </body>
 </html>

@@ -2,6 +2,10 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\SnapshotController;
+use App\Http\Controllers\FirmaLoteController;
+
+// Tutoriales
+use App\Http\Controllers\TutorialController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -14,14 +18,14 @@ Route::delete('/revision-gestion-academica/eliminar-uno', [App\Http\Controllers\
 
 // Tutoriales
 Route::prefix('tutoriales')->middleware('auth')->group(function () {
-    Route::get('/', [App\Http\Controllers\TutorialController::class, 'index'])->middleware('can:ver tutoriales')->name('tutoriales.index');
-    Route::get('/create', [App\Http\Controllers\TutorialController::class, 'create'])->middleware('can:crear tutoriales')->name('tutoriales.create');
-    Route::post('/', [App\Http\Controllers\TutorialController::class, 'store'])->middleware('can:crear tutoriales')->name('tutoriales.store');
-    Route::get('/{tutorial}', [App\Http\Controllers\TutorialController::class, 'show'])->middleware('can:ver tutoriales')->name('tutoriales.show');
-    Route::get('/{tutorial}/edit', [App\Http\Controllers\TutorialController::class, 'edit'])->middleware('can:editar tutoriales')->name('tutoriales.edit');
-    Route::put('/{tutorial}', [App\Http\Controllers\TutorialController::class, 'update'])->middleware('can:editar tutoriales')->name('tutoriales.update');
-    Route::delete('/{tutorial}', [App\Http\Controllers\TutorialController::class, 'destroy'])->middleware('can:eliminar tutoriales')->name('tutoriales.destroy');
-    Route::post('tutoriales/sort', [App\Http\Controllers\TutorialController::class, 'sort'])->name('tutoriales.sort')->middleware('auth');
+    Route::get('/', [TutorialController::class, 'index'])->middleware('can:ver tutoriales')->name('tutoriales.index');
+    Route::get('/create', [TutorialController::class, 'create'])->middleware('can:crear tutoriales')->name('tutoriales.create');
+    Route::post('/', [TutorialController::class, 'store'])->middleware('can:crear tutoriales')->name('tutoriales.store');
+    Route::get('/{tutorial}', [TutorialController::class, 'show'])->middleware('can:ver tutoriales')->name('tutoriales.show');
+    Route::get('/{tutorial}/edit', [TutorialController::class, 'edit'])->middleware('can:editar tutoriales')->name('tutoriales.edit');
+    Route::put('/{tutorial}', [TutorialController::class, 'update'])->middleware('can:editar tutoriales')->name('tutoriales.update');
+    Route::delete('/{tutorial}', [TutorialController::class, 'destroy'])->middleware('can:eliminar tutoriales')->name('tutoriales.destroy');
+    Route::post('tutoriales/sort', [TutorialController::class, 'sort'])->name('tutoriales.sort')->middleware('auth');
 });
 
 
@@ -38,6 +42,8 @@ Route::post('/submodulos/sort', [App\Http\Controllers\SubmoduloController::class
 Route::post('/secciones/sort', [App\Http\Controllers\SeccionController::class, 'sort'])->name('secciones.sort');
 Route::post('documentos/subir',  [DocumentoSubidoController::class,'store'])->name('documentos.subir');
 Route::post('documentos/firmar', [DocumentoSubidoController::class,'sign'])->name('documentos.firmar');
+Route::post('/documentos/firmar-lote', [FirmaLoteController::class, 'firmarLote'])->middleware(['auth','password.changed'])->name('documentos.firmarLote');
+Route::get('/firma-lotes/{lote}/acuse', [FirmaLoteController::class, 'verAcuse'])->middleware(['auth','password.changed'])->name('firmaLotes.verAcuse');
 
 
 Route::get('/login', [App\Http\Controllers\AuthController::class, 'loginForm'])->name('login');

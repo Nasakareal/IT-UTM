@@ -69,10 +69,14 @@ class DocumentoSubidoController extends Controller
                     'tipo_documento' => $request->tipo_documento,
                 ],
                 [
-                    'archivo'     => $relPath,
-                    'firma_sat'   => null,
-                    'fecha_firma' => null,
-                    'acuse_pdf'   => null,
+                    'archivo'      => $relPath,
+                    'firma_sat'    => null,
+                    'fecha_firma'  => null,
+                    'acuse_pdf'    => null,
+                    // === NUEVO: columnas añadidas ===
+                    'hash_sha256'  => null,
+                    'firma_sig'    => null,
+                    'lote_id'      => null,
                 ]
             );
 
@@ -95,8 +99,8 @@ class DocumentoSubidoController extends Controller
         }
 
         $info      = openssl_x509_parse($certs['cert']);
-        $certName  = $info['subject']['CN']          ?? $certName;
-        $certRFC   = $info['subject']['serialNumber']?? $certRFC;
+        $certName  = $info['subject']['CN']           ?? $certName;
+        $certRFC   = $info['subject']['serialNumber'] ?? $certRFC;
 
         /* 5.2  Registrar/actualizar en BD (incluye GRUPO) ------------------ */
         $registro = DocumentoSubido::updateOrCreate(
@@ -109,8 +113,12 @@ class DocumentoSubidoController extends Controller
             ],
             [
                 'archivo'     => $relPath,
-                'firma_sat'   => $request->firma_sat,
+                'firma_sat'   => $request->firma_sat, // OJO: aquí sigues guardando el .p12 base64 como antes
                 'fecha_firma' => now(),
+                // === NUEVO: inicializamos a null, se rellenan al final con el hash definitivo ===
+                'hash_sha256' => null,
+                'firma_sig'   => null,  // en firma individual no generamos .sig
+                'lote_id'     => null,  // no pertenece a lote
             ]
         );
 
@@ -284,7 +292,13 @@ class DocumentoSubidoController extends Controller
         $acuseRel = 'acuses/acuse_' . $registro->id . '.pdf';
         Storage::disk('public')->put($acuseRel, $pdf->output());
 
-        $registro->update(['acuse_pdf' => $acuseRel]);
+        // === NUEVO: guardar hash final y limpiar campos de lote ===
+        $registro->update([
+            'acuse_pdf'   => $acuseRel,
+            'hash_sha256' => $hashFinal,
+            'firma_sig'   => null,   // individual no genera .sig
+            'lote_id'     => null,   // no pertenece a lote
+        ]);
 
         return back()->with('success', 'Documento subido, firmado e integrado correctamente.');
     }

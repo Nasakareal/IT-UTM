@@ -134,11 +134,13 @@
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h2 class="mb-0" @if(auth()->check() && auth()->user()->hasRole('Administrador')) style="cursor: move;" @endif>{{ $seccion->nombre }}</h2>
                 @if($seccion->nombre === 'Académico')
-                    <div class="mb-3 text-end">
-                        <a href="{{ route('revision.gestion.academica') }}" class="btn btn-primary btn-sm">
-                            <i class="fas fa-eye"></i> Revisión de Gestión Académica
-                        </a>
-                    </div>
+                   @can('ver revisiones')
+                        <div class="mb-3 text-end">
+                            <a href="{{ route('revision.gestion.academica') }}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-eye"></i> Revisión de Gestión Académica
+                            </a>
+                        </div>
+                    @endcan
                 @endif
 
                 @if(auth()->check() && auth()->user()->hasRole('Administrador'))
