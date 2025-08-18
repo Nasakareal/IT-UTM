@@ -30,8 +30,8 @@ class FirmaLoteController extends Controller
 
         $user = Auth::user();
 
-        // 1) Validar que estén todos los tipos requeridos subidos
-        $docs = DocumentoSubido::where('user_id', $user->id)
+        // 1) Validar que estén todos los tipos requeridos subidos (no firmados necesariamente)
+        $docsUnidad = DocumentoSubido::where('user_id', $user->id)
             ->where('materia', $data['materia'])
             ->where('grupo',   $data['grupo'])
             ->where('unidad',  $data['unidad'])
@@ -41,7 +41,7 @@ class FirmaLoteController extends Controller
 
         $faltantes = [];
         foreach ($data['tipos_requeridos'] as $tipo) {
-            if (!isset($docs[$tipo])) $faltantes[] = $tipo;
+            if (!isset($docsUnidad[$tipo])) $faltantes[] = $tipo;
         }
         if (!empty($faltantes)) {
             Log::warning('[firmarLote] faltan docs', ['faltantes' => $faltantes]);
@@ -55,16 +55,16 @@ class FirmaLoteController extends Controller
                 return $this->fail('El archivo .p12 (firma_sat) no es base64 válido.', 422, $request);
             }
             Log::info('[firmarLote] p12 bytes', ['len' => strlen((string)$p12raw)]);
-            $certInfo = $this->loadP12($p12raw, $data['efirma_pass']); // [pkey, cn, rfc]
+            $certInfo = $this->loadP12($p12raw, $data['efirma_pass']);
             Log::info('[firmarLote] cert', ['cn' => $certInfo['cn'], 'rfc' => $certInfo['rfc']]);
         } catch (\Throwable $e) {
             Log::error('[firmarLote] loadP12 failed: '.$e->getMessage());
             return $this->fail('No se pudo leer el .p12: '.$e->getMessage(), 422, $request);
         }
 
-        // 3) Transacción: firmar cada archivo y crear lote
-        $items   = [];
-        $skipped = [];
+        // 3) Transacción: firmar cada archivo que aún no esté firmado y crear lote
+        $firmadosAhora = [];
+        $skipped       = []; // ya firmados
         DB::beginTransaction();
         try {
             $lote = FirmaLote::create([
@@ -80,11 +80,16 @@ class FirmaLoteController extends Controller
             ]);
 
             foreach ($data['tipos_requeridos'] as $tipo) {
-                $doc = $docs[$tipo];
+                /** @var DocumentoSubido $doc */
+                $doc = $docsUnidad[$tipo];
 
-                // Si ya estaba firmado, lo omitimos
                 if ($doc->fecha_firma) {
+                    // Ya estaba firmado
                     $skipped[] = $tipo;
+                    if (!$doc->lote_id) {
+                        $doc->lote_id = $lote->id;
+                        $doc->save();
+                    }
                     continue;
                 }
 
@@ -113,21 +118,13 @@ class FirmaLoteController extends Controller
                 $doc->lote_id     = $lote->id;
                 $doc->save();
 
-                $items[] = [
-                    'id'     => $doc->id,
-                    'tipo'   => $doc->tipo_documento,
-                    'nombre' => basename($doc->archivo),
-                    'ruta'   => $doc->archivo,
-                    'hash'   => $hash,
-                    'bytes'  => @filesize($abs) ?: 0,
-                    'sig'    => $sigRel,
-                ];
+                $firmadosAhora[] = $tipo;
             }
 
             DB::commit();
             Log::info('[firmarLote] TX committed', [
                 'lote_id'  => $lote->id,
-                'firmados' => count($items),
+                'firmados_ahora' => $firmadosAhora,
                 'omitidos' => $skipped
             ]);
 
@@ -137,7 +134,72 @@ class FirmaLoteController extends Controller
             return $this->fail('No se pudo firmar el lote: '.$e->getMessage(), 500, $request);
         }
 
-        // 4) ACUSE CONSOLIDADO (Blade) — pdf/acuse_lote.blade.php
+        // 4) Preparar ITEMS para el ACUSE GENERAL (todos los requeridos de la unidad)
+        $itemsParaPdf = [];
+        foreach ($data['tipos_requeridos'] as $tipo) {
+            /** @var DocumentoSubido $doc */
+            $doc = DocumentoSubido::where('user_id', $user->id)
+                ->where('materia', $data['materia'])
+                ->where('grupo',   $data['grupo'])
+                ->where('unidad',  $data['unidad'])
+                ->where('tipo_documento', $tipo)
+                ->first();
+
+            if (!$doc) {
+                $itemsParaPdf[] = [
+                    'tipo'        => $tipo,
+                    'nombre'      => '—',
+                    'ruta'        => null,
+                    'bytes'       => 0,
+                    'hash'        => null,
+                    'estado'      => 'FALTANTE',
+                    'fecha_firma' => null,
+                    'firma_sig'   => null,
+                ];
+                continue;
+            }
+
+            $bytes = 0;
+            if ($doc->archivo && Storage::disk('public')->exists($doc->archivo)) {
+                $abs   = Storage::disk('public')->path($doc->archivo);
+                $bytes = @filesize($abs) ?: 0;
+            }
+
+            $itemsParaPdf[] = [
+                'tipo'        => $doc->tipo_documento,
+                'nombre'      => basename($doc->archivo),
+                'ruta'        => $doc->archivo,
+                'bytes'       => $bytes,
+                'hash'        => $doc->hash_sha256,
+                'estado'      => $doc->fecha_firma ? 'FIRMADO' : 'SUBIDO',
+                'fecha_firma' => optional($doc->fecha_firma)->format('Y-m-d H:i:s'),
+                'firma_sig'   => $doc->firma_sig,
+                'doc_id'      => $doc->id,
+            ];
+        }
+
+        // 4.1) Programa educativo para footer dinámico
+        $programa = DB::connection('cargahoraria')
+            ->table('teacher_subjects as ts')
+            ->join('subjects as s',  'ts.subject_id', '=', 's.subject_id')
+            ->join('groups   as g',  'ts.group_id',   '=', 'g.group_id')
+            ->join('programs as p',  's.program_id',  '=', 'p.program_id')
+            ->where('ts.teacher_id', $user->teacher_id)
+            ->where('s.subject_name', $data['materia'])
+            ->where('g.group_name',   $data['grupo'])
+            ->value('p.program_name') ?? '';
+
+        // 4.2) Hash único del paquete (hashArchivo)
+        $manifiesto = [];
+        foreach ($itemsParaPdf as $it) {
+            $manifiesto[] = ($it['tipo'] ?? '')
+                .'|'.(($it['nombre'] ?? ''))
+                .'|'.((string)($it['bytes'] ?? 0))
+                .'|'.((string)($it['hash']  ?? ''));
+        }
+        $hashArchivo = $manifiesto ? hash('sha256', implode("\n", $manifiesto)) : '';
+
+        // 5) ACUSE GENERAL ÚNICO (Blade)
         $acuseRel = null;
         try {
             if (!Storage::disk('public')->exists('acuses_lote')) {
@@ -145,16 +207,29 @@ class FirmaLoteController extends Controller
             }
 
             $pdfLote = Pdf::loadView('pdf.acuse_lote', [
-                'tituloAcuse' => 'Acuse de firma en lote',
+                'tituloAcuse' => 'Acuse de recepción y firma de documentación (Unidad)',
                 'loteId'      => $lote->id,
                 'materia'     => $data['materia'],
                 'grupo'       => $data['grupo'],
                 'unidad'      => (int)$data['unidad'],
-                'usuario'     => $user->name ?? ('Usuario '.$user->id),
+
+                // Nombre REAL del maestro (evita "Usuario X")
+                'usuario'     => $user->nombres ?? $user->name ?? ('Usuario '.$user->id),
+
                 'rfc'         => $certInfo['rfc'],
                 'certCN'      => $certInfo['cn'],
                 'fecha'       => $lote->firmado_at,
-                'items'       => $items,
+
+                'items'       => $itemsParaPdf,      // la lista completa de la unidad
+                'programa'    => $programa,          // << para el footer dinámico
+                'hashArchivo' => $hashArchivo,       // << hash único del paquete
+
+                // (opcional) resumen, por si aún lo usas en otro template
+                'resumen'     => [
+                    'total_requeridos' => count($data['tipos_requeridos']),
+                    'firmados_ahora'   => count($firmadosAhora),
+                    'ya_firmados'      => count($skipped),
+                ],
             ])->setPaper('letter');
 
             $acuseRel = 'acuses_lote/acuse_lote_'.$lote->id.'.pdf';
@@ -165,51 +240,6 @@ class FirmaLoteController extends Controller
             Log::info('[firmarLote] PDF lote generado', ['lote_id' => $lote->id, 'acuse' => $acuseRel]);
         } catch (\Throwable $e) {
             Log::error('[firmarLote] PDF lote failed: '.$e->getMessage());
-        }
-
-        // 5) ACUSES INDIVIDUALES (reusa pdf/acuse_individual.blade.php)
-        try {
-            if (!Storage::disk('public')->exists('acuses')) {
-                Storage::disk('public')->makeDirectory('acuses');
-            }
-
-            // Programa educativo (una sola consulta)
-            $programa = DB::connection('cargahoraria')
-                ->table('teacher_subjects as ts')
-                ->join('subjects as s',  'ts.subject_id', '=', 's.subject_id')
-                ->join('groups   as g',  'ts.group_id',   '=', 'g.group_id')
-                ->join('programs as p',  's.program_id',  '=', 'p.program_id')
-                ->where('ts.teacher_id', Auth::user()->teacher_id)
-                ->where('s.subject_name', $data['materia'])
-                ->where('g.group_name',   $data['grupo'])
-                ->value('p.program_name') ?? 'Programa desconocido';
-
-            foreach ($items as $it) {
-                $doc = DocumentoSubido::find($it['id']);
-                if (!$doc) continue;
-
-                $pdfInd = Pdf::loadView('pdf.acuse_individual', [
-                    'tituloAcuse' => 'Acuse de recepción de documentación',
-                    'materia'     => $data['materia'],
-                    'grupo'       => $data['grupo'],
-                    'unidad'      => $data['unidad'],
-                    'tipo'        => $it['tipo'],
-                    'usuario'     => $user->name ?? ('Usuario '.$user->id),
-                    'rfc'         => $certInfo['rfc'],
-                    'fecha_firma' => optional($doc->fecha_firma)->format('Y-m-d H:i:s'),
-                    'hashArchivo' => $it['hash'],
-                    'programa'    => $programa,
-                ])->setPaper('letter');
-
-                $acuseDocRel = 'acuses/acuse_doc_'.$doc->id.'.pdf';
-                Storage::disk('public')->put($acuseDocRel, $pdfInd->output());
-
-                $doc->update(['acuse_pdf' => $acuseDocRel]);
-            }
-
-            Log::info('[firmarLote] PDFs individuales generados', ['count' => count($items)]);
-        } catch (\Throwable $e) {
-            Log::error('[firmarLote] PDF individual failed: '.$e->getMessage());
         }
 
         // 6) Responder
@@ -229,7 +259,7 @@ class FirmaLoteController extends Controller
             'materia'     => $data['materia'],
             'grupo'       => $data['grupo'],
             'unidad'      => (int)$data['unidad'],
-            'firmados'    => count($items),
+            'firmados'    => count($firmadosAhora),
             'omitidos'    => $skipped,
             'cert'        => ['CN' => $certInfo['cn'], 'RFC' => $certInfo['rfc']],
         ];

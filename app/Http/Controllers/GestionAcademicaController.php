@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use App\Models\DocumentoSubido;
+use App\Models\FirmaLote; // <-- para traer acuse general por unidad
 
 class GestionAcademicaController extends Controller
 {
@@ -112,6 +113,9 @@ class GestionAcademicaController extends Controller
         $documentos         = [];
         $VENTANA_EDIT_MIN   = config('academico.minutos_edicion', 120);
 
+        // Cache local de lotes por unidad para evitar consultas repetidas
+        $lotesCache = []; // clave: "materia|grupo|unidad" => FirmaLote|null
+
         // 4) Entradas por materia y unidad
         foreach ($materias as $m) {
             $totalUnidades = (int)$m->unidades;
@@ -119,6 +123,21 @@ class GestionAcademicaController extends Controller
             $unidadActual  = min($totalUnidades, (int) ceil($diasTranscurridos / max(1, $diasPorUnidad)));
 
             for ($u = 1; $u <= $totalUnidades; $u++) {
+
+                // Lote (acuse general) de esta unidad (si existe)
+                $keyLote = $m->materia.'|'.$m->grupo.'|'.$u;
+                if (!array_key_exists($keyLote, $lotesCache)) {
+                    $lotesCache[$keyLote] = FirmaLote::where('user_id', $user->id)
+                        ->where('materia', $m->materia)
+                        ->where('grupo',   $m->grupo)
+                        ->where('unidad',  $u)
+                        ->orderByDesc('firmado_at')
+                        ->orderByDesc('id')
+                        ->first();
+                }
+                $lote     = $lotesCache[$keyLote];
+                $loteId   = $lote->id         ?? null;
+                $acuseU   = $lote->acuse_lote ?? null;
 
                 // Especiales (unidad 1)
                 if ($u === 1) {
@@ -160,7 +179,9 @@ class GestionAcademicaController extends Controller
                             'archivo'            => $plantilla,
                             'entregado'          => (bool) $registro,
                             'archivo_subido'     => $registro->archivo    ?? null,
-                            'acuse'              => $registro->acuse_pdf  ?? null,
+                            'acuse'              => $registro->acuse_pdf  ?? null, // ya no se muestra en la vista
+                            'acuse_lote'         => $acuseU,               // acuse general por unidad
+                            'lote_id'            => $loteId,
                             'es_actual'          => $unidadActual === 1,
                             'editable'           => $editable,
                             'created_at'         => $createdAtIso,
@@ -203,7 +224,9 @@ class GestionAcademicaController extends Controller
                         'archivo'            => $plantilla,
                         'entregado'          => (bool) $registro,
                         'archivo_subido'     => $registro->archivo    ?? null,
-                        'acuse'              => $registro->acuse_pdf  ?? null,
+                        'acuse'              => $registro->acuse_pdf  ?? null, // ya no se muestra en la vista
+                        'acuse_lote'         => $acuseU,
+                        'lote_id'            => $loteId,
                         'es_actual'          => $u === $unidadActual,
                         'editable'           => $editable,
                         'created_at'         => $createdAtIso,
@@ -248,6 +271,8 @@ class GestionAcademicaController extends Controller
                         'entregado'          => (bool) $registroFinal,
                         'archivo_subido'     => $registroFinal->archivo   ?? null,
                         'acuse'              => $registroFinal->acuse_pdf ?? null,
+                        'acuse_lote'         => $acuseU,
+                        'lote_id'            => $loteId,
                         'es_actual'          => $u === $unidadActual,
                         'editable'           => $editable,
                         'created_at'         => $createdAtIso,

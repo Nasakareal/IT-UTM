@@ -6,7 +6,8 @@
     "\\app\\Http\\Controllers",
     "\\resources",
     "\\resources\\views",
-    "\\resources\\views\\modulos"
+    "\\resources\\views\\revision_academica"
   ],
+  "SelectedNode": "\\resources\\views\\revision_academica\\solo_gestion.blade.php",
   "PreviewInSolutionExplorer": false
 }

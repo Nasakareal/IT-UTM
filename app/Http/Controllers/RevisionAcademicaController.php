@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use App\Models\SubmoduloUsuario;
 use App\Models\DocumentoSubido;
-use App\Models\CalificacionDocumento;   // ← nuevo import
+use App\Models\CalificacionDocumento;
 
 class RevisionAcademicaController extends Controller
 {
@@ -97,16 +97,20 @@ class RevisionAcademicaController extends Controller
     /* ------------------------------------------------------------------ */
     public function soloGestion(Request $request)
     {
-        $usuario         = auth()->user();
-        $areaSubdirector = $usuario->area;
+        $usuario = auth()->user();
+
+        // Áreas del subdirector (puede venir separadas por coma)
+        $areas = collect(explode(',', (string)($usuario->area ?? '')))
+            ->map(fn($a) => trim($a))
+            ->filter()
+            ->values();
 
         /* 2.1) Profesores del área */
         $teacherIds = DB::connection('cargahoraria')
             ->table('teacher_subjects as ts')
             ->join('subjects as s',  'ts.subject_id', '=', 's.subject_id')
             ->join('programs as p',  's.program_id',  '=', 'p.program_id')
-            ->where(fn ($q) => collect(explode(',', $areaSubdirector))
-                ->each(fn ($area) => $q->orWhere('p.area', trim($area))))
+            ->whereIn('p.area', $areas)
             ->pluck('ts.teacher_id')
             ->unique();
 
@@ -122,6 +126,18 @@ class RevisionAcademicaController extends Controller
 
         $profesorSeleccionado = $profesores->firstWhere('id', $profesorId);
         $documentos           = [];
+
+        // Grupos disponibles por ÁREA (cuando no hay profesor seleccionado)
+        $gruposArea = DB::connection('cargahoraria')
+            ->table('teacher_subjects as ts')
+            ->join('subjects as s',  'ts.subject_id', '=', 's.subject_id')
+            ->join('programs as p',  's.program_id',  '=', 'p.program_id')
+            ->join('groups as g',    'ts.group_id',   '=', 'g.group_id')
+            ->whereIn('p.area', $areas)
+            ->pluck('g.group_name')
+            ->unique()
+            ->sort()
+            ->values();
 
         /* 2.3) Si hay profesor seleccionado, armar lista */
         if ($profesorSeleccionado) {
@@ -139,6 +155,7 @@ class RevisionAcademicaController extends Controller
                     'g.group_name as grupo'
                 )
                 ->where('ts.teacher_id', $profesorSeleccionado->teacher_id)
+                ->whereIn('p.area', $areas)
                 ->groupBy('s.subject_name', 's.unidades', 'p.program_name', 'g.group_name')
                 ->when($materiaFiltro, fn ($q) => $q->where('s.subject_name', $materiaFiltro))
                 ->when($grupoFiltro,   fn ($q) => $q->where('g.group_name',   $grupoFiltro))
@@ -168,7 +185,7 @@ class RevisionAcademicaController extends Controller
 
             /* Recorrer materias y unidades */
             foreach ($materias as $m) {
-                $totalUnidades = $m->unidades;
+                $totalUnidades = (int) $m->unidades;
                 $diasPorUnidad = $totalUnidades ? ceil($totalDias / $totalUnidades) : 0;
                 $unidadActual  = $diasPorUnidad ? min($totalUnidades, ceil($diasTranscurridos / $diasPorUnidad)) : 1;
 
@@ -183,7 +200,7 @@ class RevisionAcademicaController extends Controller
                         ];
 
                         foreach ($especiales as $tipo => $plantilla) {
-                            if ($unidadFiltro && $unidadFiltro != 1) continue;
+                            if ($unidadFiltro && (int)$unidadFiltro !== 1) continue;
 
                             $registro = DocumentoSubido::where([
                                 ['user_id',        $profesorSeleccionado->id],
@@ -199,7 +216,6 @@ class RevisionAcademicaController extends Controller
                                     ->value('calificacion')
                                 : null;
 
-                            // === META DE FIRMA ===
                             $firmado   = $registro && !is_null($registro->fecha_firma);
                             $modoFirma = $firmado ? ($registro->lote_id || $registro->firma_sig ? 'lote' : 'individual') : null;
                             $acusePdf  = $registro->acuse_pdf ?? null;
@@ -217,10 +233,8 @@ class RevisionAcademicaController extends Controller
                                 'id'              => $registro->id ?? null,
                                 'mi_calificacion' => $calificacion,
                                 'es_actual'       => ($u === $unidadActual),
-
-                                // === NUEVO ===
                                 'firmado'         => $firmado,
-                                'modo_firma'      => $modoFirma,   // 'lote' | 'individual' | null
+                                'modo_firma'      => $modoFirma,
                                 'acuse_pdf'       => $acusePdf,
                             ];
                         }
@@ -228,7 +242,7 @@ class RevisionAcademicaController extends Controller
 
                     /* 5B) Documentos estándar */
                     foreach ($tiposEstandar as $tipo => $plantilla) {
-                        if ($unidadFiltro && $unidadFiltro != $u) continue;
+                        if ($unidadFiltro && (int)$unidadFiltro !== $u) continue;
 
                         $registro = DocumentoSubido::where([
                             ['user_id',        $profesorSeleccionado->id],
@@ -244,9 +258,8 @@ class RevisionAcademicaController extends Controller
                                 ->value('calificacion')
                             : null;
 
-                        // === META DE FIRMA ===
                         $firmado   = $registro && !is_null($registro->fecha_firma);
-                        $modoFirma = $firmado ? ($registro->lote_id || $registro->firma_sig ? 'lote' : 'individual') : null;
+                        $modo_firma = $firmado ? ($registro->lote_id || $registro->firma_sig ? 'lote' : 'individual') : null;
                         $acusePdf  = $registro->acuse_pdf ?? null;
 
                         $documentos[] = [
@@ -262,10 +275,8 @@ class RevisionAcademicaController extends Controller
                             'id'              => $registro->id ?? null,
                             'mi_calificacion' => $calificacion,
                             'es_actual'       => ($u === $unidadActual),
-
-                            // === NUEVO ===
                             'firmado'         => $firmado,
-                            'modo_firma'      => $modoFirma,
+                            'modo_firma'      => $modo_firma,
                             'acuse_pdf'       => $acusePdf,
                         ];
                     }
@@ -273,7 +284,7 @@ class RevisionAcademicaController extends Controller
                     /* 5C) Documento final */
                     if ($u === $totalUnidades) {
                         $tipoFinal = 'Reporte Cuatrimestral de la Evaluación Continua (SIGO)';
-                        if ($unidadFiltro && $unidadFiltro != $u) continue;
+                        if ($unidadFiltro && (int)$unidadFiltro !== $u) continue;
 
                         $registroFinal = DocumentoSubido::where([
                             ['user_id',        $profesorSeleccionado->id],
@@ -289,9 +300,8 @@ class RevisionAcademicaController extends Controller
                                 ->value('calificacion')
                             : null;
 
-                        // === META DE FIRMA ===
                         $firmado   = $registroFinal && !is_null($registroFinal->fecha_firma);
-                        $modoFirma = $firmado ? ($registroFinal->lote_id || $registroFinal->firma_sig ? 'lote' : 'individual') : null;
+                        $modo_firma = $firmado ? ($registroFinal->lote_id || $registroFinal->firma_sig ? 'lote' : 'individual') : null;
                         $acusePdf  = $registroFinal->acuse_pdf ?? null;
 
                         $documentos[] = [
@@ -300,17 +310,15 @@ class RevisionAcademicaController extends Controller
                             'grupo'           => $m->grupo,
                             'unidad'          => $u,
                             'tipo_documento'  => $tipoFinal,
-                            'created_at'      => $registroFinal->created_at ?? null, // ← corregido
+                            'created_at'      => $registroFinal->created_at ?? null,
                             'plantilla'       => null,
                             'entregado'       => (bool) $registroFinal,
                             'archivo_subido'  => $registroFinal->archivo ?? null,
                             'id'              => $registroFinal->id ?? null,
                             'mi_calificacion' => $califFinal,
                             'es_actual'       => ($u === $unidadActual),
-
-                            // === NUEVO ===
                             'firmado'         => $firmado,
-                            'modo_firma'      => $modoFirma,
+                            'modo_firma'      => $modo_firma,
                             'acuse_pdf'       => $acusePdf,
                         ];
                     }
@@ -321,7 +329,11 @@ class RevisionAcademicaController extends Controller
         /* 2.4) Opciones de filtros */
         $materiasDisponibles = collect($documentos)->pluck('materia')->unique()->sort()->values();
         $unidadesDisponibles = collect($documentos)->pluck('unidad')->unique()->sort()->values();
-        $gruposDisponibles   = collect($documentos)->pluck('grupo')->unique()->sort()->values();
+
+        // Si hay profesor seleccionado, grupos desde sus documentos; si no, grupos por ÁREA
+        $gruposDisponibles = $profesorSeleccionado
+            ? collect($documentos)->pluck('grupo')->unique()->sort()->values()
+            : $gruposArea;
 
         return view('revision_academica.solo_gestion', [
             'profesores'           => $profesores,
@@ -332,6 +344,7 @@ class RevisionAcademicaController extends Controller
             'gruposDisponibles'    => $gruposDisponibles,
         ]);
     }
+
 
     /* ------------------------------------------------------------------ */
     /* 3) ELIMINAR ARCHIVO – SIN CAMBIOS                                  */

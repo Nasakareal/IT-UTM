@@ -11,7 +11,25 @@
   <div class="alert alert-danger">{{ $errors->first() }}</div>
 @endif
 @if(session('success'))
-    <div class="alert alert-success">{{ session('success') }}</div>
+  <div class="alert alert-success">{{ session('success') }}</div>
+@endif
+
+{{-- Mostrar enlace directo al acuse general cuando regresa de firmar --}}
+@if(session('firma_lote'))
+  @php $fl = session('firma_lote'); @endphp
+  <div class="alert alert-info d-flex justify-content-between align-items-center">
+      <div>
+          <strong>Lote #{{ $fl['lote_id'] ?? '—' }} firmado.</strong>
+          @if(!empty($fl['materia'])) — {{ $fl['materia'] }} @endif
+          @if(!empty($fl['grupo'])) / Grupo {{ $fl['grupo'] }} @endif
+          @if(!empty($fl['unidad'])) / Unidad {{ $fl['unidad'] }} @endif
+      </div>
+      @if(!empty($fl['acuse_lote']))
+        <a href="{{ asset('storage/'.$fl['acuse_lote']) }}" target="_blank" class="btn btn-sm btn-outline-primary">
+            <i class="fa fa-file-pdf"></i> Ver acuse general
+        </a>
+      @endif
+  </div>
 @endif
 
 @php
@@ -112,6 +130,11 @@
                                 $entregados    = $docsUnidad->where('entregado', true)->count();
                                 $faltantes     = $docsUnidad->filter(fn($d)=>!$d['entregado'])->pluck('documento')->values();
                                 $completa      = $entregados === $totalUnidad && $totalUnidad > 0;
+
+                                // Tomamos una sola referencia del acuse general / lote_id por unidad
+                                $acuseLote     = $docsUnidad->first()['acuse_lote'] ?? null;
+                                $loteId        = $docsUnidad->first()['lote_id']     ?? null;
+
                                 $batchId       = $slug.'_'.$u;
                             @endphp
 
@@ -144,6 +167,12 @@
                                                             <span class="t">--:--:--</span>
                                                         </span>
                                                         <span class="countdown-muted ml-2">(tiempo para editar)</span>
+                                                    @endif>
+
+                                                    @if(!empty($doc['firmado']))
+                                                        <span class="badge badge-success ml-2">
+                                                            <i class="fa fa-check"></i> Firmado
+                                                        </span>
                                                     @endif
                                                 </div>
 
@@ -160,11 +189,8 @@
                                                         </a>
                                                     @endif
 
-                                                    @if($doc['acuse'])
-                                                        <a href="{{ asset('storage/'.$doc['acuse']) }}" class="btn btn-sm btn-outline-secondary ml-2" target="_blank">
-                                                            <i class="fa fa-file-pdf"></i> Acuse
-                                                        </a>
-                                                    @endif
+                                                    {{-- Ya NO mostramos acuse individual por documento --}}
+                                                    {{-- @if($doc['acuse']) ... @endif --}}
 
                                                     @if($doc['entregado'] && (!isset($doc['editable']) || !$doc['editable']))
                                                         <i class="fas fa-lock text-danger ml-2" title="Ya no se puede editar este documento"></i>
@@ -214,6 +240,21 @@
                                                 Faltan por subir: {{ $faltantes->implode(', ') }}
                                             </div>
                                         @endif
+                                        @if($acuseLote)
+                                            <div class="mt-1">
+                                                <span class="badge badge-primary">
+                                                    <i class="fa fa-file-pdf"></i> Acuse general listo (Lote #{{ $loteId ?? '—' }})
+                                                </span>
+                                            </div>
+                                        @endif
+                                    </div>
+
+                                    <div class="d-flex align-items-center mt-2">
+                                        @if($acuseLote)
+                                            <a href="{{ asset('storage/'.$acuseLote) }}" target="_blank" class="btn btn-sm btn-outline-primary mr-2">
+                                                <i class="fa fa-file-pdf"></i> Ver acuse general
+                                            </a>
+                                        @endif
                                     </div>
 
                                     <form action="{{ route('documentos.firmarLote') }}" method="POST" class="row align-items-end mt-2">
@@ -233,7 +274,7 @@
                                                    id="certFileBatch_{{ $slug }}_{{ $u }}"
                                                    accept=".p12"
                                                    class="form-control form-control-sm"
-                                                   @if($completa) required @endif>
+                                                   @if($completa && !$acuseLote) required @endif>
                                             <input type="hidden" name="firma_sat" id="firma_sat_batch_{{ $slug }}_{{ $u }}">
                                             @error('firma_sat')<div class="text-danger">{{ $message }}</div>@enderror
                                         </div>
@@ -244,14 +285,20 @@
                                                    id="efirma_pass_batch_{{ $slug }}_{{ $u }}"
                                                    name="efirma_pass"
                                                    class="form-control form-control-sm"
-                                                   @if($completa) required @endif>
+                                                   @if($completa && !$acuseLote) required @endif>
                                             @error('efirma_pass')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                                         </div>
 
                                         <div class="col-md-3 text-right">
-                                            <button type="submit" class="btn btn-sm btn-primary" @if(!$completa) disabled @endif>
+                                            <button type="submit" class="btn btn-sm btn-primary"
+                                                @if(!$completa || $acuseLote) disabled @endif>
                                                 <i class="fas fa-file-signature"></i> Firmar Todo
                                             </button>
+                                            @if($acuseLote)
+                                                <div class="text-muted mt-1" style="font-size:.85rem;">
+                                                    Ya existe acuse general para esta unidad.
+                                                </div>
+                                            @endif
                                         </div>
                                     </form>
                                 </div>
@@ -331,7 +378,6 @@ document.addEventListener('DOMContentLoaded', function(){
           const item = el.closest('.list-group-item');
           if (item) {
             item.querySelectorAll('form input, form button, form select').forEach(x => { x.disabled = true; });
-            // Mostrar un candado si existe alguno
             const lockIcon = item.querySelector('.fa-lock');
             if (lockIcon) { lockIcon.classList.remove('text-muted'); lockIcon.classList.add('text-danger'); }
           }
