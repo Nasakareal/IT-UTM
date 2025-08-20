@@ -8,6 +8,6 @@
     "\\resources\\views",
     "\\resources\\views\\revision_academica"
   ],
-  "SelectedNode": "\\resources\\views\\revision_academica\\solo_gestion.blade.php",
+  "SelectedNode": "\\app\\Http\\Controllers\\RevisionAcademicaController.php",
   "PreviewInSolutionExplorer": false
 }
