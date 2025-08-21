@@ -149,14 +149,15 @@
                                             </button>
                                         </form>
 
-                                        {{-- Calificar --}}
+                                        {{-- Calificar: solo si existe documento subido --}}
+                                        @if(!empty($doc['id']))
                                         <form action="{{ route('revision.gestion.academica.calificar') }}" method="POST" style="display:inline-block; margin-top:5px;">
                                             @csrf
-                                            <input type="hidden" name="documento_id" value="{{ $doc['id'] ?? null }}">
+                                            <input type="hidden" name="documento_id" value="{{ $doc['id'] }}">
                                             <select name="calificacion" class="form-select form-select-sm d-inline-block w-auto" required>
                                                 <option value="">Calificar</option>
-                                                @for ($i = 1; $i <= 10; $i++)
-                                                    <option value="{{ $i }}" {{ isset($doc['mi_calificacion']) && $doc['mi_calificacion'] == $i ? 'selected' : '' }}>
+                                                @for ($i = 0; $i <= 10; $i++)
+                                                    <option value="{{ $i }}" {{ isset($doc['mi_calificacion']) && (int)$doc['mi_calificacion'] === $i ? 'selected' : '' }}>
                                                         {{ $i }}
                                                     </option>
                                                 @endfor
@@ -165,6 +166,10 @@
                                                 <i class="fas fa-check"></i>
                                             </button>
                                         </form>
+                                        @else
+                                            {{-- opcional: muestra un badge o deshabilitado --}}
+                                            <span class="badge bg-secondary">Sin entrega</span>
+                                        @endif
                                     @endif
                                 </td>
                             </tr>

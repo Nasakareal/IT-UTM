@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\SnapshotController;
 use App\Http\Controllers\FirmaLoteController;
+use App\Http\Controllers\CalificacionDocumentoController;
 
 // Tutoriales
 use App\Http\Controllers\TutorialController;
@@ -226,15 +227,13 @@ Route::prefix('settings')->middleware('auth', 'password.changed', 'can:ver confi
 
     // Documentos por Profesor
     Route::prefix('documentos-profesores')->middleware('can:ver documentos profesores')->group(function () {
-        // Lista de todos los profesores
         Route::get('/', [App\Http\Controllers\ProfesorDocumentoController::class, 'index'])->name('documentos-profesores.index');
-
-        // Ver documentos de un profesor específico
         Route::get('/{user}', [App\Http\Controllers\ProfesorDocumentoController::class, 'show'])->name('documentos-profesores.show');
-
-        // Eliminar un documento subido por profesor
         Route::delete('/eliminar/{id}', [App\Http\Controllers\ProfesorDocumentoController::class, 'destroy'])->name('documentos-profesores.destroy');
     });
 
     Route::post('/settings/snapshot-cargahoraria', [SnapshotController::class, 'store'])->middleware(['auth','can:ver configuraciones'])->name('admin.snapshot.cargahoraria');
+
+    // Listado/resumen en Settings
+    Route::get('/calificaciones', [CalificacionDocumentoController::class, 'index'])->name('calificaciones.index');
 });
