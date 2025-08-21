@@ -3,20 +3,16 @@
   "WorkspaceRootPath": "C:\\wamp64\\www\\TI-UTM\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\wamp64\\www\\TI-UTM\\routes\\web.php||{3B902123-F8A7-4915-9F01-361F908088D0}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:routes\\web.php||{3B902123-F8A7-4915-9F01-361F908088D0}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\wamp64\\www\\TI-UTM\\app\\Http\\Controllers\\CalificacionDocumentoController.php||{3B902123-F8A7-4915-9F01-361F908088D0}",
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:app\\Http\\Controllers\\CalificacionDocumentoController.php||{3B902123-F8A7-4915-9F01-361F908088D0}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\wamp64\\www\\TI-UTM\\resources\\views\\settings\\calificaciones\\index.blade.php||{3B902123-F8A7-4915-9F01-361F908088D0}",
-      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:resources\\views\\settings\\calificaciones\\index.blade.php||{3B902123-F8A7-4915-9F01-361F908088D0}"
-    },
-    {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\wamp64\\www\\TI-UTM\\app\\Http\\Controllers\\RevisionAcademicaController.php||{3B902123-F8A7-4915-9F01-361F908088D0}",
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:app\\Http\\Controllers\\RevisionAcademicaController.php||{3B902123-F8A7-4915-9F01-361F908088D0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\wamp64\\www\\TI-UTM\\resources\\views\\settings\\calificaciones\\index.blade.php||{3B902123-F8A7-4915-9F01-361F908088D0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:resources\\views\\settings\\calificaciones\\index.blade.php||{3B902123-F8A7-4915-9F01-361F908088D0}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\wamp64\\www\\TI-UTM\\resources\\views\\revision_academica\\index.blade.php||{3B902123-F8A7-4915-9F01-361F908088D0}",
@@ -30,47 +26,8 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 1,
           "Children": [
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "web.php",
-              "DocumentMoniker": "C:\\wamp64\\www\\TI-UTM\\routes\\web.php",
-              "RelativeDocumentMoniker": "routes\\web.php",
-              "ToolTip": "C:\\wamp64\\www\\TI-UTM\\routes\\web.php",
-              "RelativeToolTip": "routes\\web.php",
-              "ViewState": "AgIAABgAAAAAAAAAAAAAADwAAAAmAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002338|",
-              "WhenOpened": "2025-08-21T00:37:09.613Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 3,
-              "Title": "RevisionAcademicaController.php",
-              "DocumentMoniker": "C:\\wamp64\\www\\TI-UTM\\app\\Http\\Controllers\\RevisionAcademicaController.php",
-              "RelativeDocumentMoniker": "app\\Http\\Controllers\\RevisionAcademicaController.php",
-              "ToolTip": "C:\\wamp64\\www\\TI-UTM\\app\\Http\\Controllers\\RevisionAcademicaController.php",
-              "RelativeToolTip": "app\\Http\\Controllers\\RevisionAcademicaController.php",
-              "ViewState": "AgIAAGMAAAAAAAAAAAAkwGYBAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002338|",
-              "WhenOpened": "2025-08-21T00:23:57.907Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": "index.blade.php",
-              "DocumentMoniker": "C:\\wamp64\\www\\TI-UTM\\resources\\views\\revision_academica\\index.blade.php",
-              "RelativeDocumentMoniker": "resources\\views\\revision_academica\\index.blade.php",
-              "ToolTip": "C:\\wamp64\\www\\TI-UTM\\resources\\views\\revision_academica\\index.blade.php",
-              "RelativeToolTip": "resources\\views\\revision_academica\\index.blade.php",
-              "ViewState": "AgIAABQAAAAAAAAAAAAkwJkAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002338|",
-              "WhenOpened": "2025-08-21T00:23:25.715Z",
-              "EditorCaption": ""
-            },
             {
               "$type": "Document",
               "DocumentIndex": 2,
@@ -79,22 +36,48 @@
               "RelativeDocumentMoniker": "resources\\views\\settings\\calificaciones\\index.blade.php",
               "ToolTip": "C:\\wamp64\\www\\TI-UTM\\resources\\views\\settings\\calificaciones\\index.blade.php",
               "RelativeToolTip": "resources\\views\\settings\\calificaciones\\index.blade.php",
-              "ViewState": "AgIAAIcAAAAAAAAAAAAAAKAAAABbAAAAAAAAAA==",
+              "ViewState": "AgIAABQAAAAAAAAAAAAkwKsAAAAcAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002338|",
-              "WhenOpened": "2025-08-21T00:23:07.56Z",
+              "WhenOpened": "2025-08-21T17:42:45.517Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 0,
               "Title": "CalificacionDocumentoController.php",
               "DocumentMoniker": "C:\\wamp64\\www\\TI-UTM\\app\\Http\\Controllers\\CalificacionDocumentoController.php",
               "RelativeDocumentMoniker": "app\\Http\\Controllers\\CalificacionDocumentoController.php",
               "ToolTip": "C:\\wamp64\\www\\TI-UTM\\app\\Http\\Controllers\\CalificacionDocumentoController.php",
               "RelativeToolTip": "app\\Http\\Controllers\\CalificacionDocumentoController.php",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAIgAAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAGkAAAAAAAAAAAAkwIMAAAAxAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002338|",
-              "WhenOpened": "2025-08-20T21:25:13.275Z",
+              "WhenOpened": "2025-08-21T17:35:35.073Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "index.blade.php",
+              "DocumentMoniker": "C:\\wamp64\\www\\TI-UTM\\resources\\views\\revision_academica\\index.blade.php",
+              "RelativeDocumentMoniker": "resources\\views\\revision_academica\\index.blade.php",
+              "ToolTip": "C:\\wamp64\\www\\TI-UTM\\resources\\views\\revision_academica\\index.blade.php",
+              "RelativeToolTip": "resources\\views\\revision_academica\\index.blade.php",
+              "ViewState": "AgIAAKAAAAAAAAAAAAAkwNQAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002338|",
+              "WhenOpened": "2025-08-21T17:30:13.433Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "RevisionAcademicaController.php",
+              "DocumentMoniker": "C:\\wamp64\\www\\TI-UTM\\app\\Http\\Controllers\\RevisionAcademicaController.php",
+              "RelativeDocumentMoniker": "app\\Http\\Controllers\\RevisionAcademicaController.php",
+              "ToolTip": "C:\\wamp64\\www\\TI-UTM\\app\\Http\\Controllers\\RevisionAcademicaController.php",
+              "RelativeToolTip": "app\\Http\\Controllers\\RevisionAcademicaController.php",
+              "ViewState": "AgIAAHwBAAAAAAAAAAAkwLABAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002338|",
+              "WhenOpened": "2025-08-21T17:25:38.337Z",
               "EditorCaption": ""
             }
           ]

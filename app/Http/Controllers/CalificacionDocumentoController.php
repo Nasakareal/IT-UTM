@@ -16,42 +16,42 @@ public function index(Request $request)
 {
     $usuario = Auth::user();
 
-    // Categorías que SÍ deben entregar/ser evaluadas
-    $categoriasValidas = ['Titular C', 'Titular B', 'Titular A', 'Asociado C'];
+    // Solo para SUBMÓDULOS (módulo 5)
+    $categoriasValidasSub = ['Titular C', 'Titular B', 'Titular A', 'Asociado C'];
 
-    // (Opcional) limitar por áreas del subdirector logueado
-    $areas = collect(explode(',', (string)($usuario->area ?? '')))
-        ->map(fn($a)=>trim($a))->filter()->values();
-
-    // 1) Teacher IDs con carga en (tus) áreas
-    $teacherIdsEnAreas = DB::connection('cargahoraria')
+    /* =====================================================================
+     * 1) BASE: TODOS los teacher_id que tienen carga (sin filtrar por áreas)
+     * ===================================================================== */
+    $teacherIdsConCarga = DB::connection('cargahoraria')
         ->table('teacher_subjects as ts')
-        ->join('subjects as s', 'ts.subject_id', '=', 's.subject_id')
-        ->join('programs as p', 's.program_id', '=', 'p.program_id')
-        ->when($areas->isNotEmpty(), fn($q) => $q->whereIn('p.area', $areas))
         ->pluck('ts.teacher_id')
         ->unique();
 
-    // 2) Profes que:
-    //    - tienen teacher_id
-    //    - están en categorías válidas
-    //    - además aparecen en carga (áreas del subdirector)
+    // Profesores (usuarios) que aparecen en carga (TODOS para GESTIÓN)
     $profesores = User::whereNotNull('teacher_id')
-        ->whereIn('categoria', $categoriasValidas)
-        ->whereIn('teacher_id', $teacherIdsEnAreas)
+        ->whereIn('teacher_id', $teacherIdsConCarga)
         ->orderBy('nombres')
         ->get(['id','nombres','teacher_id','categoria']);
 
-    // Mapea teacher_id válidos finales (por si hay depuración extra)
-    $teacherIdsValidos = $profesores->pluck('teacher_id')->unique();
+    $teacherIdsBase = $profesores->pluck('teacher_id')->unique();
+    $userIdsBase    = $profesores->pluck('id')->unique()->all();
 
-    // 3) ENTREGADOS (documentos_subidos - Gestión Académica)
+    // Subconjunto SOLO para SUBMÓDULOS (categorías válidas)
+    $teacherIdsParaSub = $profesores
+        ->whereIn('categoria', $categoriasValidasSub)
+        ->pluck('teacher_id')
+        ->unique();
+
+    /* ============================================
+     * 2) ENTREGADOS (Gestión y Submódulos)
+     * ============================================ */
+    // Gestión Académica
     $entregadosDocs = DB::table('documentos_subidos as ds')
         ->select('ds.user_id', DB::raw('COUNT(ds.id) as entregados'))
         ->groupBy('ds.user_id')
         ->pluck('entregados','user_id');
 
-    // 3bis) ENTREGADOS de Submódulos (solo módulo 5)
+    // Submódulos (solo módulo 5)
     $entregadosSubs = DB::table('submodulo_archivos as sa')
         ->join('submodulos as sm', 'sm.id', '=', 'sa.submodulo_id')
         ->join('subsections as ss', 'ss.id', '=', 'sm.subsection_id')
@@ -60,7 +60,10 @@ public function index(Request $request)
         ->groupBy('sa.user_id')
         ->pluck('entregados','user_id');
 
-    // 4) PROMEDIO por DOCUMENTO (promedio por ítem -> sumar por profe)
+    /* ============================================
+     * 3) PROMEDIOS (Gestión y Submódulos)
+     * ============================================ */
+    // Gestión Académica
     $avgPorDocumento = DB::table('calificacion_documentos as cd')
         ->select('cd.documento_id', DB::raw('AVG(cd.calificacion) as prom_item'))
         ->groupBy('cd.documento_id');
@@ -76,7 +79,7 @@ public function index(Request $request)
         ->get()
         ->keyBy('user_id');
 
-    // 5) PROMEDIO por SUBMÓDULO (solo módulo 5)
+    // Submódulos (solo módulo 5)
     $avgPorSub = DB::table('calificacion_submodulo_archivos as csa')
         ->select('csa.submodulo_archivo_id', DB::raw('AVG(csa.calificacion) as prom_item'))
         ->groupBy('csa.submodulo_archivo_id');
@@ -95,32 +98,52 @@ public function index(Request $request)
         ->get()
         ->keyBy('user_id');
 
-    // 6) ESPERADOS (solo para los teacher_id válidos y dentro de tus áreas)
-    //    Fórmula: 4 * unidades + 2 (especiales U1) + 1 (final)
-    $esperadosPorTeacher = [];
-    $rowsEsperados = DB::connection('cargahoraria')
+    /* ==============================================================
+     * 4) ESPERADOS
+     *    - Gestión: TODOS los profes con carga → por materia: 4*unidades + 3
+     *    - Submódulos: SOLO categorías válidas → N submódulos del módulo 5
+     * ============================================================== */
+    // Gestión (por materia)
+    $esperadosGestion = [];
+    $rowsGestion = DB::connection('cargahoraria')
         ->table('teacher_subjects as ts')
         ->join('subjects as s', 'ts.subject_id', '=', 's.subject_id')
-        ->join('programs as p', 's.program_id', '=', 'p.program_id')
-        ->when($areas->isNotEmpty(), fn($q)=>$q->whereIn('p.area', $areas))
-        ->whereIn('ts.teacher_id', $teacherIdsValidos) // <- clave: solo los de categoría válida
+        ->whereIn('ts.teacher_id', $teacherIdsBase)
         ->distinct()
         ->get(['ts.teacher_id','ts.subject_id','ts.group_id','s.unidades']);
 
-    foreach ($rowsEsperados as $r) {
-        $esp = (4 * (int)$r->unidades) + 3;
-        $esperadosPorTeacher[$r->teacher_id] = ($esperadosPorTeacher[$r->teacher_id] ?? 0) + $esp;
+    foreach ($rowsGestion as $r) {
+        $espG = (4 * (int)$r->unidades) + 3; // 2 especiales U1 + 1 final
+        $esperadosGestion[$r->teacher_id] = ($esperadosGestion[$r->teacher_id] ?? 0) + $espG;
     }
 
-    // 7) Salida unificada (UNA sola calificación que castiga faltantes)
+    // Submódulos (mismo número de submódulos para cada prof válido)
+    $numSubmodulosM5 = DB::table('submodulos as sm')
+        ->join('subsections as ss', 'ss.id', '=', 'sm.subsection_id')
+        ->where('ss.modulo_id', 5)
+        ->distinct()
+        ->count('sm.id');
+
+    $esperadosSub = [];
+    foreach ($teacherIdsParaSub as $tid) {
+        $esperadosSub[$tid] = $numSubmodulosM5;
+    }
+
+    /* ============================================
+     * 5) Salida unificada
+     * ============================================ */
     $resumen = [];
     foreach ($profesores as $p) {
-        $uid       = (int)$p->id;
-        $esperados = (int)($esperadosPorTeacher[$p->teacher_id] ?? 0);
+        $uid = (int)$p->id;
+        $tid = $p->teacher_id;
 
-        $entDocs   = (int)($entregadosDocs[$uid] ?? 0);
-        $entSubs   = (int)($entregadosSubs[$uid] ?? 0);
-        $entregados= $entDocs + $entSubs;
+        $espG = (int)($esperadosGestion[$tid] ?? 0);
+        $espS = (int)($esperadosSub[$tid] ?? 0);
+        $esperados = $espG + $espS;
+
+        $entDocs = (int)($entregadosDocs[$uid] ?? 0);
+        $entSubs = (int)($entregadosSubs[$uid] ?? 0);
+        $entregados = $entDocs + $entSubs;
 
         $sDocsSum   = (float)(optional($sumaDocs->get($uid))->suma_promedios ?? 0);
         $sDocsCount = (int)(optional($sumaDocs->get($uid))->items_calificados ?? 0);
@@ -131,26 +154,21 @@ public function index(Request $request)
         $sumaTotal   = $sDocsSum + $sSubsSum;
         $calificados = $sDocsCount + $sSubsCount;
 
-        // ÚNICO promedio: sobre ESPERADOS (faltantes = 0)
         $promedioGeneral = $esperados > 0 ? round($sumaTotal / $esperados, 2) : null;
-
-        $cumplimiento = $esperados > 0 ? round(($entregados / $esperados) * 100, 1) : null;
+        $cumplimiento    = $esperados > 0 ? round(($entregados / $esperados) * 100, 1) : null;
 
         $resumen[] = [
             'user_id'      => $uid,
             'nombre'       => trim($p->nombres ?? ''),
-            'teacher_id'   => $p->teacher_id,
-            'esperados'    => $esperados,
-            'entregados'   => $entregados,
-            'calificados'  => $calificados,
+            'teacher_id'   => $tid,
+            'esperados'    => $esperados,     // Gestión (todos) + Submódulos (solo 4 categorías)
+            'entregados'   => $entregados,    // Gestión + Submódulos
+            'calificados'  => $calificados,   // Gestión + Submódulos
             'promedio'     => $promedioGeneral,
             'cumplimiento' => $cumplimiento,
-            'categoria'    => $p->categoria, // por si la quieres mostrar
+            'categoria'    => $p->categoria,
         ];
     }
-
-    // (Opcional) si quieres ocultar los que al final tienen 0 esperados
-    // $resumen = array_values(array_filter($resumen, fn($r) => $r['esperados'] > 0));
 
     usort($resumen, fn($a,$b) => strcmp($a['nombre'], $b['nombre']));
     return view('settings.calificaciones.index', compact('resumen'));

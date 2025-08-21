@@ -3,13 +3,8 @@
     "",
     "\\app",
     "\\app\\Http",
-    "\\app\\Http\\Controllers",
-    "\\resources",
-    "\\resources\\views",
-    "\\resources\\views\\settings",
-    "\\resources\\views\\settings\\calificaciones",
-    "\\routes"
+    "\\app\\Http\\Controllers"
   ],
-  "SelectedNode": "\\resources\\views\\settings\\calificaciones\\index.blade.php",
+  "SelectedNode": "\\app\\Http\\Controllers\\CalificacionDocumentoController.php",
   "PreviewInSolutionExplorer": false
 }
