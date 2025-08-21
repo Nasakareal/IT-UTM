@@ -40,7 +40,7 @@
                                     $esperados    = (int)($r['esperados'] ?? 0);
                                     $entregados   = (int)($r['entregados'] ?? 0);
                                     $calificados  = (int)($r['calificados'] ?? 0);
-                                    $promedio     = $r['promedio']; // ya viene redondeado en el controller
+                                    $promedio     = $r['prom_calificados'] ?? null;
                                     $cumplimiento = $esperados > 0 ? round(($entregados / $esperados) * 100, 0) : null;
                                 @endphp
                                 <tr>
@@ -148,7 +148,7 @@ $(document).ready(function () {
                 const num = parseFloat(v.replace(',', '.')); // por si hay coma decimal
                 return isNaN(num) ? NaN : num;
             };
-            const promVals = api.column(6, {page:'current'}).data().map(parseProm).toArray();
+            const promVals = api.column(6, {page:'current'}).data().toArray().map(parseProm);
             const promValidos = promVals.filter(n => !isNaN(n));
             const promProm = promValidos.length ? (promValidos.reduce((a,b)=>a+b,0) / promValidos.length) : NaN;
             $(api.column(6).footer()).html(isNaN(promProm) ? '—' : promProm.toFixed(2));
@@ -158,7 +158,7 @@ $(document).ready(function () {
                 const n = parseFloat(v.replace('%','').replace(',', '.'));
                 return isNaN(n) ? NaN : n;
             };
-            const pctVals = api.column(7, {page:'current'}).data().map(parsePct).toArray();
+            const pctVals = api.column(7, {page:'current'}).data().toArray().map(parsePct); // <- igual aquí
             const pctValidos = pctVals.filter(n => !isNaN(n));
             const pctProm = pctValidos.length ? (pctValidos.reduce((a,b)=>a+b,0) / pctValidos.length) : NaN;
             $(api.column(7).footer()).html(isNaN(pctProm) ? '—' : (Math.round(pctProm) + '%'));
