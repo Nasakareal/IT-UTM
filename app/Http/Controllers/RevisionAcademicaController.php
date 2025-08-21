@@ -11,11 +11,12 @@ use Carbon\Carbon;
 use App\Models\SubmoduloUsuario;
 use App\Models\DocumentoSubido;
 use App\Models\CalificacionDocumento;
+use App\Models\CalificacionSubmoduloArchivo;
 
 class RevisionAcademicaController extends Controller
 {
     /* ------------------------------------------------------------------ */
-    /* 1) SUBMÓDULOS – VISTA GENERAL (sin cambios)                        */
+    /* 1) SUBMÓDULOS – VISTA GENERAL (AGREGADO: mapas de calificaciones)  */
     /* ------------------------------------------------------------------ */
     public function index(Request $request)
     {
@@ -42,7 +43,6 @@ class RevisionAcademicaController extends Controller
             })
             ->orderBy('nombres')
             ->get();
-
 
         // 2. Submódulos del módulo 5
         $query = Submodulo::whereHas('subsection', fn ($q) => $q->where('modulo_id', 5))
@@ -84,11 +84,56 @@ class RevisionAcademicaController extends Controller
             $archivoMap[$archivo->user_id][$archivo->submodulo_id] = $archivo;
         }
 
+        /* ====== NUEVO: mapas de calificaciones por submodulo_archivo_id ====== */
+        // Junta los IDs visibles en la tabla
+        $idsVisibles = [];
+        foreach ($archivoMap as $byUser) {
+            foreach ($byUser as $a) {
+                if (!empty($a->id)) {
+                    $idsVisibles[] = (int)$a->id;
+                }
+            }
+        }
+        $idsVisibles = array_values(array_unique($idsVisibles));
+
+        // Mis calificaciones (del evaluador actual) -> [submodulo_archivo_id => calificacion]
+        $misCalifsMap = [];
+        if (!empty($idsVisibles)) {
+            $misCalifsMap = CalificacionSubmoduloArchivo::where('evaluador_id', auth()->id())
+                ->whereIn('submodulo_archivo_id', $idsVisibles)
+                ->pluck('calificacion', 'submodulo_archivo_id')
+                ->toArray();
+        }
+
+        // Promedios de todas las calificaciones -> [id => ['avg'=>x.xx, 'n'=>#]]
+        $promediosMap = [];
+        if (!empty($idsVisibles)) {
+            $promedios = CalificacionSubmoduloArchivo::select(
+                    'submodulo_archivo_id',
+                    DB::raw('ROUND(AVG(calificacion),2) as avg'),
+                    DB::raw('COUNT(*) as n')
+                )
+                ->whereIn('submodulo_archivo_id', $idsVisibles)
+                ->groupBy('submodulo_archivo_id')
+                ->get();
+
+            foreach ($promedios as $row) {
+                $promediosMap[(int)$row->submodulo_archivo_id] = [
+                    'avg' => (float)$row->avg,
+                    'n'   => (int)$row->n,
+                ];
+            }
+        }
+        /* ===================================================================== */
+
         return view('revision_academica.index', compact(
             'profesores',
             'submodulos',
             'archivoMap',
-            'subseccionesDisponibles'
+            'subseccionesDisponibles',
+            // nuevos:
+            'misCalifsMap',
+            'promediosMap'
         ));
     }
 
@@ -344,7 +389,6 @@ class RevisionAcademicaController extends Controller
             'gruposDisponibles'    => $gruposDisponibles,
         ]);
     }
-
 
     /* ------------------------------------------------------------------ */
     /* 3) ELIMINAR ARCHIVO – SIN CAMBIOS                                  */

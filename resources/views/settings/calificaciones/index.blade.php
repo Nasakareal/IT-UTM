@@ -30,7 +30,7 @@
                                 <th><center>Esperados</center></th>
                                 <th><center>Entregados</center></th>
                                 <th><center>Calificados</center></th>
-                                <th><center>Promedio (general)</center></th>
+                                <th><center>Promedio</center></th>
                                 <th><center>Cumplimiento</center></th>
                             </tr>
                         </thead>
@@ -40,7 +40,7 @@
                                     $esperados    = (int)($r['esperados'] ?? 0);
                                     $entregados   = (int)($r['entregados'] ?? 0);
                                     $calificados  = (int)($r['calificados'] ?? 0);
-                                    $promedio     = $r['prom_calificados'] ?? null;
+                                    $promedio     = $r['promedio'] ?? null;
                                     $cumplimiento = $esperados > 0 ? round(($entregados / $esperados) * 100, 0) : null;
                                 @endphp
                                 <tr>
@@ -145,7 +145,7 @@ $(document).ready(function () {
             // 6=Promedio (general), 7=Cumplimiento
             const parseProm = v => {
                 if (typeof v !== 'string') return (typeof v === 'number') ? v : NaN;
-                const num = parseFloat(v.replace(',', '.')); // por si hay coma decimal
+                const num = parseFloat(v.replace(',', '.'));
                 return isNaN(num) ? NaN : num;
             };
             const promVals = api.column(6, {page:'current'}).data().toArray().map(parseProm);
@@ -158,7 +158,7 @@ $(document).ready(function () {
                 const n = parseFloat(v.replace('%','').replace(',', '.'));
                 return isNaN(n) ? NaN : n;
             };
-            const pctVals = api.column(7, {page:'current'}).data().toArray().map(parsePct); // <- igual aquí
+            const pctVals = api.column(7, {page:'current'}).data().toArray().map(parsePct);
             const pctValidos = pctVals.filter(n => !isNaN(n));
             const pctProm = pctValidos.length ? (pctValidos.reduce((a,b)=>a+b,0) / pctValidos.length) : NaN;
             $(api.column(7).footer()).html(isNaN(pctProm) ? '—' : (Math.round(pctProm) + '%'));

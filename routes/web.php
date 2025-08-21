@@ -5,6 +5,11 @@ use App\Http\Controllers\Admin\SnapshotController;
 use App\Http\Controllers\FirmaLoteController;
 use App\Http\Controllers\CalificacionDocumentoController;
 
+//Revisiones
+use App\Http\Controllers\RevisionAcademicaController;
+use App\Http\Controllers\CalificacionSubmoduloArchivoController;
+
+
 // Tutoriales
 use App\Http\Controllers\TutorialController;
 
@@ -34,7 +39,10 @@ Route::get('/revision-gestion-academica', [App\Http\Controllers\RevisionAcademic
 Route::get('/revision-gestion-academica/gestion', [App\Http\Controllers\RevisionAcademicaController::class, 'soloGestion'])->middleware('can:ver revisiones')->name('revision.gestion.academica.gestion');
 Route::delete('/revision/gestion-academica/eliminar/{id}', [App\Http\Controllers\RevisionAcademicaController::class, 'eliminarArchivo'])->name('revision.gestion.academica.eliminar');
 Route::post('/revision-gestion-academica/calificar', [App\Http\Controllers\CalificacionDocumentoController::class, 'store'])->middleware(['auth', 'password.changed', 'can:calificar documentos'])->name('revision.gestion.academica.calificar');
-
+Route::post('/revision-gestion-academica/calificar-submodulo',
+    [CalificacionSubmoduloArchivoController::class, 'store'])
+    ->middleware(['auth','password.changed','can:calificar documentos'])
+    ->name('calificaciones.submodulos.store');
 
 Route::post('/carpetas/sort', [App\Http\Controllers\CarpetaController::class, 'sort'])->name('carpetas.sort');
 Route::post('/subsections/sort', [App\Http\Controllers\SubsectionController::class, 'sort'])->name('subsections.sort');
