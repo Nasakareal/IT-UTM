@@ -14,7 +14,12 @@ class CalificacionSubmoduloArchivo extends Model
     protected $fillable = [
         'submodulo_archivo_id',
         'evaluador_id',
+        'profesor_id',
         'calificacion',
+    ];
+
+    protected $casts = [
+        'calificacion' => 'integer',
     ];
 
     public function submoduloArchivo()
@@ -25,5 +30,10 @@ class CalificacionSubmoduloArchivo extends Model
     public function evaluador()
     {
         return $this->belongsTo(User::class, 'evaluador_id');
+    }
+
+    public function profesor()
+    {
+        return $this->belongsTo(User::class, 'profesor_id');
     }
 }

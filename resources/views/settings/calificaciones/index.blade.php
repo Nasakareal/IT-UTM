@@ -3,173 +3,166 @@
 @section('title', 'TI-UTM - Calificaciones')
 
 @section('content')
-<!-- Botón regresar + botón exportar -->
+<!-- Botón regresar -->
 <div class="row mb-2">
-    <div class="col-md-6">
-        <a href="{{ url('/settings') }}" class="btn btn-sm" style="background-color:#FFFFFF;color:#000;">
+    <div class="col-md-12 text-right">
+        <a href="{{ url('/settings') }}"
+           class="btn btn-sm"
+           style="background-color:#FFFFFF;color:#000;">
             <i class="fa-solid fa-arrow-left"></i> Regresar
-        </a>
-    </div>
-    <div class="col-md-6 text-end">
-        <a href="{{ route('calificaciones.export') }}" class="btn btn-success btn-sm">
-            <i class="fa-solid fa-file-download"></i> Descargar todo
         </a>
     </div>
 </div>
 
+@php
+    // 1) Orden deseado de columnas (si un tipo no existe, se omite)
+    $ordenDeseado = [
+        // Tutorías
+        'Presentación del Tutor',
+        '1er Tutoría Grupal',
+        '2da Tutoría Grupal',
+        '3er Tutoría Grupal',
+        'Registro de Proyecto Institucional',
+        'Informe Parcial',
+        'Informe Global',
+        // Gestión
+        'Presentación de la Asignatura',
+        'Planeación didáctica',
+        'Reporte de Evaluación Continua por Unidad de Aprendizaje (SIGO)',
+        'Informe de Estudiantes No Acreditados',
+        'Control de Asesorías',
+        'Seguimiento de la Planeación',
+    ];
+
+    // 2) Construir el conjunto de tipos presentes en los datos
+    $tiposPresentes = [];
+    foreach ($resumenPorDocumento as $prof) {
+        foreach ($prof['docs'] as $d) {
+            if (!empty($d['tipo'])) $tiposPresentes[$d['tipo']] = true;
+        }
+    }
+    $tiposPresentes = array_keys($tiposPresentes);
+
+    // 3) Filtrar y ordenar según $ordenDeseado; agregar extras al final
+    $tiposOrdenados = array_values(array_intersect($ordenDeseado, $tiposPresentes));
+    $extras = array_values(array_diff($tiposPresentes, $tiposOrdenados));
+    sort($extras, SORT_NATURAL | SORT_FLAG_CASE);
+    $columnasTipos = array_merge($tiposOrdenados, $extras);
+
+    // Helper de formato
+    $fmt = function($v){ return is_null($v) ? '—' : number_format((float)$v, 2); };
+@endphp
+
+<!-- Tabla principal -->
 <div class="row">
     <div class="col-md-12">
-        <!-- Encabezado general -->
-        <div class="alert alert-info d-flex justify-content-between align-items-center" role="alert" style="border-radius:8px;">
-            <div>
-                <strong>Resumen por tipo de documento ({{ $unidadHasta }})</strong><br>
-                <small>
-                    Las tutorías se habilitan por tercios del cuatrimestre (1/3, 2/3, 3/3).
-                    La “Unidad hasta” mostrada en cada tarjeta es la mediana de la unidad vigente entre las materias del profesor.
-                </small>
+        <div class="card" style="border-radius:8px; overflow:hidden;">
+            <div class="card-header d-flex justify-content-between align-items-center" style="background-color:#1976d2;">
+                <h3 class="card-title text-white mb-0">Promedios por Tipo de Documento</h3>
+                <span class="badge bg-light text-dark">
+                    Total profesores: {{ count($resumenPorDocumento ?? []) }}
+                </span>
             </div>
-            <div>
-                <span class="badge bg-primary">Total profesores: {{ count($resumenPorDocumento ?? []) }}</span>
-            </div>
+
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table id="tabla-promedios" class="table table-bordered table-hover table-sm mb-0">
+                        <thead style="background-color:#1976d2; color:#fff;">
+                            <tr>
+                                <th><center>Número</center></th>
+                                <th><center>Profesor</center></th>
+                                @foreach ($columnasTipos as $tipo)
+                                    <th><center>{{ $tipo }}</center></th>
+                                @endforeach
+                                <th class="table-secondary"><center>Promedio General</center></th>
+                            </tr>
+                        </thead>
+                        <tbody style="background-color:#fff;">
+                            @foreach ($resumenPorDocumento as $i => $prof)
+                                @php
+                                    // Mapa rápido tipo -> promedio (solo necesitamos "promedio")
+                                    $map = [];
+                                    foreach ($prof['docs'] as $d) {
+                                        $map[$d['tipo']] = $d['promedio'] ?? null;
+                                    }
+                                    // Promedio general: promedio simple de los promedios disponibles
+                                    $vals = [];
+                                    foreach ($columnasTipos as $t) {
+                                        if (array_key_exists($t, $map) && !is_null($map[$t])) {
+                                            $vals[] = (float)$map[$t];
+                                        }
+                                    }
+                                    $promGeneral = count($vals) ? round(array_sum($vals)/count($vals), 2) : null;
+                                @endphp
+                                <tr>
+                                    <td style="text-align:center;">{{ $i + 1 }}</td>
+                                    <td style="text-align:center;">{{ $prof['nombre'] }}</td>
+
+                                    @foreach ($columnasTipos as $tipo)
+                                        <td style="text-align:center;">
+                                            {{ $fmt($map[$tipo] ?? null) }}
+                                        </td>
+                                    @endforeach
+
+                                    <td class="table-secondary" style="text-align:center;">
+                                        {{ $fmt($promGeneral) }}
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div> <!-- /table-responsive -->
+            </div> <!-- /card-body -->
         </div>
-
-        @forelse ($resumenPorDocumento as $prof)
-            @php
-                // Indexar docs por tipo para acceso rápido
-                $map = [];
-                $tipos = [];
-                foreach ($prof['docs'] as $d) {
-                    $t = $d['tipo'];
-                    $map[$t] = $d;
-                    $tipos[] = $t;
-                }
-                $tipos = array_values(array_unique($tipos));
-                sort($tipos, SORT_NATURAL | SORT_FLAG_CASE);
-
-                // Helpers para mostrar valores o rayita
-                $fmt = function($v, $dec = 0, $suf = '') {
-                    if (is_null($v)) return '<span class="text-muted">—</span>';
-                    return number_format($v, $dec) . $suf;
-                };
-            @endphp
-
-            <div class="card mb-3" style="border-radius:8px; overflow:hidden;">
-                <div class="card-header d-flex justify-content-between align-items-center" style="background-color:#1976d2;">
-                    <div class="d-flex align-items-center gap-2">
-                        <h5 class="text-white mb-0">{{ $prof['nombre'] }}</h5>
-                        <span class="badge bg-light text-dark ms-2">Teacher ID: {{ $prof['teacher_id'] }}</span>
-                        @if(!empty($prof['categoria']))
-                            <span class="badge bg-secondary ms-1">{{ $prof['categoria'] }}</span>
-                        @endif
-                    </div>
-                    <span class="badge bg-light text-dark">Unidad hasta: {{ $prof['unidad_hasta'] }}</span>
-                </div>
-
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-sm mb-0 align-middle tabla-profesor">
-                            <thead class="table-light">
-                                <tr>
-                                    <th style="min-width:220px;">Métrica \ Tipo</th>
-                                    @foreach ($tipos as $tipo)
-                                        <th class="text-center" style="min-width:170px;">{{ $tipo }}</th>
-                                    @endforeach
-                                    <th class="text-center table-secondary">Total / Prom</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {{-- Fila: Esperados --}}
-                                <tr>
-                                    <td class="fw-semibold">Esperados</td>
-                                    @php $sumEsp = 0; @endphp
-                                    @foreach ($tipos as $tipo)
-                                        @php
-                                            $val = $map[$tipo]['esperados'] ?? 0;
-                                            $sumEsp += (int)$val;
-                                        @endphp
-                                        <td class="text-center">{!! $fmt($val) !!}</td>
-                                    @endforeach
-                                    <td class="text-center table-secondary">{!! $fmt($sumEsp) !!}</td>
-                                </tr>
-
-                                {{-- Fila: Entregados --}}
-                                <tr>
-                                    <td class="fw-semibold">Entregados</td>
-                                    @php $sumEnt = 0; @endphp
-                                    @foreach ($tipos as $tipo)
-                                        @php
-                                            $val = $map[$tipo]['entregados'] ?? 0;
-                                            $sumEnt += (int)$val;
-                                        @endphp
-                                        <td class="text-center">{!! $fmt($val) !!}</td>
-                                    @endforeach
-                                    <td class="text-center table-secondary">{!! $fmt($sumEnt) !!}</td>
-                                </tr>
-
-                                {{-- Fila: Cumplimiento (%) – promedio simple de columnas con dato --}}
-                                <tr>
-                                    <td class="fw-semibold">Cumplimiento</td>
-                                    @php $cumplVals = []; @endphp
-                                    @foreach ($tipos as $tipo)
-                                        @php
-                                            $val = $map[$tipo]['cumplimiento'] ?? null;
-                                            if (!is_null($val)) $cumplVals[] = (float)$val;
-                                        @endphp
-                                        <td class="text-center">{!! is_null($val) ? $fmt(null) : $fmt($val, 0, '%') !!}</td>
-                                    @endforeach
-                                    @php
-                                        $cumplProm = count($cumplVals) ? round(array_sum($cumplVals)/count($cumplVals)) : null;
-                                    @endphp
-                                    <td class="text-center table-secondary">{!! is_null($cumplProm) ? $fmt(null) : $fmt($cumplProm, 0, '%') !!}</td>
-                                </tr>
-
-                                {{-- Fila: Promedio (calificaciones) – promedio simple de columnas con dato --}}
-                                <tr>
-                                    <td class="fw-semibold">Promedio</td>
-                                    @php $promVals = []; @endphp
-                                    @foreach ($tipos as $tipo)
-                                        @php
-                                            $val = $map[$tipo]['promedio'] ?? null;
-                                            if (!is_null($val)) $promVals[] = (float)$val;
-                                        @endphp
-                                        <td class="text-center">{!! is_null($val) ? $fmt(null) : $fmt($val, 2) !!}</td>
-                                    @endforeach
-                                    @php
-                                        $promProm = count($promVals) ? round(array_sum($promVals)/count($promVals), 2) : null;
-                                    @endphp
-                                    <td class="text-center table-secondary">{!! is_null($promProm) ? $fmt(null) : $fmt($promProm, 2) !!}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        @empty
-            <div class="alert alert-warning">No hay información para mostrar.</div>
-        @endforelse
-
     </div>
 </div>
 @endsection
 
 @section('css')
 <style>
+    .table th, .table td { text-align:center; vertical-align:middle; }
     .card-header { border-top-left-radius:8px; border-top-right-radius:8px; }
-    .table th, .table td { vertical-align: middle; }
-    .tabla-profesor tbody tr td:first-child { white-space: nowrap; }
 </style>
 @endsection
 
 @section('scripts')
 <script>
-    @if (session('success'))
-        Swal.fire({
-            position: 'center',
-            icon: 'success',
-            title: '{{ session('success') }}',
-            showConfirmButton: false,
-            timer: 8000
-        });
-    @endif
+$(document).ready(function(){
+    $('#tabla-promedios').DataTable({
+        dom: "<'row p-3'<'col-md-6 d-flex align-items-center'B l><'col-md-6 text-right'f>>" +
+             "<'row'<'col-sm-12'tr>>" +
+             "<'row p-3'<'col-sm-5'i><'col-sm-7'p>>",
+        pageLength: 10,
+        language: {
+            emptyTable: "No hay información",
+            info: "Mostrando _START_ a _END_ de _TOTAL_ profesores",
+            infoEmpty: "Mostrando 0 a 0 de 0 profesores",
+            infoFiltered: "(Filtrado de _MAX_ total profesores)",
+            lengthMenu: "Mostrar _MENU_ profesores",
+            loadingRecords: "Cargando...",
+            processing: "Procesando...",
+            search: "Buscador:",
+            zeroRecords: "Sin resultados encontrados",
+            paginate: { first:"Primero", last:"Último", next:"Siguiente", previous:"Anterior" }
+        },
+        responsive: true,
+        lengthChange: true,
+        autoWidth: false,
+        buttons: [
+            {
+                extend: 'collection',
+                text: 'Opciones',
+                buttons: [
+                    { extend: 'copy',  text: 'Copiar'   },
+                    { extend: 'pdf',   text: 'PDF'      },
+                    { extend: 'csv',   text: 'CSV'      },
+                    { extend: 'excel', text: 'Excel'    },
+                    { extend: 'print', text: 'Imprimir' }
+                ]
+            },
+            { extend: 'colvis', text: 'Visor de columnas' }
+        ]
+    });
+});
 </script>
 @endsection

@@ -2,14 +2,15 @@
   "ExpandedNodes": [
     "",
     "\\app",
-    "\\app\\Exports",
+    "\\app\\Http",
+    "\\app\\Http\\Controllers",
     "\\resources",
-    "\\resources\\css",
     "\\resources\\views",
     "\\resources\\views\\revision_academica",
     "\\resources\\views\\settings",
     "\\resources\\views\\settings\\calificaciones",
-    "\\routes"
+    "\\resources\\views\\settings\\users"
   ],
+  "SelectedNode": "\\resources\\views\\settings\\users\\index.blade.php",
   "PreviewInSolutionExplorer": false
 }
