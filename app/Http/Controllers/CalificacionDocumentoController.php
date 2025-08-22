@@ -3,8 +3,11 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Models\User;
+use App\Models\CalificacionDocumento;
+use App\Models\DocumentoSubido;
 use Carbon\Carbon;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\CalificacionesExport;
@@ -273,6 +276,24 @@ $rowsSubs = DB::query()
             'resumenPorDocumento' => $resumenPorDocumento,
             'unidadHasta'         => "Tutorías etapa: {$tutoriaEtapa}/3",
         ]);
+    }
+
+     public function store(Request $request)
+    {
+        $request->validate([
+            'documento_id' => 'required|exists:documentos_subidos,id',
+            'calificacion' => 'required|integer|between:0,10',
+        ]);
+
+        $documentoId = $request->input('documento_id');
+        $evaluadorId = Auth::id();
+
+        CalificacionDocumento::updateOrCreate(
+            ['documento_id' => $documentoId, 'evaluador_id' => $evaluadorId],
+            ['calificacion' => (int)$request->input('calificacion')]
+        );
+
+        return back()->with('success', 'Calificación guardada correctamente.');
     }
 
     public function export(Request $request)
