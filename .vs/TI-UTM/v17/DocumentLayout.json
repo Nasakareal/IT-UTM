@@ -3,8 +3,28 @@
   "WorkspaceRootPath": "C:\\wamp64\\www\\TI-UTM\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\wamp64\\www\\TI-UTM\\app\\Exports\\CalificacionesExport.php||{3B902123-F8A7-4915-9F01-361F908088D0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:app\\Exports\\CalificacionesExport.php||{3B902123-F8A7-4915-9F01-361F908088D0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\wamp64\\www\\TI-UTM\\app\\Http\\Controllers\\CalificacionDocumentoController.php||{3B902123-F8A7-4915-9F01-361F908088D0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:app\\Http\\Controllers\\CalificacionDocumentoController.php||{3B902123-F8A7-4915-9F01-361F908088D0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\wamp64\\www\\TI-UTM\\routes\\web.php||{3B902123-F8A7-4915-9F01-361F908088D0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:routes\\web.php||{3B902123-F8A7-4915-9F01-361F908088D0}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\wamp64\\www\\TI-UTM\\resources\\views\\settings\\calificaciones\\index.blade.php||{3B902123-F8A7-4915-9F01-361F908088D0}",
       "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:resources\\views\\settings\\calificaciones\\index.blade.php||{3B902123-F8A7-4915-9F01-361F908088D0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\wamp64\\www\\TI-UTM\\app\\Http\\Controllers\\RevisionAcademicaController.php||{3B902123-F8A7-4915-9F01-361F908088D0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:app\\Http\\Controllers\\RevisionAcademicaController.php||{3B902123-F8A7-4915-9F01-361F908088D0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\wamp64\\www\\TI-UTM\\resources\\views\\revision_academica\\index.blade.php||{3B902123-F8A7-4915-9F01-361F908088D0}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:resources\\views\\revision_academica\\index.blade.php||{3B902123-F8A7-4915-9F01-361F908088D0}"
     }
   ],
   "DocumentGroupContainers": [
@@ -19,14 +39,79 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
+              "Title": "CalificacionesExport.php",
+              "DocumentMoniker": "C:\\wamp64\\www\\TI-UTM\\app\\Exports\\CalificacionesExport.php",
+              "RelativeDocumentMoniker": "app\\Exports\\CalificacionesExport.php",
+              "ToolTip": "C:\\wamp64\\www\\TI-UTM\\app\\Exports\\CalificacionesExport.php",
+              "RelativeToolTip": "app\\Exports\\CalificacionesExport.php",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002338|",
+              "WhenOpened": "2025-08-22T03:23:08.848Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "web.php",
+              "DocumentMoniker": "C:\\wamp64\\www\\TI-UTM\\routes\\web.php",
+              "RelativeDocumentMoniker": "routes\\web.php",
+              "ToolTip": "C:\\wamp64\\www\\TI-UTM\\routes\\web.php",
+              "RelativeToolTip": "routes\\web.php",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABMAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002338|",
+              "WhenOpened": "2025-08-22T03:22:29.158Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
               "Title": "index.blade.php",
               "DocumentMoniker": "C:\\wamp64\\www\\TI-UTM\\resources\\views\\settings\\calificaciones\\index.blade.php",
               "RelativeDocumentMoniker": "resources\\views\\settings\\calificaciones\\index.blade.php",
               "ToolTip": "C:\\wamp64\\www\\TI-UTM\\resources\\views\\settings\\calificaciones\\index.blade.php",
               "RelativeToolTip": "resources\\views\\settings\\calificaciones\\index.blade.php",
-              "ViewState": "AgIAAGkAAAAAAAAAAAAAAJ8AAAAOAAAAAAAAAA==",
+              "ViewState": "AgIAAIsAAAAAAAAAAAAuwK8AAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002338|",
-              "WhenOpened": "2025-08-21T22:46:28.947Z",
+              "WhenOpened": "2025-08-22T03:02:36.398Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "RevisionAcademicaController.php",
+              "DocumentMoniker": "C:\\wamp64\\www\\TI-UTM\\app\\Http\\Controllers\\RevisionAcademicaController.php",
+              "RelativeDocumentMoniker": "app\\Http\\Controllers\\RevisionAcademicaController.php",
+              "ToolTip": "C:\\wamp64\\www\\TI-UTM\\app\\Http\\Controllers\\RevisionAcademicaController.php",
+              "RelativeToolTip": "app\\Http\\Controllers\\RevisionAcademicaController.php",
+              "ViewState": "AgIAANIAAAAAAAAAAAAAAPMAAAAaAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002338|",
+              "WhenOpened": "2025-08-22T02:54:05.55Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "index.blade.php",
+              "DocumentMoniker": "C:\\wamp64\\www\\TI-UTM\\resources\\views\\revision_academica\\index.blade.php",
+              "RelativeDocumentMoniker": "resources\\views\\revision_academica\\index.blade.php",
+              "ToolTip": "C:\\wamp64\\www\\TI-UTM\\resources\\views\\revision_academica\\index.blade.php",
+              "RelativeToolTip": "resources\\views\\revision_academica\\index.blade.php",
+              "ViewState": "AgIAAC0AAAAAAAAAAAAewEAAAAA5AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002338|",
+              "WhenOpened": "2025-08-22T02:52:02.331Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "CalificacionDocumentoController.php",
+              "DocumentMoniker": "C:\\wamp64\\www\\TI-UTM\\app\\Http\\Controllers\\CalificacionDocumentoController.php",
+              "RelativeDocumentMoniker": "app\\Http\\Controllers\\CalificacionDocumentoController.php",
+              "ToolTip": "C:\\wamp64\\www\\TI-UTM\\app\\Http\\Controllers\\CalificacionDocumentoController.php",
+              "RelativeToolTip": "app\\Http\\Controllers\\CalificacionDocumentoController.php",
+              "ViewState": "AgIAAOcAAAAAAAAAAAAAAPwAAAAFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002338|",
+              "WhenOpened": "2025-08-21T23:38:40.825Z",
               "EditorCaption": ""
             }
           ]

@@ -1,11 +1,16 @@
 {
   "ExpandedNodes": [
     "",
+    "\\app",
+    "\\app\\Exports",
     "\\resources",
+    "\\resources\\css",
     "\\resources\\views",
+    "\\resources\\views\\revision_academica",
     "\\resources\\views\\settings",
-    "\\resources\\views\\settings\\calificaciones"
+    "\\resources\\views\\settings\\calificaciones",
+    "\\routes"
   ],
-  "SelectedNode": "\\resources\\views\\settings\\calificaciones\\index.blade.php",
+  "SelectedNode": "\\app\\Exports\\CalificacionesExport.php",
   "PreviewInSolutionExplorer": false
 }

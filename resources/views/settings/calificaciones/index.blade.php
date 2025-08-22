@@ -3,178 +3,173 @@
 @section('title', 'TI-UTM - Calificaciones')
 
 @section('content')
-<!-- Botón regresar -->
+<!-- Botón regresar + botón exportar -->
 <div class="row mb-2">
-    <div class="col-md-12 text-right">
+    <div class="col-md-6">
         <a href="{{ url('/settings') }}" class="btn btn-sm" style="background-color:#FFFFFF;color:#000;">
             <i class="fa-solid fa-arrow-left"></i> Regresar
+        </a>
+    </div>
+    <div class="col-md-6 text-end">
+        <a href="{{ route('calificaciones.export') }}" class="btn btn-success btn-sm">
+            <i class="fa-solid fa-file-download"></i> Descargar todo
         </a>
     </div>
 </div>
 
 <div class="row">
     <div class="col-md-12">
-        <div class="card" style="border-radius:8px; overflow:hidden;">
-            <div class="card-header d-flex justify-content-between align-items-center" style="background-color:#1976d2;">
-                <h3 class="card-title text-white mb-0">Resumen de calificaciones por profesor</h3>
+        <!-- Encabezado general -->
+        <div class="alert alert-info d-flex justify-content-between align-items-center" role="alert" style="border-radius:8px;">
+            <div>
+                <strong>Resumen por tipo de documento ({{ $unidadHasta }})</strong><br>
+                <small>
+                    Las tutorías se habilitan por tercios del cuatrimestre (1/3, 2/3, 3/3).
+                    La “Unidad hasta” mostrada en cada tarjeta es la mediana de la unidad vigente entre las materias del profesor.
+                </small>
             </div>
+            <div>
+                <span class="badge bg-primary">Total profesores: {{ count($resumenPorDocumento ?? []) }}</span>
+            </div>
+        </div>
 
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table id="calificaciones" class="table table-bordered table-hover table-sm mb-0">
-                        <thead style="background-color:#1976d2; color:#fff;">
-                            <tr>
-                                <th><center>#</center></th>
-                                <th><center>Profesor</center></th>
-                                <th><center>Teacher ID</center></th>
-                                <th><center>Esperados</center></th>
-                                <th><center>Entregados</center></th>
-                                <th><center>Calificados</center></th>
-                                <th><center>Promedio</center></th>
-                                <th><center>Cumplimiento</center></th>
-                            </tr>
-                        </thead>
-                        <tbody style="background-color:#fff;">
-                            @foreach ($resumen as $idx => $r)
-                                @php
-                                    $esperados    = (int)($r['esperados'] ?? 0);
-                                    $entregados   = (int)($r['entregados'] ?? 0);
-                                    $calificados  = (int)($r['calificados'] ?? 0);
-                                    $promedio     = $r['promedio'] ?? null;
-                                    $cumplimiento = $esperados > 0 ? round(($entregados / $esperados) * 100, 0) : null;
-                                @endphp
+        @forelse ($resumenPorDocumento as $prof)
+            @php
+                // Indexar docs por tipo para acceso rápido
+                $map = [];
+                $tipos = [];
+                foreach ($prof['docs'] as $d) {
+                    $t = $d['tipo'];
+                    $map[$t] = $d;
+                    $tipos[] = $t;
+                }
+                $tipos = array_values(array_unique($tipos));
+                sort($tipos, SORT_NATURAL | SORT_FLAG_CASE);
+
+                // Helpers para mostrar valores o rayita
+                $fmt = function($v, $dec = 0, $suf = '') {
+                    if (is_null($v)) return '<span class="text-muted">—</span>';
+                    return number_format($v, $dec) . $suf;
+                };
+            @endphp
+
+            <div class="card mb-3" style="border-radius:8px; overflow:hidden;">
+                <div class="card-header d-flex justify-content-between align-items-center" style="background-color:#1976d2;">
+                    <div class="d-flex align-items-center gap-2">
+                        <h5 class="text-white mb-0">{{ $prof['nombre'] }}</h5>
+                        <span class="badge bg-light text-dark ms-2">Teacher ID: {{ $prof['teacher_id'] }}</span>
+                        @if(!empty($prof['categoria']))
+                            <span class="badge bg-secondary ms-1">{{ $prof['categoria'] }}</span>
+                        @endif
+                    </div>
+                    <span class="badge bg-light text-dark">Unidad hasta: {{ $prof['unidad_hasta'] }}</span>
+                </div>
+
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-sm mb-0 align-middle tabla-profesor">
+                            <thead class="table-light">
                                 <tr>
-                                    <td style="text-align:center">{{ $idx + 1 }}</td>
-                                    <td style="text-align:center">{{ $r['nombre'] }}</td>
-                                    <td style="text-align:center">{{ $r['teacher_id'] }}</td>
-                                    <td style="text-align:center">{{ $esperados }}</td>
-                                    <td style="text-align:center">{{ $entregados }}</td>
-                                    <td style="text-align:center">{{ $calificados }}</td>
-                                    <td style="text-align:center">
-                                        {{ is_null($promedio) ? '—' : number_format($promedio, 2) }}
-                                    </td>
-                                    <td style="text-align:center">
-                                        {{ is_null($cumplimiento) ? '—' : ($cumplimiento.'%') }}
-                                    </td>
+                                    <th style="min-width:220px;">Métrica \ Tipo</th>
+                                    @foreach ($tipos as $tipo)
+                                        <th class="text-center" style="min-width:170px;">{{ $tipo }}</th>
+                                    @endforeach
+                                    <th class="text-center table-secondary">Total / Prom</th>
                                 </tr>
-                            @endforeach
-                        </tbody>
-                        <tfoot>
-                            <tr>
-                                <th colspan="3" style="text-align:right">Totales:</th>
-                                <th style="text-align:center"></th> {{-- Esperados total --}}
-                                <th style="text-align:center"></th> {{-- Entregados total --}}
-                                <th style="text-align:center"></th> {{-- Calificados total --}}
-                                <th style="text-align:center"></th> {{-- Promedio general promedio (opcional) --}}
-                                <th style="text-align:center"></th> {{-- Cumplimiento promedio (opcional) --}}
-                            </tr>
-                        </tfoot>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {{-- Fila: Esperados --}}
+                                <tr>
+                                    <td class="fw-semibold">Esperados</td>
+                                    @php $sumEsp = 0; @endphp
+                                    @foreach ($tipos as $tipo)
+                                        @php
+                                            $val = $map[$tipo]['esperados'] ?? 0;
+                                            $sumEsp += (int)$val;
+                                        @endphp
+                                        <td class="text-center">{!! $fmt($val) !!}</td>
+                                    @endforeach
+                                    <td class="text-center table-secondary">{!! $fmt($sumEsp) !!}</td>
+                                </tr>
+
+                                {{-- Fila: Entregados --}}
+                                <tr>
+                                    <td class="fw-semibold">Entregados</td>
+                                    @php $sumEnt = 0; @endphp
+                                    @foreach ($tipos as $tipo)
+                                        @php
+                                            $val = $map[$tipo]['entregados'] ?? 0;
+                                            $sumEnt += (int)$val;
+                                        @endphp
+                                        <td class="text-center">{!! $fmt($val) !!}</td>
+                                    @endforeach
+                                    <td class="text-center table-secondary">{!! $fmt($sumEnt) !!}</td>
+                                </tr>
+
+                                {{-- Fila: Cumplimiento (%) – promedio simple de columnas con dato --}}
+                                <tr>
+                                    <td class="fw-semibold">Cumplimiento</td>
+                                    @php $cumplVals = []; @endphp
+                                    @foreach ($tipos as $tipo)
+                                        @php
+                                            $val = $map[$tipo]['cumplimiento'] ?? null;
+                                            if (!is_null($val)) $cumplVals[] = (float)$val;
+                                        @endphp
+                                        <td class="text-center">{!! is_null($val) ? $fmt(null) : $fmt($val, 0, '%') !!}</td>
+                                    @endforeach
+                                    @php
+                                        $cumplProm = count($cumplVals) ? round(array_sum($cumplVals)/count($cumplVals)) : null;
+                                    @endphp
+                                    <td class="text-center table-secondary">{!! is_null($cumplProm) ? $fmt(null) : $fmt($cumplProm, 0, '%') !!}</td>
+                                </tr>
+
+                                {{-- Fila: Promedio (calificaciones) – promedio simple de columnas con dato --}}
+                                <tr>
+                                    <td class="fw-semibold">Promedio</td>
+                                    @php $promVals = []; @endphp
+                                    @foreach ($tipos as $tipo)
+                                        @php
+                                            $val = $map[$tipo]['promedio'] ?? null;
+                                            if (!is_null($val)) $promVals[] = (float)$val;
+                                        @endphp
+                                        <td class="text-center">{!! is_null($val) ? $fmt(null) : $fmt($val, 2) !!}</td>
+                                    @endforeach
+                                    @php
+                                        $promProm = count($promVals) ? round(array_sum($promVals)/count($promVals), 2) : null;
+                                    @endphp
+                                    <td class="text-center table-secondary">{!! is_null($promProm) ? $fmt(null) : $fmt($promProm, 2) !!}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-        </div> <!-- card -->
+        @empty
+            <div class="alert alert-warning">No hay información para mostrar.</div>
+        @endforelse
+
     </div>
 </div>
 @endsection
 
 @section('css')
 <style>
-    /* Quita franjas si se agrega table-striped por error */
-    .table.table-striped tbody tr:nth-of-type(odd),
-    .table.table-striped tbody tr:nth-of-type(even) {
-        background-color: #fff !important;
-    }
-    .table th, .table td { text-align:center; vertical-align:middle; }
     .card-header { border-top-left-radius:8px; border-top-right-radius:8px; }
+    .table th, .table td { vertical-align: middle; }
+    .tabla-profesor tbody tr td:first-child { white-space: nowrap; }
 </style>
 @endsection
 
 @section('scripts')
 <script>
-$(document).ready(function () {
-    const table = $('#calificaciones').DataTable({
-        dom: "<'row p-3'<'col-md-6 d-flex align-items-center'B l><'col-md-6 text-right'f>>" +
-             "<'row'<'col-sm-12'tr>>" +
-             "<'row p-3'<'col-sm-5'i><'col-sm-7'p>>",
-        pageLength: 10,
-        language: {
-            emptyTable: "No hay información",
-            info: "Mostrando _START_ a _END_ de _TOTAL_ registros",
-            infoEmpty: "Mostrando 0 a 0 de 0 registros",
-            infoFiltered: "(filtrado de _MAX_ en total)",
-            lengthMenu: "Mostrar _MENU_",
-            loadingRecords: "Cargando...",
-            processing: "Procesando...",
-            search: "Buscador:",
-            zeroRecords: "Sin resultados",
-            paginate: { first:"Primero", last:"Último", next:"Siguiente", previous:"Anterior" }
-        },
-        responsive: true,
-        lengthChange: true,
-        autoWidth: false,
-        buttons: [
-            {
-                extend: 'collection',
-                text: 'Opciones',
-                buttons: [
-                    { extend: 'copy',  text: 'Copiar'  },
-                    { extend: 'pdf',   text: 'PDF'     },
-                    { extend: 'csv',   text: 'CSV'     },
-                    { extend: 'excel', text: 'Excel'   },
-                    { extend: 'print', text: 'Imprimir'}
-                ]
-            },
-            { extend: 'colvis', text: 'Visor de columnas' }
-        ],
-        footerCallback: function (row, data, start, end, display) {
-            const api = this.api();
-            const toInt = v => typeof v === 'string' ? (v.replace(/[^\d.-]/g,'')*1||0) : (typeof v === 'number' ? v : 0);
-
-            // indices de columnas: 3=Esperados, 4=Entregados, 5=Calificados
-            const sumCol = idx => api.column(idx, {page:'current'}).data().reduce((a,b)=>a+toInt(b),0);
-
-            const totalEsperados   = sumCol(3);
-            const totalEntregados  = sumCol(4);
-            const totalCalificados = sumCol(5);
-
-            $(api.column(3).footer()).html(totalEsperados);
-            $(api.column(4).footer()).html(totalEntregados);
-            $(api.column(5).footer()).html(totalCalificados);
-
-            // Opcional: promedio de “Promedio (general)” y cumplimiento promedio
-            // 6=Promedio (general), 7=Cumplimiento
-            const parseProm = v => {
-                if (typeof v !== 'string') return (typeof v === 'number') ? v : NaN;
-                const num = parseFloat(v.replace(',', '.'));
-                return isNaN(num) ? NaN : num;
-            };
-            const promVals = api.column(6, {page:'current'}).data().toArray().map(parseProm);
-            const promValidos = promVals.filter(n => !isNaN(n));
-            const promProm = promValidos.length ? (promValidos.reduce((a,b)=>a+b,0) / promValidos.length) : NaN;
-            $(api.column(6).footer()).html(isNaN(promProm) ? '—' : promProm.toFixed(2));
-
-            const parsePct = v => {
-                if (typeof v !== 'string') return NaN;
-                const n = parseFloat(v.replace('%','').replace(',', '.'));
-                return isNaN(n) ? NaN : n;
-            };
-            const pctVals = api.column(7, {page:'current'}).data().toArray().map(parsePct);
-            const pctValidos = pctVals.filter(n => !isNaN(n));
-            const pctProm = pctValidos.length ? (pctValidos.reduce((a,b)=>a+b,0) / pctValidos.length) : NaN;
-            $(api.column(7).footer()).html(isNaN(pctProm) ? '—' : (Math.round(pctProm) + '%'));
-        }
-    });
-
-    // Mensaje de éxito (SweetAlert)
     @if (session('success'))
         Swal.fire({
             position: 'center',
             icon: 'success',
             title: '{{ session('success') }}',
             showConfirmButton: false,
-            timer: 15000
+            timer: 8000
         });
     @endif
-});
 </script>
 @endsection

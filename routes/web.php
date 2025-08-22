@@ -17,6 +17,8 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+Route::get('/settings/calificaciones/export', [App\Http\Controllers\CalificacionDocumentoController::class, 'export'])->name('calificaciones.export');
+
 // Ruta para ver el acuse en el navegador
 Route::get('submodulos/{submodulo}/ver-acuse', [App\Http\Controllers\AcuseController::class, 'verAcuse'])->name('submodulos.ver-acuse');
 

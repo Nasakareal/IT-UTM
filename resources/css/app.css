@@ -116,3 +116,9 @@
         padding: 10px;
     }
 }
+
+.bg-verde-suave {
+    background-color: #A3DC9A;
+    color: #ffffff; /* o ajusta según contraste */
+}
+

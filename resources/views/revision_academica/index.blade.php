@@ -60,11 +60,11 @@
                                     $archivo = $archivoMap[$profesor->id][$submodulo->id] ?? null;
 
                                     $fechaLimite = $submodulo->fecha_limite ?? null;
-                                    $color = 'bg-warning text-dark'; // pendiente por default
+                                    $color = 'bg-warning text-dark';
                                     if ($archivo) {
-                                        $color = 'bg-success text-white'; // entregado
+                                        $color = 'bg-info text-white';
                                     } elseif ($fechaLimite && now()->greaterThan($fechaLimite)) {
-                                        $color = 'bg-danger text-white'; // fuera de tiempo
+                                        $color = 'bg-danger text-white';
                                     }
 
                                     // Preselección de MI calificación
@@ -170,6 +170,11 @@
 <style>
     .table td, .table th { text-align:center; vertical-align:middle; }
     .bg-success a, .bg-danger a { color:#fff; text-decoration:underline; }
+    .bg-verde-suave {
+    background-color: #A3DC9A;
+    color: #ffffff; /* o ajusta según contraste */
+}
+
 </style>
 @endsection
 

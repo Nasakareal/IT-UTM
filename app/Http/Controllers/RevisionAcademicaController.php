@@ -131,7 +131,6 @@ class RevisionAcademicaController extends Controller
             'submodulos',
             'archivoMap',
             'subseccionesDisponibles',
-            // nuevos:
             'misCalifsMap',
             'promediosMap'
         ));
