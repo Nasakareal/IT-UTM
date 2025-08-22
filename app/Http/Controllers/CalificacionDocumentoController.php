@@ -34,7 +34,7 @@ class CalificacionDocumentoController extends Controller
         $generalesTutor = [
             'Presentación del Tutor',
             '1er Tutoría Grupal',
-            '2da Tutororía Grupal',
+            '2da Tutoría Grupal',
             '3er Tutoría Grupal',
             'Registro de Proyecto Institucional',
             'Informe Parcial',
