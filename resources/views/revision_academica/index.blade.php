@@ -60,25 +60,38 @@
                                     $archivo = $archivoMap[$profesor->id][$submodulo->id] ?? null;
 
                                     $fechaLimite = $submodulo->fecha_limite ?? null;
-                                    $color = 'bg-warning text-dark';
+
+                                    // Colores de la celda
+                                    $color = 'bg-warning text-dark'; // pendiente
                                     if ($archivo) {
-                                        $color = 'bg-info text-white';
+                                        $color = 'bg-success text-white'; // entregado
                                     } elseif ($fechaLimite && now()->greaterThan($fechaLimite)) {
-                                        $color = 'bg-danger text-white';
+                                        $color = 'bg-danger text-white'; // vencido sin entregar
                                     }
 
-                                    // Preselección de MI calificación
+                                    // Mi calificación (del evaluador logueado)
                                     $miCalif = ($archivo && isset($misCalifsMap[$archivo->id]))
                                                 ? (int)$misCalifsMap[$archivo->id]
                                                 : null;
 
-                                    // Promedio global (todas las calificaciones de ese archivo)
+                                    // Promedio global y número de evaluaciones
                                     $promedio = ($archivo && isset($promediosMap[$archivo->id]))
-                                                ? $promediosMap[$archivo->id]['avg']
+                                                ? (float)$promediosMap[$archivo->id]['avg']
                                                 : null;
                                     $nEvals   = ($archivo && isset($promediosMap[$archivo->id]))
-                                                ? $promediosMap[$archivo->id]['n']
+                                                ? (int)$promediosMap[$archivo->id]['n']
                                                 : 0;
+
+                                    // Valor preseleccionado en el select:
+                                    // 1) mi calificación; 2) promedio redondeado; 3) null
+                                    $valorSelect = null;
+                                    if (!is_null($miCalif)) {
+                                        $valorSelect = $miCalif;
+                                    } elseif (!is_null($promedio)) {
+                                        $valorSelect = max(0, min(10, (int)round($promedio)));
+                                    }
+
+                                    $textoClaro = str_contains($color,'text-white');
                                 @endphp
 
                                 <td class="{{ $color }}">
@@ -90,7 +103,7 @@
                                                 @if(!empty($archivo->ruta))
                                                     <a href="{{ asset('storage/'.$archivo->ruta) }}"
                                                        target="_blank"
-                                                       class="text-white text-decoration-underline">
+                                                       class="text-decoration-underline {{ $textoClaro ? 'text-white' : 'text-dark' }}">
                                                         Ver archivo
                                                     </a>
                                                 @endif
@@ -112,13 +125,12 @@
                                                       class="d-inline-flex align-items-center gap-2">
                                                     @csrf
 
-                                                    {{-- CAMPO CLAVE: SIEMPRE CON VALOR --}}
                                                     <input type="hidden" name="submodulo_archivo_id" value="{{ $archivo->id }}">
 
                                                     <select name="calificacion" class="form-select form-select-sm w-auto" required>
                                                         <option value="">Calificar</option>
                                                         @for ($i = 0; $i <= 10; $i++)
-                                                            <option value="{{ $i }}" {{ (!is_null($miCalif) && $miCalif === $i) ? 'selected' : '' }}>
+                                                            <option value="{{ $i }}" {{ (!is_null($valorSelect) && $valorSelect === $i) ? 'selected' : '' }}>
                                                                 {{ $i }}
                                                             </option>
                                                         @endfor
@@ -130,21 +142,21 @@
                                                 </form>
                                             @else
                                                 {{-- Solo lectura para quien no tiene permiso --}}
-                                                @if(!is_null($miCalif))
-                                                    <span class="badge bg-primary">Calif: {{ $miCalif }}</span>
+                                                @if(!is_null($valorSelect))
+                                                    <span class="badge bg-primary">Calif: {{ $valorSelect }}</span>
                                                 @else
-                                                    <span class="text-white-50">Sin calificar</span>
+                                                    <span class="{{ $textoClaro ? 'text-white-50' : 'text-muted' }}">Sin calificar</span>
                                                 @endif
-                                            @endcan>
+                                            @endcan
 
                                             {{-- Promedio global (si existe) --}}
                                             @if(!is_null($promedio))
-                                                <small class="text-white-50">
+                                                <small class="{{ $textoClaro ? 'text-white-50' : 'text-muted' }}">
                                                     Prom: {{ number_format($promedio, 2) }} ({{ $nEvals }})
                                                 </small>
                                             @endif
 
-                                            {{-- Errores scoped (si fallara validación) --}}
+                                            {{-- Errores scoped --}}
                                             @error('submodulo_archivo_id')
                                                 <div class="small text-light mt-1">{{ $message }}</div>
                                             @enderror
@@ -170,11 +182,6 @@
 <style>
     .table td, .table th { text-align:center; vertical-align:middle; }
     .bg-success a, .bg-danger a { color:#fff; text-decoration:underline; }
-    .bg-verde-suave {
-    background-color: #A3DC9A;
-    color: #ffffff; /* o ajusta según contraste */
-}
-
 </style>
 @endsection
 
