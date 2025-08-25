@@ -60,6 +60,9 @@ class CalificacionDocumentoController extends Controller
         $teacherIdsBase = $profesores->pluck('teacher_id')->all();
         $userIdsBase    = $profesores->pluck('id')->all();
 
+        // user_id -> teacher_id
+        $userToTeacher = $profesores->pluck('teacher_id','id'); // [user_id => teacher_id]
+
         // 4) Materias por profe (esperados de docs “normales” = #materias)
         $materiasPorTeacher = DB::connection('cargahoraria')
             ->table('teacher_subjects')
@@ -67,6 +70,27 @@ class CalificacionDocumentoController extends Controller
             ->whereIn('teacher_id', $teacherIdsBase)
             ->groupBy('teacher_id')
             ->pluck('total_materias','teacher_id');
+
+        // 4.1) LÍMITE POR UNIDAD
+        $allowedByUPerTeacher = DB::connection('cargahoraria')
+            ->table('teacher_subjects as ts')
+            ->join('subjects as s','s.subject_id','=','ts.subject_id')
+            ->whereIn('ts.teacher_id', $teacherIdsBase)
+            ->select('ts.teacher_id','s.unidades')
+            ->get()
+            ->groupBy('teacher_id')
+            ->map(function($rows) {
+                $cutoffs = [];
+                foreach ($rows as $r) {
+                    $uTotal = max(1, (int)$r->unidades);
+                    $cutoffs[] = (int)ceil($uTotal / 2);
+                }
+                $allowed = [1=>0, 2=>0, 3=>0];
+                foreach ([1,2,3] as $u) {
+                    $allowed[$u] = count(array_filter($cutoffs, fn($c) => $c >= $u));
+                }
+                return $allowed;
+            });
 
         // 5) Unidades por materia -> unidad vigente por profe (mediana)
         $unidadesPorTeacher = DB::connection('cargahoraria')
@@ -110,64 +134,111 @@ class CalificacionDocumentoController extends Controller
             ->select('documento_id', DB::raw('AVG(calificacion) as prom_item'))
             ->groupBy('documento_id');
 
+        // Traemos documentos (SIN subject_id)
         $rowsDocs = DB::table('documentos_subidos as ds')
             ->leftJoinSub($avgPorDocumento,'pdoc','pdoc.documento_id','=','ds.id')
             ->whereIn('ds.user_id',$userIdsBase)
             ->select('ds.id','ds.user_id','ds.unidad','ds.tipo_documento','pdoc.prom_item')
             ->get();
 
-        // 7) TUTORÍAS — subquery base para cumplir ONLY_FULL_GROUP_BY
-$promPorSA = DB::table('calificacion_submodulo_archivos')
-    ->select('submodulo_archivo_id', DB::raw('AVG(calificacion) as prom_por_sa'))
-    ->groupBy('submodulo_archivo_id');
+        // 7) TUTORÍAS — igual que antes
+        $promPorSA = DB::table('calificacion_submodulo_archivos')
+            ->select('submodulo_archivo_id', DB::raw('AVG(calificacion) as prom_por_sa'))
+            ->groupBy('submodulo_archivo_id');
 
-$baseSub = DB::table('submodulo_archivos as sa')
-    ->join('submodulos as sm','sm.id','=','sa.submodulo_id')
-    ->join('subsections as ss','ss.id','=','sm.subsection_id')
-    ->leftJoinSub($promPorSA, 'pcsa', 'pcsa.submodulo_archivo_id', '=', 'sa.id')
-    ->leftJoin('calificacion_submodulo_archivos as csa','csa.submodulo_archivo_id','=','sa.id')
-    ->where('ss.modulo_id', 5)
-    ->whereIn('sa.user_id', $userIdsBase)
-    ->selectRaw('
-        COALESCE(csa.profesor_id, sa.user_id) as profesor_id,
-        sm.titulo as submodulo_titulo,
-        sa.created_at as sa_created_at,
-        sm.fecha_apertura,
-        sm.fecha_cierre,
-        pcsa.prom_por_sa
-    ');
+        $baseSub = DB::table('submodulo_archivos as sa')
+            ->join('submodulos as sm','sm.id','=','sa.submodulo_id')
+            ->join('subsections as ss','ss.id','=','sm.subsection_id')
+            ->leftJoinSub($promPorSA, 'pcsa', 'pcsa.submodulo_archivo_id', '=', 'sa.id')
+            ->leftJoin('calificacion_submodulo_archivos as csa','csa.submodulo_archivo_id','=','sa.id')
+            ->where('ss.modulo_id', 5)
+            ->whereIn('sa.user_id', $userIdsBase)
+            ->selectRaw('
+                COALESCE(csa.profesor_id, sa.user_id) as profesor_id,
+                sm.titulo as submodulo_titulo,
+                sa.created_at as sa_created_at,
+                sm.fecha_apertura,
+                sm.fecha_cierre,
+                pcsa.prom_por_sa
+            ');
 
-// Consulta externa: ahora sí podemos agregar y agrupar sin romper ONLY_FULL_GROUP_BY
-$rowsSubs = DB::query()
-    ->fromSub($baseSub, 'x')
-    ->selectRaw('
-        x.profesor_id,
-        x.submodulo_titulo,
-        SUM(CASE WHEN x.sa_created_at BETWEEN x.fecha_apertura AND x.fecha_cierre THEN 1 ELSE 0 END) as entregados_validos,
-        AVG(x.prom_por_sa) as prom_item_total
-    ')
-    ->groupBy('x.profesor_id','x.submodulo_titulo')
-    ->get();
+        $rowsSubs = DB::query()
+            ->fromSub($baseSub, 'x')
+            ->selectRaw('
+                x.profesor_id,
+                x.submodulo_titulo,
+                SUM(CASE WHEN x.sa_created_at BETWEEN x.fecha_apertura AND x.fecha_cierre THEN 1 ELSE 0 END) as entregados_validos,
+                AVG(x.prom_por_sa) as prom_item_total
+            ')
+            ->groupBy('x.profesor_id','x.submodulo_titulo')
+            ->get();
 
+        // 8) Agrupar ENTREGADOS / PROMEDIOS aplicando los LÍMITES por UNIDAD
+        $entPorTipo   = []; // [user_id][tipo] => entero (después de aplicar topes por unidad)
+        $promPorTipo  = []; // [user_id][tipo] => ['suma'=>..., 'n'=>...]
+        $buckets      = []; // [user_id][tipo][unidad] => array de prom_item (puede traer null)
 
-        // 8) Agrupar ENTREGADOS / PROMEDIOS
-        $entPorTipo  = []; // [profesor_id][tipo] = count_en_ventana
-        $promPorTipo = []; // [profesor_id][tipo] = ['suma'=>..., 'n'=>...]
-
-        // Documentos normales
+        // Guardamos en buckets por unidad
         foreach ($rowsDocs as $row) {
             $uid  = (int)$row->user_id;
             $tipo = trim($row->tipo_documento ?? '');
             if ($tipo === '') continue;
 
-            $entPorTipo[$uid][$tipo] = ($entPorTipo[$uid][$tipo] ?? 0) + 1;
+            // Unidad del documento (si viene null, tratamos como U1 para no perder evidencia)
+            $u = (int)($row->unidad ?? 1);
+            if ($u < 1) $u = 1;
 
-            if (!is_null($row->prom_item)) {
-                if (!isset($promPorTipo[$uid][$tipo])) {
-                    $promPorTipo[$uid][$tipo] = ['suma'=>0.0,'n'=>0];
+            $buckets[$uid][$tipo][$u] = $buckets[$uid][$tipo][$u] ?? [];
+            $buckets[$uid][$tipo][$u][] = $row->prom_item; // puede ser null
+        }
+
+        // Aplicamos los topes por unidad contra los buckets
+        foreach ($buckets as $uid => $tipos) {
+            $tid = (int)($userToTeacher[$uid] ?? 0);
+            $allowed = $allowedByUPerTeacher[$tid] ?? [1=>0,2=>0,3=>0];
+
+            foreach ($tipos as $tipo => $byU) {
+                $ent = 0;
+                $sum = 0.0;
+                $n   = 0;
+
+                // Recorremos unidades presentes en los docs
+                foreach ($byU as $u => $vals) {
+                    // ¿cuántos podemos contar en esta unidad?
+                    $cap = 0;
+                    if ($u <= 3) {
+                        $cap = (int)($allowed[$u] ?? 0);
+                    } else {
+                        $cap = 0; // U4+ no cuentan por regla del cliente
+                    }
+
+                    if ($cap <= 0) continue;
+
+                    // contamos hasta $cap entregas de esta unidad
+                    $cant = min(count($vals), $cap);
+                    $ent += $cant;
+
+                    // Para promedio: solo las "cant" primeras con calificación (no-null)
+                    $tomados = 0;
+                    foreach ($vals as $v) {
+                        if ($tomados >= $cant) break;
+                        if (!is_null($v)) {
+                            $sum += (float)$v;
+                            $n   += 1;
+                        }
+                        $tomados++;
+                    }
                 }
-                $promPorTipo[$uid][$tipo]['suma'] += (float)$row->prom_item;
-                $promPorTipo[$uid][$tipo]['n']    += 1;
+
+                if ($ent > 0) {
+                    $entPorTipo[$uid][$tipo] = ($entPorTipo[$uid][$tipo] ?? 0) + $ent;
+                }
+
+                if ($n > 0) {
+                    if (!isset($promPorTipo[$uid][$tipo])) $promPorTipo[$uid][$tipo] = ['suma'=>0.0,'n'=>0];
+                    $promPorTipo[$uid][$tipo]['suma'] += $sum;
+                    $promPorTipo[$uid][$tipo]['n']    += $n;
+                }
             }
         }
 
@@ -177,7 +248,6 @@ $rowsSubs = DB::query()
             $tipo = $this->mapearTutorias($row->submodulo_titulo);
             if (!$tipo) continue;
 
-            // Gate por ETAPA (1/2/3)
             $permitidoEtapa = true;
             if (isset($unidadRequeridaPorTipo[$tipo])) {
                 $permitidoEtapa = ($tutoriaEtapa >= $unidadRequeridaPorTipo[$tipo]);
@@ -230,7 +300,7 @@ $rowsSubs = DB::query()
                 ];
             }
 
-            // Tutorías: esperados = 1 SOLO si ya abrió la ventana; promedio toma califs aunque fueran fuera de ventana
+            // Tutorías
             foreach ($generalesTutor as $tipo) {
                 $req           = $unidadRequeridaPorTipo[$tipo] ?? null;
                 $habilitaEtapa = is_null($req) || ($tutoriaEtapa >= $req);
@@ -278,7 +348,7 @@ $rowsSubs = DB::query()
         ]);
     }
 
-     public function store(Request $request)
+    public function store(Request $request)
     {
         $request->validate([
             'documento_id' => 'required|exists:documentos_subidos,id',
