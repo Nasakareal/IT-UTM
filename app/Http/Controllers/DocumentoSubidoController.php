@@ -73,14 +73,21 @@ class DocumentoSubidoController extends Controller
                     'firma_sat'    => null,
                     'fecha_firma'  => null,
                     'acuse_pdf'    => null,
-                    // === NUEVO: columnas añadidas ===
                     'hash_sha256'  => null,
                     'firma_sig'    => null,
                     'lote_id'      => null,
                 ]
             );
 
-            return back()->with('success', 'Documento subido correctamente.');
+            if ($request->ajax() || $request->wantsJson() || $request->expectsJson()) {
+                return response()->json([
+                    'ok'          => true,
+                    'msg'         => 'Documento subido correctamente.',
+                    'archivo_url' => \Storage::url($relPath),
+                ]);
+            }
+
+            return response()->noContent();
         }
 
         /* ------------------------------------------------------------------ *

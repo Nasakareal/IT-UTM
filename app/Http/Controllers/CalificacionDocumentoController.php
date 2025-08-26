@@ -17,8 +17,8 @@ class CalificacionDocumentoController extends Controller
     public function index(Request $request)
     {
         // 1) Progreso del cuatri (0..1) y etapa/tutorías (1..3)
-        $progresoCuatri = $this->progresoCuatri();     // float 0..1
-        $tutoriaEtapa   = $this->unidadIndexFor(3);    // 1..3
+        $progresoCuatri = $this->progresoCuatri();
+        $tutoriaEtapa   = $this->unidadIndexFor(3);
 
         // 2) Bloques de tipos
         $tiposEstandar = [

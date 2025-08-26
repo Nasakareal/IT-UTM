@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 use App\Models\DocumentoSubido;
-use App\Models\FirmaLote; // <-- para traer acuse general por unidad
+use App\Models\FirmaLote;
 
 class GestionAcademicaController extends Controller
 {
@@ -179,8 +179,8 @@ class GestionAcademicaController extends Controller
                             'archivo'            => $plantilla,
                             'entregado'          => (bool) $registro,
                             'archivo_subido'     => $registro->archivo    ?? null,
-                            'acuse'              => $registro->acuse_pdf  ?? null, // ya no se muestra en la vista
-                            'acuse_lote'         => $acuseU,               // acuse general por unidad
+                            'acuse'              => $registro->acuse_pdf  ?? null,
+                            'acuse_lote'         => $acuseU,
                             'lote_id'            => $loteId,
                             'es_actual'          => $unidadActual === 1,
                             'editable'           => $editable,
@@ -224,7 +224,7 @@ class GestionAcademicaController extends Controller
                         'archivo'            => $plantilla,
                         'entregado'          => (bool) $registro,
                         'archivo_subido'     => $registro->archivo    ?? null,
-                        'acuse'              => $registro->acuse_pdf  ?? null, // ya no se muestra en la vista
+                        'acuse'              => $registro->acuse_pdf  ?? null,
                         'acuse_lote'         => $acuseU,
                         'lote_id'            => $loteId,
                         'es_actual'          => $u === $unidadActual,

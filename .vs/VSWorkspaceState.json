@@ -6,11 +6,10 @@
     "\\app\\Http\\Controllers",
     "\\resources",
     "\\resources\\views",
-    "\\resources\\views\\revision_academica",
-    "\\resources\\views\\settings",
-    "\\resources\\views\\settings\\calificaciones",
-    "\\resources\\views\\settings\\users"
+    "\\resources\\views\\layouts",
+    "\\resources\\views\\modulos",
+    "\\routes"
   ],
-  "SelectedNode": "\\resources\\views\\settings\\calificaciones\\index.blade.php",
+  "SelectedNode": "\\app\\Http\\Controllers\\GestionAcademicaController.php",
   "PreviewInSolutionExplorer": false
 }
