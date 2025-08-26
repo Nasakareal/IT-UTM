@@ -130,8 +130,6 @@
                                 $entregados    = $docsUnidad->where('entregado', true)->count();
                                 $faltantes     = $docsUnidad->filter(fn($d)=>!$d['entregado'])->pluck('documento')->values();
                                 $completa      = $entregados === $totalUnidad && $totalUnidad > 0;
-
-                                // Tomamos una sola referencia del acuse general / lote_id por unidad
                                 $acuseLote     = $docsUnidad->first()['acuse_lote'] ?? null;
                                 $loteId        = $docsUnidad->first()['lote_id']     ?? null;
 

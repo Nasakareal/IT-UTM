@@ -64,7 +64,7 @@ class FirmaLoteController extends Controller
 
         // 3) Transacción: firmar cada archivo que aún no esté firmado y crear lote
         $firmadosAhora = [];
-        $skipped       = []; // ya firmados
+        $skipped       = [];
         DB::beginTransaction();
         try {
             $lote = FirmaLote::create([
@@ -220,9 +220,9 @@ class FirmaLoteController extends Controller
                 'certCN'      => $certInfo['cn'],
                 'fecha'       => $lote->firmado_at,
 
-                'items'       => $itemsParaPdf,      // la lista completa de la unidad
-                'programa'    => $programa,          // << para el footer dinámico
-                'hashArchivo' => $hashArchivo,       // << hash único del paquete
+                'items'       => $itemsParaPdf,
+                'programa'    => $programa,
+                'hashArchivo' => $hashArchivo,
 
                 // (opcional) resumen, por si aún lo usas en otro template
                 'resumen'     => [

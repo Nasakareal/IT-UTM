@@ -143,13 +143,11 @@ class RevisionAcademicaController extends Controller
     {
         $usuario = auth()->user();
 
-        // Áreas del subdirector (puede venir separadas por coma)
         $areas = collect(explode(',', (string)($usuario->area ?? '')))
             ->map(fn($a) => trim($a))
             ->filter()
             ->values();
 
-        /* 2.1) Profesores del área */
         $teacherIds = DB::connection('cargahoraria')
             ->table('teacher_subjects as ts')
             ->join('subjects as s',  'ts.subject_id', '=', 's.subject_id')
@@ -162,7 +160,6 @@ class RevisionAcademicaController extends Controller
             ->whereIn('teacher_id', $teacherIds)
             ->get();
 
-        /* 2.2) Filtros */
         $profesorId    = $request->profesor_id;
         $materiaFiltro = $request->materia;
         $unidadFiltro  = $request->unidad;
@@ -171,7 +168,6 @@ class RevisionAcademicaController extends Controller
         $profesorSeleccionado = $profesores->firstWhere('id', $profesorId);
         $documentos           = [];
 
-        // Grupos disponibles por ÁREA (cuando no hay profesor seleccionado)
         $gruposArea = DB::connection('cargahoraria')
             ->table('teacher_subjects as ts')
             ->join('subjects as s',  'ts.subject_id', '=', 's.subject_id')
@@ -183,10 +179,8 @@ class RevisionAcademicaController extends Controller
             ->sort()
             ->values();
 
-        /* 2.3) Si hay profesor seleccionado, armar lista */
         if ($profesorSeleccionado) {
 
-            /* Materias del profesor */
             $materias = DB::connection('cargahoraria')
                 ->table('teacher_subjects as ts')
                 ->join('subjects as s',  'ts.subject_id', '=', 's.subject_id')
@@ -205,7 +199,6 @@ class RevisionAcademicaController extends Controller
                 ->when($grupoFiltro,   fn ($q) => $q->where('g.group_name',   $grupoFiltro))
                 ->get();
 
-            /* Cuatrimestre activo (para unidad actual) */
             $hoy     = now();
             $cuatri  = DB::table('cuatrimestres')
                 ->whereDate('fecha_inicio', '<=', $hoy)
@@ -220,7 +213,6 @@ class RevisionAcademicaController extends Controller
                 $diasTranscurridos = $inicio->diffInDays($hoy) + 1;
             }
 
-            /* Tipos estándar */
             $tiposEstandar = [
                 'Reporte de Evaluación Continua por Unidad de Aprendizaje (SIGO)' => null,
                 'Informe de Estudiantes No Acreditados'                           => 'F-DA-GA-05 Informe de Estudiantes No Acreditados.xlsx',
@@ -228,7 +220,6 @@ class RevisionAcademicaController extends Controller
                 'Seguimiento de la Planeación'  => 'F-DA-GA-03 Seguimiento de la Planeación Didáctica.xlsx',
             ];
 
-            /* Recorrer materias y unidades */
             foreach ($materias as $m) {
                 $totalUnidades = (int) $m->unidades;
                 $diasPorUnidad = $totalUnidades ? ceil($totalDias / $totalUnidades) : 0;
@@ -236,7 +227,6 @@ class RevisionAcademicaController extends Controller
 
                 for ($u = 1; $u <= $totalUnidades; $u++) {
 
-                    /* 5A) Documentos especiales – unidad 1 */
                     if ($u === 1) {
                         $especiales = [
                             'Presentación de la Asignatura' => 'F-DA-GA-01 Presentación de la asignatura.xlsx',
@@ -254,11 +244,18 @@ class RevisionAcademicaController extends Controller
                                 ['tipo_documento', $tipo],
                             ])->first();
 
-                            $calificacion = $registro
-                                ? CalificacionDocumento::where('documento_id', $registro->id)
+                            $calificacion = null;
+                            if ($registro) {
+                                $mi = CalificacionDocumento::where('documento_id', $registro->id)
                                     ->where('evaluador_id', auth()->id())
-                                    ->value('calificacion')
-                                : null;
+                                    ->value('calificacion');
+                                if (is_null($mi)) {
+                                    $mi = CalificacionDocumento::where('documento_id', $registro->id)
+                                        ->orderByDesc('id')
+                                        ->value('calificacion');
+                                }
+                                $calificacion = $mi;
+                            }
 
                             $firmado   = $registro && !is_null($registro->fecha_firma);
                             $modoFirma = $firmado ? ($registro->lote_id || $registro->firma_sig ? 'lote' : 'individual') : null;
@@ -284,7 +281,6 @@ class RevisionAcademicaController extends Controller
                         }
                     }
 
-                    /* 5B) Documentos estándar */
                     foreach ($tiposEstandar as $tipo => $plantilla) {
                         if ($unidadFiltro && (int)$unidadFiltro !== $u) continue;
 
@@ -296,15 +292,22 @@ class RevisionAcademicaController extends Controller
                             ['tipo_documento', $tipo],
                         ])->first();
 
-                        $calificacion = $registro
-                            ? CalificacionDocumento::where('documento_id', $registro->id)
+                        $calificacion = null;
+                        if ($registro) {
+                            $mi = CalificacionDocumento::where('documento_id', $registro->id)
                                 ->where('evaluador_id', auth()->id())
-                                ->value('calificacion')
-                            : null;
+                                ->value('calificacion');
+                            if (is_null($mi)) {
+                                $mi = CalificacionDocumento::where('documento_id', $registro->id)
+                                    ->orderByDesc('id')
+                                    ->value('calificacion');
+                            }
+                            $calificacion = $mi;
+                        }
 
-                        $firmado   = $registro && !is_null($registro->fecha_firma);
+                        $firmado    = $registro && !is_null($registro->fecha_firma);
                         $modo_firma = $firmado ? ($registro->lote_id || $registro->firma_sig ? 'lote' : 'individual') : null;
-                        $acusePdf  = $registro->acuse_pdf ?? null;
+                        $acusePdf   = $registro->acuse_pdf ?? null;
 
                         $documentos[] = [
                             'materia'         => $m->materia,
@@ -325,7 +328,6 @@ class RevisionAcademicaController extends Controller
                         ];
                     }
 
-                    /* 5C) Documento final */
                     if ($u === $totalUnidades) {
                         $tipoFinal = 'Reporte Cuatrimestral de la Evaluación Continua (SIGO)';
                         if ($unidadFiltro && (int)$unidadFiltro !== $u) continue;
@@ -338,15 +340,22 @@ class RevisionAcademicaController extends Controller
                             ['tipo_documento', $tipoFinal],
                         ])->first();
 
-                        $califFinal = $registroFinal
-                            ? CalificacionDocumento::where('documento_id', $registroFinal->id)
+                        $califFinal = null;
+                        if ($registroFinal) {
+                            $mi = CalificacionDocumento::where('documento_id', $registroFinal->id)
                                 ->where('evaluador_id', auth()->id())
-                                ->value('calificacion')
-                            : null;
+                                ->value('calificacion');
+                            if (is_null($mi)) {
+                                $mi = CalificacionDocumento::where('documento_id', $registroFinal->id)
+                                    ->orderByDesc('id')
+                                    ->value('calificacion');
+                            }
+                            $califFinal = $mi;
+                        }
 
-                        $firmado   = $registroFinal && !is_null($registroFinal->fecha_firma);
+                        $firmado    = $registroFinal && !is_null($registroFinal->fecha_firma);
                         $modo_firma = $firmado ? ($registroFinal->lote_id || $registroFinal->firma_sig ? 'lote' : 'individual') : null;
-                        $acusePdf  = $registroFinal->acuse_pdf ?? null;
+                        $acusePdf   = $registroFinal->acuse_pdf ?? null;
 
                         $documentos[] = [
                             'materia'         => $m->materia,
@@ -370,11 +379,9 @@ class RevisionAcademicaController extends Controller
             }
         }
 
-        /* 2.4) Opciones de filtros */
         $materiasDisponibles = collect($documentos)->pluck('materia')->unique()->sort()->values();
         $unidadesDisponibles = collect($documentos)->pluck('unidad')->unique()->sort()->values();
 
-        // Si hay profesor seleccionado, grupos desde sus documentos; si no, grupos por ÁREA
         $gruposDisponibles = $profesorSeleccionado
             ? collect($documentos)->pluck('grupo')->unique()->sort()->values()
             : $gruposArea;

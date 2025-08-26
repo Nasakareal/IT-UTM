@@ -8,8 +8,9 @@
     "\\resources\\views",
     "\\resources\\views\\layouts",
     "\\resources\\views\\modulos",
+    "\\resources\\views\\revision_academica",
     "\\routes"
   ],
-  "SelectedNode": "\\app\\Http\\Controllers\\GestionAcademicaController.php",
+  "SelectedNode": "\\resources\\views\\revision_academica\\solo_gestion.blade.php",
   "PreviewInSolutionExplorer": false
 }
