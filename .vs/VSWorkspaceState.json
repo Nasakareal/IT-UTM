@@ -11,6 +11,6 @@
     "\\resources\\views\\revision_academica",
     "\\routes"
   ],
-  "SelectedNode": "\\resources\\views\\revision_academica\\solo_gestion.blade.php",
+  "SelectedNode": "\\app\\Http\\Controllers\\RevisionAcademicaController.php",
   "PreviewInSolutionExplorer": false
 }
