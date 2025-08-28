@@ -11,6 +11,6 @@
     "\\resources\\views\\revision_academica",
     "\\routes"
   ],
-  "SelectedNode": "\\app\\Http\\Controllers\\RevisionAcademicaController.php",
+  "SelectedNode": "\\app\\Http\\Controllers\\GestionAcademicaController.php",
   "PreviewInSolutionExplorer": false
 }
