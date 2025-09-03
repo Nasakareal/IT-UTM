@@ -21,6 +21,7 @@ class DocumentoSubido extends Model
         'fecha_firma',
         'acuse_pdf',
         'grupo',
+        'quarter_name',
     ];
 
     protected $casts = [

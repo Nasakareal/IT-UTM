@@ -214,260 +214,126 @@ class RevisionAcademicaController extends Controller
             ->filter()
             ->values();
 
-        // Conexión donde vive la snapshot
         $snapConn = 'cargahoraria';
         if (!Schema::connection($snapConn)->hasTable('materias_docentes_snapshots')) {
             $snapConn = config('database.default', 'mysql');
         }
 
-        // Programas permitidos por área (desde cargahoraria.programs)
-        $programIdsPermitidos = DB::connection('cargahoraria')
-            ->table('programs')
-            ->whereIn('area', $areas)
-            ->pluck('program_id')
-            ->all();
-
-        // Cuatrimestre a usar (request o el más reciente de la snapshot)
-        $quarter = $request->input('quarter_name');
-        if (!$quarter && Schema::connection($snapConn)->hasTable('materias_docentes_snapshots')) {
-            $quarter = DB::connection($snapConn)
-                ->table('materias_docentes_snapshots')
-                ->orderBy('captured_at', 'desc')
-                ->value('quarter_name');
+        $quartersSnap = collect();
+        if (Schema::connection($snapConn)->hasTable('materias_docentes_snapshots')) {
+            $quartersSnap = DB::connection($snapConn)
+                ->table('materias_docentes_snapshots as mds')
+                ->select('mds.quarter_name', DB::raw('MAX(mds.captured_at) as last_cap'))
+                ->groupBy('mds.quarter_name')
+                ->pluck('quarter_name');
         }
 
-        // Profesores desde snapshot (filtrando por área vía program_id y por quarter)
-        $teacherIds = DB::connection($snapConn)
-            ->table('materias_docentes_snapshots as mds')
-            ->when(!empty($programIdsPermitidos), fn($q) => $q->whereIn('mds.program_id', $programIdsPermitidos))
-            ->when($quarter, fn($q) => $q->where('mds.quarter_name', $quarter))
-            ->distinct()
-            ->pluck('mds.teacher_id')
-            ->unique();
+        $quartersDocs = DB::table('documentos_subidos')
+            ->select('quarter_name', DB::raw('MAX(created_at) as last_cap'))
+            ->groupBy('quarter_name')
+            ->orderByDesc('last_cap')
+            ->pluck('quarter_name');
 
-        $profesores = User::whereNotNull('teacher_id')
-            ->whereIn('teacher_id', $teacherIds)
-            ->orderBy('nombres')
-            ->get();
+        $quartersDisponibles = $quartersSnap->merge($quartersDocs)->filter()->unique()->values();
 
-        // Filtros de la vista
-        $profesorId    = $request->profesor_id;   // users.id
+        $quarter = $request->input('quarter_name');
+        if (!$quarter) {
+            $quarter = $quartersDocs->first() ?? $quartersSnap->first();
+        }
+
+        $profIdsConDocs = DB::table('documentos_subidos')
+            ->when($quarter, fn($q) => $q->where('quarter_name', $quarter))
+            ->distinct()->pluck('user_id');
+
+        $baseQueryProfes = User::whereIn('id', $profIdsConDocs);
+        if ($areas->isNotEmpty()) {
+            $baseQueryProfes->where(function ($qq) use ($areas) {
+                foreach ($areas as $area) {
+                    $qq->orWhereRaw('FIND_IN_SET(?, area)', [$area]);
+                }
+            });
+        }
+        $profesores = $baseQueryProfes->orderBy('nombres')->get();
+        $profesorId    = $request->profesor_id;
         $materiaFiltro = $request->materia;
         $unidadFiltro  = $request->unidad;
         $grupoFiltro   = $request->grupo;
+        $profesorSeleccionado = $profesorId ? User::find($profesorId) : null;
 
-        $profesorSeleccionado = $profesores->firstWhere('id', $profesorId);
+        $docsQuery = DB::table('documentos_subidos as ds')
+            ->when($quarter, fn($q) => $q->where('ds.quarter_name', $quarter))
+            ->when($profesorSeleccionado, fn($q) => $q->where('ds.user_id', $profesorSeleccionado->id))
+            ->when($materiaFiltro, fn($q) => $q->where('ds.materia', $materiaFiltro))
+            ->when($grupoFiltro, fn($q) => $q->where('ds.grupo', $grupoFiltro))
+            ->when($unidadFiltro, fn($q) => $q->where('ds.unidad', (int)$unidadFiltro))
+            ->orderBy('ds.materia')
+            ->orderBy('ds.grupo')
+            ->orderBy('ds.unidad');
+
+        $rows = $docsQuery->get([
+            'ds.id',
+            'ds.user_id',
+            'ds.materia',
+            'ds.grupo',
+            'ds.unidad',
+            'ds.quarter_name',
+            'ds.tipo_documento',
+            'ds.archivo',
+            'ds.acuse_pdf',
+            'ds.firma_sig',
+            'ds.lote_id',
+            'ds.fecha_firma',
+            'ds.created_at',
+        ]);
+
         $documentos = [];
+        foreach ($rows as $r) {
+            $mi = CalificacionDocumento::where('documento_id', $r->id)
+                ->where('evaluador_id', auth()->id())
+                ->value('calificacion');
 
-        // Grupos del área desde la snapshot
-        $gruposArea = DB::connection($snapConn)
-            ->table('materias_docentes_snapshots as mds')
-            ->when(!empty($programIdsPermitidos), fn($q) => $q->whereIn('mds.program_id', $programIdsPermitidos))
-            ->when($quarter, fn($q) => $q->where('mds.quarter_name', $quarter))
-            ->pluck('mds.grupo')
-            ->unique()
-            ->sort()
-            ->values();
-
-        if ($profesorSeleccionado) {
-            // Materias del profesor desde snapshot (únicas por materia/unidades/programa/grupo)
-            $materias = DB::connection($snapConn)
-                ->table('materias_docentes_snapshots as mds')
-                ->select('mds.materia', 'mds.unidades', 'mds.programa', 'mds.grupo')
-                ->where('mds.teacher_id', $profesorSeleccionado->teacher_id)
-                ->when(!empty($programIdsPermitidos), fn($q) => $q->whereIn('mds.program_id', $programIdsPermitidos))
-                ->when($quarter, fn($q) => $q->where('mds.quarter_name', $quarter))
-                ->when($materiaFiltro, fn($q) => $q->where('mds.materia', $materiaFiltro))
-                ->when($grupoFiltro, fn($q) => $q->where('mds.grupo', $grupoFiltro))
-                ->groupBy('mds.materia', 'mds.unidades', 'mds.programa', 'mds.grupo')
-                ->get();
-
-            // Cuatrimestre activo (para calcular unidad actual)
-            $hoy    = now();
-            $cuatri = DB::table('cuatrimestres')
-                ->whereDate('fecha_inicio', '<=', $hoy)
-                ->whereDate('fecha_fin', '>=', $hoy)
-                ->first();
-
-            $totalDias = $diasTranscurridos = 0;
-            if ($cuatri) {
-                $inicio            = Carbon::parse($cuatri->fecha_inicio);
-                $fin               = Carbon::parse($cuatri->fecha_fin);
-                $totalDias         = $inicio->diffInDays($fin) + 1;
-                $diasTranscurridos = $inicio->diffInDays($hoy) + 1;
+            if (is_null($mi)) {
+                $mi = CalificacionDocumento::where('documento_id', $r->id)
+                    ->orderByDesc('id')
+                    ->value('calificacion');
             }
 
-            $tiposEstandar = [
-                'Reporte de Evaluación Continua por Unidad de Aprendizaje (SIGO)' => null,
-                'Informe de Estudiantes No Acreditados'                           => 'F-DA-GA-05 Informe de Estudiantes No Acreditados.xlsx',
-                'Control de Asesorías'                                            => 'F-DA-GA-06 Control de Asesorías.xlsx',
-                'Seguimiento de la Planeación'                                    => 'F-DA-GA-03 Seguimiento de la Planeación Didáctica.xlsx',
+            $firmado    = !is_null($r->fecha_firma);
+            $modo_firma = $firmado ? ($r->lote_id || $r->firma_sig ? 'lote' : 'individual') : null;
+
+            $documentos[] = [
+                'materia'         => $r->materia,
+                'programa'        => null,
+                'grupo'           => $r->grupo,
+                'unidad'          => (int)$r->unidad,
+                'tipo_documento'  => $r->tipo_documento,
+                'created_at'      => $r->created_at,
+                'plantilla'       => null,
+                'entregado'       => true,
+                'archivo_subido'  => $r->archivo,
+                'id'              => $r->id,
+                'mi_calificacion' => $mi,
+                'es_actual'       => false,
+                'firmado'         => $firmado,
+                'modo_firma'      => $modo_firma,
+                'acuse_pdf'       => $r->acuse_pdf,
             ];
-
-            foreach ($materias as $m) {
-                $totalUnidades = (int) $m->unidades;
-                $diasPorUnidad = $totalUnidades ? (int)ceil($totalDias / $totalUnidades) : 0;
-                $unidadActual  = $diasPorUnidad ? min($totalUnidades, (int)ceil($diasTranscurridos / $diasPorUnidad)) : 1;
-
-                for ($u = 1; $u <= $totalUnidades; $u++) {
-                    if ($u === 1) {
-                        $especiales = [
-                            'Presentación de la Asignatura' => 'F-DA-GA-01 Presentación de la asignatura.xlsx',
-                            'Planeación didáctica'          => 'F-DA-GA-02 Planeación didáctica del programa de asignatura.docx',
-                        ];
-
-                        foreach ($especiales as $tipo => $plantilla) {
-                            if ($unidadFiltro && (int)$unidadFiltro !== 1) continue;
-
-                            $registro = DocumentoSubido::where([
-                                ['user_id',        $profesorSeleccionado->id],
-                                ['materia',        $m->materia],
-                                ['grupo',          $m->grupo],
-                                ['unidad',         1],
-                                ['tipo_documento', $tipo],
-                            ])->first();
-
-                            $calificacion = null;
-                            if ($registro) {
-                                $mi = CalificacionDocumento::where('documento_id', $registro->id)
-                                    ->where('evaluador_id', auth()->id())
-                                    ->value('calificacion');
-                                if (is_null($mi)) {
-                                    $mi = CalificacionDocumento::where('documento_id', $registro->id)
-                                        ->orderByDesc('id')
-                                        ->value('calificacion');
-                                }
-                                $calificacion = $mi;
-                            }
-
-                            $firmado   = $registro && !is_null($registro->fecha_firma);
-                            $modoFirma = $firmado ? ($registro->lote_id || $registro->firma_sig ? 'lote' : 'individual') : null;
-                            $acusePdf  = $registro->acuse_pdf ?? null;
-
-                            $documentos[] = [
-                                'materia'         => $m->materia,
-                                'programa'        => $m->programa,
-                                'grupo'           => $m->grupo,
-                                'unidad'          => 1,
-                                'tipo_documento'  => $tipo,
-                                'created_at'      => $registro->created_at ?? null,
-                                'plantilla'       => $plantilla,
-                                'entregado'       => (bool) $registro,
-                                'archivo_subido'  => $registro->archivo ?? null,
-                                'id'              => $registro->id ?? null,
-                                'mi_calificacion' => $calificacion,
-                                'es_actual'       => ($u === $unidadActual),
-                                'firmado'         => $firmado,
-                                'modo_firma'      => $modoFirma,
-                                'acuse_pdf'       => $acusePdf,
-                            ];
-                        }
-                    }
-
-                    foreach ($tiposEstandar as $tipo => $plantilla) {
-                        if ($unidadFiltro && (int)$unidadFiltro !== $u) continue;
-
-                        $registro = DocumentoSubido::where([
-                            ['user_id',        $profesorSeleccionado->id],
-                            ['materia',        $m->materia],
-                            ['grupo',          $m->grupo],
-                            ['unidad',         $u],
-                            ['tipo_documento', $tipo],
-                        ])->first();
-
-                        $calificacion = null;
-                        if ($registro) {
-                            $mi = CalificacionDocumento::where('documento_id', $registro->id)
-                                ->where('evaluador_id', auth()->id())
-                                ->value('calificacion');
-                            if (is_null($mi)) {
-                                $mi = CalificacionDocumento::where('documento_id', $registro->id)
-                                    ->orderByDesc('id')
-                                    ->value('calificacion');
-                            }
-                            $calificacion = $mi;
-                        }
-
-                        $firmado    = $registro && !is_null($registro->fecha_firma);
-                        $modo_firma = $firmado ? ($registro->lote_id || $registro->firma_sig ? 'lote' : 'individual') : null;
-                        $acusePdf   = $registro->acuse_pdf ?? null;
-
-                        $documentos[] = [
-                            'materia'         => $m->materia,
-                            'programa'        => $m->programa,
-                            'grupo'           => $m->grupo,
-                            'unidad'          => $u,
-                            'tipo_documento'  => $tipo,
-                            'created_at'      => $registro->created_at ?? null,
-                            'plantilla'       => $plantilla,
-                            'entregado'       => (bool) $registro,
-                            'archivo_subido'  => $registro->archivo ?? null,
-                            'id'              => $registro->id ?? null,
-                            'mi_calificacion' => $calificacion,
-                            'es_actual'       => ($u === $unidadActual),
-                            'firmado'         => $firmado,
-                            'modo_firma'      => $modo_firma,
-                            'acuse_pdf'       => $acusePdf,
-                        ];
-                    }
-
-                    if ($u === $totalUnidades) {
-                        $tipoFinal = 'Reporte Cuatrimestral de la Evaluación Continua (SIGO)';
-                        if ($unidadFiltro && (int)$unidadFiltro !== $u) continue;
-
-                        $registroFinal = DocumentoSubido::where([
-                            ['user_id',        $profesorSeleccionado->id],
-                            ['materia',        $m->materia],
-                            ['grupo',          $m->grupo],
-                            ['unidad',         $u],
-                            ['tipo_documento', $tipoFinal],
-                        ])->first();
-
-                        $califFinal = null;
-                        if ($registroFinal) {
-                            $mi = CalificacionDocumento::where('documento_id', $registroFinal->id)
-                                ->where('evaluador_id', auth()->id())
-                                ->value('calificacion');
-                            if (is_null($mi)) {
-                                $mi = CalificacionDocumento::where('documento_id', $registroFinal->id)
-                                    ->orderByDesc('id')
-                                    ->value('calificacion');
-                            }
-                            $califFinal = $mi;
-                        }
-
-                        $firmado    = $registroFinal && !is_null($registroFinal->fecha_firma);
-                        $modo_firma = $firmado ? ($registroFinal->lote_id || $registroFinal->firma_sig ? 'lote' : 'individual') : null;
-                        $acusePdf   = $registroFinal->acuse_pdf ?? null;
-
-                        $documentos[] = [
-                            'materia'         => $m->materia,
-                            'programa'        => $m->programa,
-                            'grupo'           => $m->grupo,
-                            'unidad'          => $u,
-                            'tipo_documento'  => $tipoFinal,
-                            'created_at'      => $registroFinal->created_at ?? null,
-                            'plantilla'       => null,
-                            'entregado'       => (bool) $registroFinal,
-                            'archivo_subido'  => $registroFinal->archivo ?? null,
-                            'id'              => $registroFinal->id ?? null,
-                            'mi_calificacion' => $califFinal,
-                            'es_actual'       => ($u === $unidadActual),
-                            'firmado'         => $firmado,
-                            'modo_firma'      => $modo_firma,
-                            'acuse_pdf'       => $acusePdf,
-                        ];
-                    }
-                }
-            }
         }
 
-        $materiasDisponibles = collect($documentos)->pluck('materia')->unique()->sort()->values();
-        $unidadesDisponibles = collect($documentos)->pluck('unidad')->unique()->sort()->values();
+        $materiasDisponibles = DB::table('documentos_subidos')
+            ->when($quarter, fn($q) => $q->where('quarter_name', $quarter))
+            ->when($profesorSeleccionado, fn($q) => $q->where('user_id', $profesorSeleccionado->id))
+            ->distinct()->orderBy('materia')->pluck('materia');
 
-        $gruposDisponibles = $profesorSeleccionado
-            ? collect($documentos)->pluck('grupo')->unique()->sort()->values()
-            : $gruposArea;
+        $unidadesDisponibles = DB::table('documentos_subidos')
+            ->when($quarter, fn($q) => $q->where('quarter_name', $quarter))
+            ->when($profesorSeleccionado, fn($q) => $q->where('user_id', $profesorSeleccionado->id))
+            ->distinct()->orderBy('unidad')->pluck('unidad');
+
+        $gruposDisponibles = DB::table('documentos_subidos')
+            ->when($quarter, fn($q) => $q->where('quarter_name', $quarter))
+            ->when($profesorSeleccionado, fn($q) => $q->where('user_id', $profesorSeleccionado->id))
+            ->distinct()->orderBy('grupo')->pluck('grupo');
 
         return view('revision_academica.solo_gestion', [
             'profesores'           => $profesores,
@@ -477,6 +343,7 @@ class RevisionAcademicaController extends Controller
             'documentos'           => $documentos,
             'gruposDisponibles'    => $gruposDisponibles,
             'quarter_name'         => $quarter,
+            'quartersDisponibles'  => $quartersDisponibles,
         ]);
     }
 

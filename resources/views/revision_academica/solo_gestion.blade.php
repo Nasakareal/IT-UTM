@@ -6,6 +6,17 @@
 <form method="GET" action="{{ route('revision.gestion.academica.gestion') }}">
     <div class="row mb-3">
         <div class="col-md-3">
+            <label class="input-group-text"><i class="fa-solid fa-calendar-days"></i> Cuatrimestre:</label>
+            <select name="quarter_name" class="form-select">
+                @foreach ($quartersDisponibles as $q)
+                    <option value="{{ $q }}" {{ (request('quarter_name') ?? $quarter_name) === $q ? 'selected' : '' }}>
+                        {{ $q }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
+
+        <div class="col-md-3">
             <label class="input-group-text"><i class="fa-solid fa-user"></i> Profesor:</label>
             <select name="profesor_id" class="form-select">
                 <option value="">-- Todos los profesores --</option>
@@ -41,7 +52,7 @@
             </select>
         </div>
 
-        <div class="col-md-3">
+        <div class="col-md-3 mt-3">
             <label class="input-group-text"><i class="fa-solid fa-layer-group"></i> Unidad:</label>
             <select name="unidad" class="form-select">
                 <option value="">-- Todas las unidades --</option>
@@ -69,7 +80,7 @@
 @if($profesorSeleccionado)
     <div class="card">
         <div class="card-header bg-primary text-white">
-            Documentación de Gestión Académica – {{ $profesorSeleccionado->nombres }}
+            Documentación de Gestión Académica – {{ $profesorSeleccionado->nombres }} ({{ $quarter_name }})
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -135,7 +146,6 @@
                                 </td>
                                 <td>
                                     @if(!empty($doc['entregado']))
-                                        {{-- Eliminar --}}
                                         <form action="{{ route('revision.gestion.academica.eliminarUno') }}" method="POST" onsubmit="return confirm('¿Eliminar este documento?');" style="display:inline;">
                                             @csrf
                                             @method('DELETE')
@@ -149,7 +159,6 @@
                                             </button>
                                         </form>
 
-                                        {{-- Calificar: solo si existe documento subido --}}
                                         @if(!empty($doc['id']))
                                         <form action="{{ route('revision.gestion.academica.calificar') }}" method="POST" style="display:inline-block; margin-top:5px;">
                                             @csrf
@@ -167,7 +176,6 @@
                                             </button>
                                         </form>
                                         @else
-                                            {{-- opcional: muestra un badge o deshabilitado --}}
                                             <span class="badge bg-secondary">Sin entrega</span>
                                         @endif
                                     @endif
