@@ -50,7 +50,7 @@
             position:relative; z-index:1;
         }
 
-        /* ---------- SECCIÓN FESTIVA SEPTIEMBRE -------------------------------- */
+        /* ---------- SECCIÓN FESTIVA SEPTIEMBRE -------------------------------- 
         .top-bar.septiembre {
             position: relative;
             background: linear-gradient(to right,
@@ -65,8 +65,8 @@
             width: 48px; height: 64px; background: url('{{ asset("eagle.png") }}') no-repeat center/contain;
             pointer-events: none; z-index: 1;
         }
-
-        /* Banderas */
+        */
+        /* Banderas 
         .banderas{ pointer-events:none; position:fixed; top:0; left:0; width:100%; height:100%; overflow:hidden; z-index:50 }
         .banderas span{
             position:absolute; top:-60px; width:38px; height:25px;
@@ -78,6 +78,13 @@
         .banderas span:nth-child({{ $i }}){left:{{ rand(2,98) }}%;animation-duration:{{ rand(7,12) }}s;animation-delay:-{{ rand(0,120)/10 }}s;}
         @endfor
 
+        /*
+        @php
+            //$septiembre = true;          // ← Vista de prueba SIEMPRE encendida
+            $septiembre = now()->month == 9;   // ← Activación automática real
+        @endphp
+        */
+        */
         /* SweetAlert SIEMPRE arriba de todo */
         .swal2-container{ z-index:2147483647 !important; }
     </style>
@@ -85,10 +92,6 @@
     @yield('styles')
 </head>
 
-@php
-    //$septiembre = true;          // ← Vista de prueba SIEMPRE encendida
-    $septiembre = now()->month == 9;   // ← Activación automática real
-@endphp
 
 <body class="hold-transition sidebar-mini {{ $septiembre ? 'septiembre' : '' }}">
 
