@@ -165,7 +165,7 @@
                                                             <span class="t">--:--:--</span>
                                                         </span>
                                                         <span class="countdown-muted ml-2">(tiempo para editar)</span>
-                                                    @endif>
+                                                    @endif
 
                                                     @if(!empty($doc['firmado']))
                                                         <span class="badge badge-success ml-2">
@@ -197,7 +197,7 @@
                                             </div>
 
                                             @if(!$doc['entregado'] || ($doc['entregado'] && $doc['editable']))
-                                                <form action="{{ route('documentos.subir') }}" method="POST" enctype="multipart/form-data" class="row align-items-end">
+                                                <form action="{{ route('documentos.subir') }}" method="POST" enctype="multipart/form-data" class="row align-items-end js-subir-doc">
                                                     @csrf
                                                     <input type="hidden" name="materia"        value="{{ $doc['materia'] }}">
                                                     <input type="hidden" name="grupo"          value="{{ $doc['grupo'] }}">
@@ -319,86 +319,186 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function(){
-    // Mover modales al body
-    document.querySelectorAll('.modal').forEach(function(modal){
-        document.body.appendChild(modal);
+
+  // Mover modales al <body>
+  document.querySelectorAll('.modal').forEach(function(modal){
+    document.body.appendChild(modal);
+  });
+
+  // Cambiar unidad visible en cada modal
+  document.querySelectorAll('[id^="unidad_select_"]').forEach(function(sel){
+    sel.addEventListener('change', function(){
+      var val = this.value;
+      var modalContent = this.closest('.modal-content');
+      if (!modalContent) return;
+      var display = modalContent.querySelector('.unidad-display');
+      if (display) display.textContent = val;
+      modalContent.querySelectorAll('.docs-unidad').forEach(function(div){
+        div.style.display = div.classList.contains('docs-unidad-' + val) ? 'block' : 'none';
+      });
     });
+  });
 
-    // Cambiar unidad visible en modal
-    document.querySelectorAll('[id^="unidad_select_"]').forEach(function(sel){
-        sel.addEventListener('change', function(){
-            var val = this.value;
-            var modalContent = this.closest('.modal-content');
-            modalContent.querySelector('.unidad-display').textContent = val;
-            modalContent.querySelectorAll('.docs-unidad').forEach(function(div){
-                div.style.display = div.classList.contains('docs-unidad-' + val) ? 'block' : 'none';
-            });
-        });
+  // Leer .p12 y guardar en hidden (base64)
+  document.querySelectorAll('[id^="certFileBatch_"]').forEach(function(input){
+    input.addEventListener('change', function(){
+      var file = this.files[0];
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function(evt){
+        var base64 = (evt.target.result || '').split(',')[1] || '';
+        var hiddenId = this.id.replace('certFileBatch_', 'firma_sat_batch_');
+        var hidden = document.getElementById(hiddenId);
+        if (hidden) hidden.value = base64;
+      }.bind(this);
+      reader.readAsDataURL(file);
     });
+  });
 
-    // Leer .p12 del bloque "Firmar Todo" y guardar Base64 en su hidden
-    document.querySelectorAll('[id^="certFileBatch_"]').forEach(function(input){
-        input.addEventListener('change', function(){
-            var file = this.files[0];
-            if (!file) return;
-            var reader = new FileReader();
-            reader.onload = function(evt){
-                var base64 = evt.target.result.split(',')[1];
-                var hidden = document.getElementById(this._targetHiddenId);
-                if (hidden) hidden.value = base64;
-            }.bind({ _targetHiddenId: this.id.replace('certFileBatch_', 'firma_sat_batch_') });
-            reader.readAsDataURL(file);
-        });
-    });
+  // ===== Countdown edición por documento=====
+  (function(){
+    function fmt(n){ return n < 10 ? '0'+n : ''+n; }
+    function renderCountdown(el){
+      const deadlineStr = el.dataset.deadline;
+      if(!deadlineStr) return;
+      const deadline = new Date(deadlineStr);
+      const now = new Date();
+      let diff = Math.floor((deadline - now)/1000);
+      if (isNaN(diff)) return;
+      const tSpan = el.querySelector('.t');
 
-    // ===== Countdown edición por documento =====
-    (function(){
-      function fmt(n){ return n < 10 ? '0'+n : ''+n; }
+      if (diff <= 0) {
+        if (tSpan) tSpan.textContent = '00:00:00';
+        el.classList.remove('badge-info');
+        el.classList.add('badge-danger');
+        el.innerHTML = '<i class="fas fa-lock"></i> Edición cerrada';
+        const item = el.closest('.list-group-item');
+        if (item) {
+          item.querySelectorAll('form input, form button, form select').forEach(x => { x.disabled = true; });
+          const lockIcon = item.querySelector('.fa-lock');
+          if (lockIcon) { lockIcon.classList.remove('text-muted'); lockIcon.classList.add('text-danger'); }
+        }
+        return;
+      }
 
-      function renderCountdown(el){
-        const deadlineStr = el.dataset.deadline;
-        if(!deadlineStr) return;
-        const deadline = new Date(deadlineStr);
-        const now = new Date();
+      const d = Math.floor(diff / 86400); diff -= d * 86400;
+      const h = Math.floor(diff / 3600);  diff -= h * 3600;
+      const m = Math.floor(diff / 60);    diff -= m * 60;
+      const s = diff;
+      if (tSpan) tSpan.textContent = d > 0 ? `${d}d ${fmt(h)}:${fmt(m)}:${fmt(s)}` : `${fmt(h)}:${fmt(m)}:${fmt(s)}`;
+    }
+    function tick(){ document.querySelectorAll('.edit-countdown').forEach(renderCountdown); }
+    tick(); setInterval(tick, 1000);
+  })();
 
-        let diff = Math.floor((deadline - now)/1000);
-        if (isNaN(diff)) return;
+  /* ======= ARREGLO CLAVE: interceptar “Solo Subir” por AJAX ======= */
 
-        const tSpan = el.querySelector('.t');
+  document.addEventListener('click', function(ev){
+    const btn = ev.target.closest('button[type="submit"]');
+    if (btn && btn.form) btn.form._lastSubmitter = btn;
+  }, true);
 
-        if (diff <= 0) {
-          if (tSpan) tSpan.textContent = '00:00:00';
-          el.classList.remove('badge-info');
-          el.classList.add('badge-danger');
-          el.innerHTML = '<i class="fas fa-lock"></i> Edición cerrada';
+  const SUBIR_URL = @json(route('documentos.subir'));
+  const subirPath = new URL(SUBIR_URL, window.location.href).pathname;
 
-          // Bloquear UI del item correspondiente
-          const item = el.closest('.list-group-item');
-          if (item) {
-            item.querySelectorAll('form input, form button, form select').forEach(x => { x.disabled = true; });
-            const lockIcon = item.querySelector('.fa-lock');
-            if (lockIcon) { lockIcon.classList.remove('text-muted'); lockIcon.classList.add('text-danger'); }
+  document.addEventListener('submit', function(ev){
+    const form = ev.target;
+    if (!(form instanceof HTMLFormElement)) return;
+
+    const actionUrl = form.getAttribute('action') || form.action;
+    const fpath = new URL(actionUrl, window.location.href).pathname;
+
+    if (fpath !== subirPath) return;
+
+    const submitter = ev.submitter || form._lastSubmitter || null;
+    const isSoloSubir = submitter
+      && submitter.name === 'action'
+      && submitter.value === 'upload_only';
+    if (!isSoloSubir) return;
+
+    ev.preventDefault();
+    ev.stopPropagation();
+    if (ev.stopImmediatePropagation) ev.stopImmediatePropagation();
+
+    const item = form.closest('.list-group-item');
+    let fb = item ? item.querySelector('.upload-feedback') : null;
+    if (!fb && item) {
+      fb = document.createElement('div');
+      fb.className = 'upload-feedback mt-2';
+      item.appendChild(fb);
+    }
+    if (fb) fb.innerHTML = '<div class="alert alert-info py-1 mb-2">Subiendo…</div>';
+    if (submitter) submitter.disabled = true;
+
+    const fd = new FormData(form);
+    if (!fd.has('action')) fd.append('action', 'upload_only');
+
+    fetch(actionUrl, {
+      method: 'POST',
+      body: fd,
+      headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+      credentials: 'same-origin'
+    })
+    .then(async (res) => {
+      let data = null; try { data = await res.json(); } catch(_){}
+      if (!res.ok || !data || data.ok !== true) {
+        const msg = (data && (data.message || data.msg)) || 'Error al subir el documento.';
+        throw new Error(msg);
+      }
+
+      if (fb) fb.innerHTML = `<div class="alert alert-success py-1 mb-2">${data.msg || 'Documento subido correctamente.'}</div>`;
+
+      if (item && data.archivo_url) {
+        const acciones = item.querySelector('.d-flex.align-items-center');
+        if (acciones) {
+          let ver = acciones.querySelector('.btn-outline-primary[target="_blank"]');
+          if (!ver) {
+            ver = document.createElement('a');
+            ver.className = 'btn btn-sm btn-outline-primary ml-2';
+            ver.target = '_blank';
+            ver.innerHTML = '<i class="fas fa-file-alt"></i> Ver Archivo';
+            acciones.appendChild(ver);
           }
-          return;
-        }
-
-        const d = Math.floor(diff / 86400); diff -= d * 86400;
-        const h = Math.floor(diff / 3600);  diff -= h * 3600;
-        const m = Math.floor(diff / 60);    diff -= m * 60;
-        const s = diff;
-
-        if (tSpan) {
-          if (d > 0) tSpan.textContent = `${d}d ${fmt(h)}:${fmt(m)}:${fmt(s)}`;
-          else       tSpan.textContent = `${fmt(h)}:${fmt(m)}:${fmt(s)}`;
+          ver.href = data.archivo_url;
         }
       }
 
-      function tick(){
-        document.querySelectorAll('.edit-countdown').forEach(renderCountdown);
+      const fileInput = form.querySelector('input[type="file"][name="archivo"]');
+      if (fileInput) fileInput.value = '';
+
+      if (item) {
+        const status = item.closest('.docs-unidad')?.querySelector('.batch-sign .status');
+        if (status) {
+          const m = status.textContent.match(/(\d+)\s*\/\s*(\d+)/);
+          if (m) {
+            const entreg = parseInt(m[1], 10);
+            const total  = parseInt(m[2], 10);
+            if (entreg < total) {
+              status.innerHTML = status.innerHTML.replace(/(\d+)\s*\/\s*(\d+)/, (entreg + 1) + ' / ' + total);
+              const missing = status.parentElement.querySelector('.missing');
+              if (missing) {
+                const tipo = form.querySelector('input[name="tipo_documento"]')?.value || '';
+                const arr = missing.textContent.replace('Faltan por subir:', '')
+                          .split(',').map(s => s.trim()).filter(Boolean);
+                const idx = arr.indexOf(tipo);
+                if (idx > -1) arr.splice(idx, 1);
+                if (arr.length) missing.textContent = 'Faltan por subir: ' + arr.join(', ');
+                else missing.remove();
+              }
+            }
+          }
+        }
       }
-      tick();
-      setInterval(tick, 1000);
-    })();
+    })
+    .catch((err) => {
+      if (fb) fb.innerHTML = `<div class="alert alert-danger py-1 mb-2">${err.message}</div>`;
+    })
+    .finally(() => {
+      if (submitter) submitter.disabled = false;
+    });
+
+  }, true); // captura
 });
 </script>
 @endpush
+

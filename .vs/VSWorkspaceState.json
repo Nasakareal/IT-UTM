@@ -7,8 +7,9 @@
     "\\app\\Models",
     "\\resources",
     "\\resources\\views",
-    "\\resources\\views\\revision_academica"
+    "\\resources\\views\\layouts",
+    "\\routes"
   ],
-  "SelectedNode": "\\app\\Models\\DocumentoSubido.php",
+  "SelectedNode": "\\routes\\web.php",
   "PreviewInSolutionExplorer": false
 }

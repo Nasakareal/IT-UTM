@@ -9,11 +9,11 @@
     <!-- Favicon -->
     <link rel="icon" href="{{ asset('favicons.ico') }}" type="image/x-icon">
 
-    <!-- ===== CSS: Bootstrap 4 + AdminLTE 3 ===== -->
+    <!-- ===== CSS: Bootstrap 4 + AdminLTE 3 (BS4) ===== -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
 
-    <!-- Iconos y extras -->
+    <!-- Iconos y extras (no conflictúan con BS4) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
@@ -22,19 +22,20 @@
     <link rel="stylesheet" href="https://cdn.datatables.net/1.12.1/css/dataTables.bootstrap4.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.2.3/css/buttons.bootstrap4.min.css">
 
-    <!-- Tu CSS (si compilas con Mix/Vite) -->
+    <!-- Tu CSS -->
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
 
     <style>
-        /* ---------- Estilo base ------------------------------------------------ */
+        /* Marca de agua ligera */
         body::before{
             content:''; position:fixed; inset:0;
             background:url('{{ asset('utm_logo_copia.png') }}') no-repeat center/800px auto;
             opacity:.15; z-index:-1;
         }
 
+        /* Barra superior fija (por debajo del modal BS4) */
         .top-bar{
-            width:100%; position:fixed; top:0; left:0; z-index:1000; /* debajo del modal BS4 (1040/1050) y del Swal */
+            width:100%; position:fixed; top:0; left:0; z-index:990; /* < 1040 (backdrop) */
             display:flex; justify-content:space-between; align-items:center;
             padding:15px 20px; background:#009688; color:#fff; font-weight:bold; font-size:18px;
         }
@@ -42,6 +43,7 @@
         .top-bar a:hover{ text-decoration:underline }
         .top-bar .menu{ display:flex; align-items:center; gap:15px }
 
+        /* Contenedor principal */
         .container-content{
             width:80%; max-width:1000px; margin:90px auto 20px;
             background:rgba(255,255,255,.92);
@@ -50,53 +52,21 @@
             position:relative; z-index:1;
         }
 
-        /* ---------- SECCIÓN FESTIVA SEPTIEMBRE -------------------------------- 
-        .top-bar.septiembre {
-            position: relative;
-            background: linear-gradient(to right,
-                #006847 0%,   #006847 33.33%,
-                #FFFFFF 33.33%, #FFFFFF 66.67%,
-                #CE1126 66.67%, #CE1126 100%
-            );
-            color: #000;
-        }
-        .top-bar.septiembre::after {
-            content: ''; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
-            width: 48px; height: 64px; background: url('{{ asset("eagle.png") }}') no-repeat center/contain;
-            pointer-events: none; z-index: 1;
-        }
-        */
-        /* Banderas 
-        .banderas{ pointer-events:none; position:fixed; top:0; left:0; width:100%; height:100%; overflow:hidden; z-index:50 }
-        .banderas span{
-            position:absolute; top:-60px; width:38px; height:25px;
-            background:url('{{ asset('mexico.png') }}') no-repeat center/contain;
-            animation:caer linear infinite; opacity:0.9; will-change:transform;
-        }
-        @keyframes caer{ 0%{transform:translateY(-60px) rotate(0deg);} 100%{transform:translateY(110vh) rotate(360deg);} }
-        @for($i=1;$i<=15;$i++)
-        .banderas span:nth-child({{ $i }}){left:{{ rand(2,98) }}%;animation-duration:{{ rand(7,12) }}s;animation-delay:-{{ rand(0,120)/10 }}s;}
-        @endfor
-
-        /*
-        @php
-            //$septiembre = true;          // ← Vista de prueba SIEMPRE encendida
-            $septiembre = now()->month == 9;   // ← Activación automática real
-        @endphp
-        */
-        */
-        /* SweetAlert SIEMPRE arriba de todo */
+        /* SweetAlert arriba de todo */
         .swal2-container{ z-index:2147483647 !important; }
+
+        /* Asegurar layering correcto del modal BS4 por si algo externo lo altera */
+        .modal{ z-index:1060 !important; }
+        .modal-backdrop{ z-index:1050 !important; }
     </style>
 
     @yield('styles')
 </head>
 
-
-<body class="hold-transition sidebar-mini {{ $septiembre ? 'septiembre' : '' }}">
+<body class="hold-transition sidebar-mini">
 
     <!-- Barra superior -->
-    <div class="top-bar {{ $septiembre ? 'septiembre' : '' }}">
+    <div class="top-bar">
         <div>
             <a href="{{ route('home') }}"><i class="bi bi-house-door"></i> Inicio</a>
         </div>
@@ -119,11 +89,6 @@
         </div>
     </div>
 
-    <!-- Banderas animadas -->
-    @if($septiembre)
-        <div class="banderas">@for($i=1;$i<=15;$i++) <span></span> @endfor</div>
-    @endif
-
     <!-- Contenido principal -->
     <div class="container-content">@yield('content')</div>
 
@@ -133,7 +98,7 @@
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
     <!-- Bootstrap 4.6 -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.min.js"></script>
-    <!-- AdminLTE -->
+    <!-- AdminLTE (BS4) -->
     <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
 
     <!-- DataTables + Buttons (tema Bootstrap 4) -->
@@ -179,11 +144,21 @@
 
     {{-- Mostrar aviso de privacidad si la sesión lo pide (BS4) --}}
     @if(session('mostrar_aviso'))
-        <script>
-            $(function(){ $('#avisoPrivacidadModal').modal('show'); });
-        </script>
+        <script>$(function(){ $('#avisoPrivacidadModal').modal('show'); });</script>
         @php session()->forget('mostrar_aviso'); @endphp
     @endif
-    @stack('scripts')
+
+    <!-- Parche universal para modales BS4: mover al <body> y evitar stacking issues -->
+    <script>
+      // Mueve cualquier modal al <body> cuando se abra (evita contenedores con z-index/transform)
+      $(document).on('show.bs.modal', '.modal', function () {
+        $(this).appendTo('body');
+      });
+      // Sanity check: forzar layering correcto (por si alguna vista lo pisa)
+      (function(){
+        var css = '.modal{z-index:1060!important}.modal-backdrop{z-index:1050!important}.top-bar{z-index:990!important}';
+        var s   = document.createElement('style'); s.textContent = css; document.head.appendChild(s);
+      })();
+    </script>
 </body>
 </html>

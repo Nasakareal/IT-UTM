@@ -87,7 +87,10 @@ class DocumentoSubidoController extends Controller
                 ]);
             }
 
-            return response()->noContent();
+            return response()->json([
+                    'ok'          => true,
+                    'msg'         => 'Documento subido correctamente.',
+                ]);
         }
 
         /* ------------------------------------------------------------------ *
@@ -120,12 +123,11 @@ class DocumentoSubidoController extends Controller
             ],
             [
                 'archivo'     => $relPath,
-                'firma_sat'   => $request->firma_sat, // OJO: aquí sigues guardando el .p12 base64 como antes
+                'firma_sat'   => $request->firma_sat,
                 'fecha_firma' => now(),
-                // === NUEVO: inicializamos a null, se rellenan al final con el hash definitivo ===
                 'hash_sha256' => null,
-                'firma_sig'   => null,  // en firma individual no generamos .sig
-                'lote_id'     => null,  // no pertenece a lote
+                'firma_sig'   => null,
+                'lote_id'     => null,
             ]
         );
 
@@ -299,12 +301,12 @@ class DocumentoSubidoController extends Controller
         $acuseRel = 'acuses/acuse_' . $registro->id . '.pdf';
         Storage::disk('public')->put($acuseRel, $pdf->output());
 
-        // === NUEVO: guardar hash final y limpiar campos de lote ===
+        // === Guardar hash final y limpiar campos de lote ===
         $registro->update([
             'acuse_pdf'   => $acuseRel,
             'hash_sha256' => $hashFinal,
-            'firma_sig'   => null,   // individual no genera .sig
-            'lote_id'     => null,   // no pertenece a lote
+            'firma_sig'   => null,
+            'lote_id'     => null,
         ]);
 
         return back()->with('success', 'Documento subido, firmado e integrado correctamente.');
