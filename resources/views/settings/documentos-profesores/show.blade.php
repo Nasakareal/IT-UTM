@@ -6,19 +6,40 @@
 <div class="row justify-content-center">
     <div class="col-md-10">
         <div class="card shadow border-0" style="border-radius: 10px; overflow: hidden;">
-            <!-- Encabezado estilizado -->
             <div class="card-header text-white" style="background-color: #1976d2;">
                 <h3 class="mb-0">
-                    <i class="fas fa-folder-open me-2"></i> Documentos Académicos de: {{ $profesor->nombres }}
+                    <i class="fas fa-folder-open me-2"></i>
+                    Documentos Académicos de: {{ $profesor->nombres }}
                 </h3>
             </div>
 
             <div class="card-body">
+
+                {{-- Filtro por cuatrimestre --}}
+                <form method="GET" action="{{ route('documentos-profesores.show', $profesor->id) }}" class="mb-3">
+                    <div class="row">
+                        <div class="col-md-5">
+                            <label class="form-label">
+                                <i class="fa-solid fa-calendar-days"></i> Cuatrimestre
+                            </label>
+                            <select name="quarter_name" class="form-select" onchange="this.form.submit()">
+                                <option value="">— Todos —</option>
+                                @foreach($quarters as $q)
+                                    <option value="{{ $q }}" {{ ($quarterSel ?? '') === $q ? 'selected' : '' }}>
+                                        {{ $q }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                </form>
+
                 @if($documentos->isNotEmpty())
                     <div class="table-responsive">
                         <table class="table table-sm table-bordered table-hover align-middle">
                             <thead style="background-color: #E3F2FD;">
                                 <tr class="text-center">
+                                    <th>Cuatrimestre</th> {{-- opcional, útil para ver el filtro --}}
                                     <th>Materia</th>
                                     <th>Grupo</th>
                                     <th>Unidad</th>
@@ -32,6 +53,7 @@
                             <tbody>
                                 @foreach($documentos as $doc)
                                     <tr class="text-center">
+                                        <td>{{ trim($doc->quarter_name ?? '') !== '' ? $doc->quarter_name : 'SIN CUATRIMESTRE' }}</td>
                                         <td>{{ $doc->materia }}</td>
                                         <td>{{ $doc->grupo }}</td>
                                         <td>{{ $doc->unidad }}</td>
@@ -39,8 +61,7 @@
                                         <td>
                                             @if($doc->archivo)
                                                 <a href="{{ asset('storage/' . $doc->archivo) }}"
-                                                   class="btn btn-outline-primary btn-sm"
-                                                   target="_blank">
+                                                   class="btn btn-outline-primary btn-sm" target="_blank">
                                                    <i class="fas fa-file-alt"></i> Ver
                                                 </a>
                                             @else
@@ -50,8 +71,7 @@
                                         <td>
                                             @if($doc->acuse_pdf)
                                                 <a href="{{ asset('storage/' . $doc->acuse_pdf) }}"
-                                                   class="btn btn-outline-secondary btn-sm"
-                                                   target="_blank">
+                                                   class="btn btn-outline-secondary btn-sm" target="_blank">
                                                    <i class="fas fa-file-pdf"></i> Acuse
                                                 </a>
                                             @else
@@ -90,7 +110,6 @@
     </div>
 </div>
 @stop
-
 
 @section('css')
 <style>

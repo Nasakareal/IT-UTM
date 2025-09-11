@@ -18,13 +18,36 @@ class ProfesorDocumentoController extends Controller
     }
 
     // Ver documentos de un profesor específico
-    public function show(User $user)
+     public function show(Request $request, User $user)
     {
-        $documentos = DocumentoSubido::where('user_id', $user->id)->get();
+        $quarters = DocumentoSubido::where('user_id', $user->id)
+            ->selectRaw('COALESCE(NULLIF(TRIM(quarter_name), ""), "SIN CUATRIMESTRE") as q')
+            ->selectRaw('MAX(created_at) as last_cap')
+            ->groupBy('q')
+            ->orderByDesc('last_cap')
+            ->pluck('q');
+
+        $quarterSel = trim((string) $request->input('quarter_name', ''));
+
+        $documentos = DocumentoSubido::where('user_id', $user->id)
+            ->when($quarterSel !== '', function ($q) use ($quarterSel) {
+                if ($quarterSel === 'SIN CUATRIMESTRE') {
+                    $q->where(function ($qq) {
+                        $qq->whereNull('quarter_name')
+                           ->orWhereRaw('TRIM(quarter_name) = ""');
+                    });
+                } else {
+                    $q->whereRaw('TRIM(quarter_name) = ?', [$quarterSel]);
+                }
+            })
+            ->orderByDesc('created_at')
+            ->get();
 
         return view('settings.documentos-profesores.show', [
-            'profesor' => $user,
-            'documentos' => $documentos,
+            'profesor'    => $user,
+            'documentos'  => $documentos,
+            'quarters'    => $quarters,
+            'quarterSel'  => $quarterSel,
         ]);
     }
 
