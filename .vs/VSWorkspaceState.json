@@ -6,10 +6,9 @@
     "\\app\\Http\\Controllers",
     "\\resources",
     "\\resources\\views",
-    "\\resources\\views\\settings",
-    "\\resources\\views\\settings\\documentos-profesores",
+    "\\resources\\views\\modulos",
     "\\routes"
   ],
-  "SelectedNode": "\\resources\\views\\settings\\documentos-profesores\\show.blade.php",
+  "SelectedNode": "\\resources\\views\\modulos\\gestion_academica.blade.php",
   "PreviewInSolutionExplorer": false
 }
