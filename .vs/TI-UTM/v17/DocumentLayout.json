@@ -30,8 +30,7 @@
               "RelativeToolTip": "resources\\views\\modulos\\gestion_academica.blade.php",
               "ViewState": "AgIAANkBAAAAAAAAAAAkwAkCAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002338|",
-              "WhenOpened": "2025-09-11T21:02:52.291Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-11T21:02:52.291Z"
             },
             {
               "$type": "Document",
@@ -41,7 +40,7 @@
               "RelativeDocumentMoniker": "app\\Http\\Controllers\\GestionAcademicaController.php",
               "ToolTip": "C:\\wamp64\\www\\TI-UTM\\app\\Http\\Controllers\\GestionAcademicaController.php",
               "RelativeToolTip": "app\\Http\\Controllers\\GestionAcademicaController.php",
-              "ViewState": "AgIAAO8AAAAAAAAAAAAkwBgBAAAqAAAAAAAAAA==",
+              "ViewState": "AgIAABIBAAAAAAAAAAAkwEIBAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002338|",
               "WhenOpened": "2025-09-11T20:09:44.916Z",
               "EditorCaption": ""
