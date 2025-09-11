@@ -205,147 +205,200 @@ class RevisionAcademicaController extends Controller
     /* ------------------------------------------------------------------ */
     /* 2) SOLO GESTIÓN ACADÉMICA – CON CALIFICACIONES                     */
     /* ------------------------------------------------------------------ */
-    public function soloGestion(Request $request)
-    {
-        $usuario = auth()->user();
+public function soloGestion(Request $request)
+{
+    $usuario = auth()->user();
 
-        $areas = collect(explode(',', (string)($usuario->area ?? '')))
-            ->map(fn($a) => trim($a))
-            ->filter()
-            ->values();
+    $areas = collect(explode(',', (string)($usuario->area ?? '')))
+        ->map(fn($a) => trim($a))
+        ->filter()
+        ->values();
 
-        $snapConn = 'cargahoraria';
-        if (!Schema::connection($snapConn)->hasTable('materias_docentes_snapshots')) {
-            $snapConn = config('database.default', 'mysql');
-        }
+    $snapConn = 'cargahoraria';
+    if (!Schema::connection($snapConn)->hasTable('materias_docentes_snapshots')) {
+        $snapConn = config('database.default', 'mysql');
+    }
 
-        $quartersSnap = collect();
-        if (Schema::connection($snapConn)->hasTable('materias_docentes_snapshots')) {
-            $quartersSnap = DB::connection($snapConn)
-                ->table('materias_docentes_snapshots as mds')
-                ->select('mds.quarter_name', DB::raw('MAX(mds.captured_at) as last_cap'))
-                ->groupBy('mds.quarter_name')
-                ->pluck('quarter_name');
-        }
-
-        $quartersDocs = DB::table('documentos_subidos')
-            ->select('quarter_name', DB::raw('MAX(created_at) as last_cap'))
-            ->groupBy('quarter_name')
-            ->orderByDesc('last_cap')
+    // ---------- Cuatrimestres disponibles (snapshots + documentos) ----------
+    $quartersSnap = collect();
+    if (Schema::connection($snapConn)->hasTable('materias_docentes_snapshots')) {
+        $quartersSnap = DB::connection($snapConn)
+            ->table('materias_docentes_snapshots as mds')
+            ->select(DB::raw('TRIM(mds.quarter_name) as quarter_name'))
+            ->groupBy(DB::raw('TRIM(mds.quarter_name)'))
             ->pluck('quarter_name');
+    }
 
-        $quartersDisponibles = $quartersSnap->merge($quartersDocs)->filter()->unique()->values();
+    $quartersDocs = DB::table('documentos_subidos')
+        ->select(DB::raw('TRIM(quarter_name) as quarter_name'), DB::raw('MAX(created_at) as last_cap'))
+        ->groupBy(DB::raw('TRIM(quarter_name)'))
+        ->orderByDesc('last_cap')
+        ->pluck('quarter_name');
 
-        $quarter = $request->input('quarter_name');
-        if (!$quarter) {
-            $quarter = $quartersDocs->first() ?? $quartersSnap->first();
-        }
+    $quartersDisponibles = $quartersSnap->merge($quartersDocs)->filter()->unique()->values();
 
-        $profIdsConDocs = DB::table('documentos_subidos')
-            ->when($quarter, fn($q) => $q->where('quarter_name', $quarter))
-            ->distinct()->pluck('user_id');
+    // ---------- Cuatrimestre seleccionado ----------
+    $quarter = $request->input('quarter_name');
+    $quarterTrim = $quarter ? trim($quarter) : null;
 
-        $baseQueryProfes = User::whereIn('id', $profIdsConDocs);
-        if ($areas->isNotEmpty()) {
-            $baseQueryProfes->where(function ($qq) use ($areas) {
-                foreach ($areas as $area) {
-                    $qq->orWhereRaw('FIND_IN_SET(?, area)', [$area]);
-                }
-            });
-        }
-        $profesores = $baseQueryProfes->orderBy('nombres')->get();
-        $profesorId    = $request->profesor_id;
-        $materiaFiltro = $request->materia;
-        $unidadFiltro  = $request->unidad;
-        $grupoFiltro   = $request->grupo;
-        $profesorSeleccionado = $profesorId ? User::find($profesorId) : null;
+    // Si el usuario pidió un cuatri que no existe en BD, lo agregamos para que aparezca en el <select>
+    if ($quarterTrim && !$quartersDisponibles->contains($quarterTrim)) {
+        $quartersDisponibles = $quartersDisponibles->push($quarterTrim)->unique()->values();
+    }
 
-        $docsQuery = DB::table('documentos_subidos as ds')
-            ->when($quarter, fn($q) => $q->where('ds.quarter_name', $quarter))
-            ->when($profesorSeleccionado, fn($q) => $q->where('ds.user_id', $profesorSeleccionado->id))
-            ->when($materiaFiltro, fn($q) => $q->where('ds.materia', $materiaFiltro))
-            ->when($grupoFiltro, fn($q) => $q->where('ds.grupo', $grupoFiltro))
-            ->when($unidadFiltro, fn($q) => $q->where('ds.unidad', (int)$unidadFiltro))
-            ->orderBy('ds.materia')
-            ->orderBy('ds.grupo')
-            ->orderBy('ds.unidad');
+    if (!$quarterTrim) {
+        $quarterTrim = $quartersDocs->first() ?? $quartersSnap->first();
+    }
 
-        $rows = $docsQuery->get([
-            'ds.id',
-            'ds.user_id',
-            'ds.materia',
-            'ds.grupo',
-            'ds.unidad',
-            'ds.quarter_name',
-            'ds.tipo_documento',
-            'ds.archivo',
-            'ds.acuse_pdf',
-            'ds.firma_sig',
-            'ds.lote_id',
-            'ds.fecha_firma',
-            'ds.created_at',
-        ]);
+    // ---------- Profes con documentos del cuatrimestre (principal) ----------
+    $profIdsConDocs = DB::table('documentos_subidos')
+        ->when($quarterTrim, fn($q) => $q->whereRaw('TRIM(quarter_name) = ?', [$quarterTrim]))
+        ->distinct()
+        ->pluck('user_id');
 
-        $documentos = [];
-        foreach ($rows as $r) {
-            $mi = CalificacionDocumento::where('documento_id', $r->id)
-                ->where('evaluador_id', auth()->id())
-                ->value('calificacion');
+    // ---------- Fallback: sacar profes desde snapshots (teacher_id -> users.id) ----------
+    $userIdsFromSnap = collect();
+    if ($profIdsConDocs->isEmpty() && Schema::connection($snapConn)->hasTable('materias_docentes_snapshots')) {
+        // 1) Tomamos teacher_id de snapshots
+        $teacherIdsSnap = DB::connection($snapConn)
+            ->table('materias_docentes_snapshots as mds')
+            ->when($quarterTrim, fn($q) => $q->whereRaw('TRIM(mds.quarter_name) = ?', [$quarterTrim]))
+            ->distinct()
+            ->pluck('mds.teacher_id');
 
-            if (is_null($mi)) {
-                $mi = CalificacionDocumento::where('documento_id', $r->id)
-                    ->orderByDesc('id')
-                    ->value('calificacion');
+        if ($teacherIdsSnap->isNotEmpty()) {
+            // 2) Intentamos mapear contra users.teacher_id
+            if (Schema::hasColumn('users', 'teacher_id')) {
+                $userIdsFromSnap = $userIdsFromSnap->merge(
+                    User::whereIn('teacher_id', $teacherIdsSnap)->pluck('id')
+                );
+            }
+            // 3) Intentamos mapear contra users.docente_id (por si tu app usa este)
+            if (Schema::hasColumn('users', 'docente_id')) {
+                $userIdsFromSnap = $userIdsFromSnap->merge(
+                    User::whereIn('docente_id', $teacherIdsSnap)->pluck('id')
+                );
             }
 
-            $firmado    = !is_null($r->fecha_firma);
-            $modo_firma = $firmado ? ($r->lote_id || $r->firma_sig ? 'lote' : 'individual') : null;
+            $userIdsFromSnap = $userIdsFromSnap->unique()->values();
+        }
+    }
 
-            $documentos[] = [
-                'materia'         => $r->materia,
-                'programa'        => null,
-                'grupo'           => $r->grupo,
-                'unidad'          => (int)$r->unidad,
-                'tipo_documento'  => $r->tipo_documento,
-                'created_at'      => $r->created_at,
-                'plantilla'       => null,
-                'entregado'       => true,
-                'archivo_subido'  => $r->archivo,
-                'id'              => $r->id,
-                'mi_calificacion' => $mi,
-                'es_actual'       => false,
-                'firmado'         => $firmado,
-                'modo_firma'      => $modo_firma,
-                'acuse_pdf'       => $r->acuse_pdf,
-            ];
+    // ---------- Elegir la fuente de profesores ----------
+    $idsParaProfes = $profIdsConDocs->isNotEmpty() ? $profIdsConDocs : $userIdsFromSnap;
+
+    $baseQueryProfes = User::query();
+
+    if ($idsParaProfes->isNotEmpty()) {
+        $baseQueryProfes->whereIn('id', $idsParaProfes);
+    }
+
+    // Filtro por áreas (si aplica)
+    if ($areas->isNotEmpty()) {
+        $baseQueryProfes->where(function ($qq) use ($areas) {
+            foreach ($areas as $area) {
+                $qq->orWhereRaw('FIND_IN_SET(?, area)', [$area]);
+            }
+        });
+    }
+
+    $profesores = $baseQueryProfes->orderBy('nombres')->get();
+
+    $profesorId        = $request->profesor_id;
+    $materiaFiltro     = $request->materia;
+    $unidadFiltro      = $request->unidad;
+    $grupoFiltro       = $request->grupo;
+    $profesorSeleccionado = $profesorId ? User::find($profesorId) : null;
+
+    // ---------- Documentos del cuatrimestre ----------
+    $docsQuery = DB::table('documentos_subidos as ds')
+        ->when($quarterTrim, fn($q) => $q->whereRaw('TRIM(ds.quarter_name) = ?', [$quarterTrim]))
+        ->when($profesorSeleccionado, fn($q) => $q->where('ds.user_id', $profesorSeleccionado->id))
+        ->when($materiaFiltro, fn($q) => $q->where('ds.materia', $materiaFiltro))
+        ->when($grupoFiltro, fn($q) => $q->where('ds.grupo', $grupoFiltro))
+        ->when($unidadFiltro, fn($q) => $q->where('ds.unidad', (int)$unidadFiltro))
+        ->orderBy('ds.materia')
+        ->orderBy('ds.grupo')
+        ->orderBy('ds.unidad');
+
+    $rows = $docsQuery->get([
+        'ds.id',
+        'ds.user_id',
+        'ds.materia',
+        'ds.grupo',
+        'ds.unidad',
+        'ds.quarter_name',
+        'ds.tipo_documento',
+        'ds.archivo',
+        'ds.acuse_pdf',
+        'ds.firma_sig',
+        'ds.lote_id',
+        'ds.fecha_firma',
+        'ds.created_at',
+    ]);
+
+    $documentos = [];
+    foreach ($rows as $r) {
+        $mi = CalificacionDocumento::where('documento_id', $r->id)
+            ->where('evaluador_id', auth()->id())
+            ->value('calificacion');
+
+        if (is_null($mi)) {
+            $mi = CalificacionDocumento::where('documento_id', $r->id)
+                ->orderByDesc('id')
+                ->value('calificacion');
         }
 
-        $materiasDisponibles = DB::table('documentos_subidos')
-            ->when($quarter, fn($q) => $q->where('quarter_name', $quarter))
-            ->when($profesorSeleccionado, fn($q) => $q->where('user_id', $profesorSeleccionado->id))
-            ->distinct()->orderBy('materia')->pluck('materia');
+        $firmado    = !is_null($r->fecha_firma);
+        $modo_firma = $firmado ? ($r->lote_id || $r->firma_sig ? 'lote' : 'individual') : null;
 
-        $unidadesDisponibles = DB::table('documentos_subidos')
-            ->when($quarter, fn($q) => $q->where('quarter_name', $quarter))
-            ->when($profesorSeleccionado, fn($q) => $q->where('user_id', $profesorSeleccionado->id))
-            ->distinct()->orderBy('unidad')->pluck('unidad');
-
-        $gruposDisponibles = DB::table('documentos_subidos')
-            ->when($quarter, fn($q) => $q->where('quarter_name', $quarter))
-            ->when($profesorSeleccionado, fn($q) => $q->where('user_id', $profesorSeleccionado->id))
-            ->distinct()->orderBy('grupo')->pluck('grupo');
-
-        return view('revision_academica.solo_gestion', [
-            'profesores'           => $profesores,
-            'profesorSeleccionado' => $profesorSeleccionado,
-            'materiasDisponibles'  => $materiasDisponibles,
-            'unidadesDisponibles'  => $unidadesDisponibles,
-            'documentos'           => $documentos,
-            'gruposDisponibles'    => $gruposDisponibles,
-            'quarter_name'         => $quarter,
-            'quartersDisponibles'  => $quartersDisponibles,
-        ]);
+        $documentos[] = [
+            'materia'         => $r->materia,
+            'programa'        => null,
+            'grupo'           => $r->grupo,
+            'unidad'          => (int)$r->unidad,
+            'tipo_documento'  => $r->tipo_documento,
+            'created_at'      => $r->created_at,
+            'plantilla'       => null,
+            'entregado'       => true,
+            'archivo_subido'  => $r->archivo,
+            'id'              => $r->id,
+            'mi_calificacion' => $mi,
+            'es_actual'       => false,
+            'firmado'         => $firmado,
+            'modo_firma'      => $modo_firma,
+            'acuse_pdf'       => $r->acuse_pdf,
+        ];
     }
+
+    // ---------- Combos (derivados de documentos) ----------
+    $materiasDisponibles = DB::table('documentos_subidos')
+        ->when($quarterTrim, fn($q) => $q->whereRaw('TRIM(quarter_name) = ?', [$quarterTrim]))
+        ->when($profesorSeleccionado, fn($q) => $q->where('user_id', $profesorSeleccionado->id))
+        ->distinct()->orderBy('materia')->pluck('materia');
+
+    $unidadesDisponibles = DB::table('documentos_subidos')
+        ->when($quarterTrim, fn($q) => $q->whereRaw('TRIM(quarter_name) = ?', [$quarterTrim]))
+        ->when($profesorSeleccionado, fn($q) => $q->where('user_id', $profesorSeleccionado->id))
+        ->distinct()->orderBy('unidad')->pluck('unidad');
+
+    $gruposDisponibles = DB::table('documentos_subidos')
+        ->when($quarterTrim, fn($q) => $q->whereRaw('TRIM(quarter_name) = ?', [$quarterTrim]))
+        ->when($profesorSeleccionado, fn($q) => $q->where('user_id', $profesorSeleccionado->id))
+        ->distinct()->orderBy('grupo')->pluck('grupo');
+
+    return view('revision_academica.solo_gestion', [
+        'profesores'           => $profesores,
+        'profesorSeleccionado' => $profesorSeleccionado,
+        'materiasDisponibles'  => $materiasDisponibles,
+        'unidadesDisponibles'  => $unidadesDisponibles,
+        'documentos'           => $documentos,
+        'gruposDisponibles'    => $gruposDisponibles,
+        'quarter_name'         => $quarterTrim,
+        'quartersDisponibles'  => $quartersDisponibles,
+    ]);
+}
+
 
     /* ------------------------------------------------------------------ */
     /* 3) ELIMINAR ARCHIVO – SIN CAMBIOS                                  */

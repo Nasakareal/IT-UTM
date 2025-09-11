@@ -226,7 +226,6 @@
                                         </div>
                                     @endforeach
                                 </div>
-                                {{-- ================= FIN LISTA DOCUMENTOS ================= --}}
 
                                 {{-- =================== FIRMAR TODO (AL FINAL) =================== --}}
                                 <div class="batch-sign">

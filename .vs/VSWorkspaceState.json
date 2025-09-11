@@ -4,12 +4,10 @@
     "\\app",
     "\\app\\Http",
     "\\app\\Http\\Controllers",
-    "\\app\\Models",
     "\\resources",
     "\\resources\\views",
-    "\\resources\\views\\layouts",
-    "\\routes"
+    "\\resources\\views\\revision_academica"
   ],
-  "SelectedNode": "\\routes\\web.php",
+  "SelectedNode": "\\resources\\views\\revision_academica\\solo_gestion.blade.php",
   "PreviewInSolutionExplorer": false
 }
