@@ -11,31 +11,80 @@ use App\Models\FirmaLote;
 
 class GestionAcademicaController extends Controller
 {
-    private function qnorm(string $s): string {
-        $s = mb_strtoupper($s, 'UTF-8');
-        $s = strtr($s, ['Á'=>'A','É'=>'E','Í'=>'I','Ó'=>'O','Ú'=>'U','Ü'=>'U','Ñ'=>'N']);
-        return str_replace([' ', '-'], '', trim($s));
-    }
-
-    private function quarterNameFromDate(Carbon $d): string {
-        $y = $d->year;
-        $m = (int)$d->month;
-        if ($m >= 1 && $m <= 4)   return "ENERO-ABRIL $y";
-        if ($m >= 5 && $m <= 8)   return "MAYO-AGOSTO $y";
-        return "SEPTIEMBRE-DICIEMBRE $y";
-    }
-
     private function quarterRange(string $quarterName): array {
-        // ENERO-ABRIL YYYY | MAYO-AGOSTO YYYY | SEPTIEMBRE-DICIEMBRE YYYY
         [$label, $year] = [trim(preg_replace('/\s+\d{4}$/','',$quarterName)), (int)substr($quarterName,-4)];
         switch ($label) {
-            case 'ENERO-ABRIL':
-                return [Carbon::create($year,1,1)->startOfDay(),  Carbon::create($year,4,30)->endOfDay()];
-            case 'MAYO-AGOSTO':
-                return [Carbon::create($year,5,1)->startOfDay(),  Carbon::create($year,8,31)->endOfDay()];
-            default:
-                return [Carbon::create($year,9,1)->startOfDay(),  Carbon::create($year,12,31)->endOfDay()];
+            case 'ENERO-ABRIL':   return [Carbon::create($year,1,1)->startOfDay(),  Carbon::create($year,4,30)->endOfDay()];
+            case 'MAYO-AGOSTO':   return [Carbon::create($year,5,1)->startOfDay(),  Carbon::create($year,8,31)->endOfDay()];
+            default:              return [Carbon::create($year,9,1)->startOfDay(),  Carbon::create($year,12,31)->endOfDay()];
         }
+    }
+
+    /** Sincroniza snapshots EXACTO contra teacher_subjects del esquema remoto (solo vigente) */
+    private function syncSnapshotsExacto(int $teacherId, int $cuatrimestreId, string $quarterName): void
+    {
+        DB::statement("SET collation_connection = 'utf8mb4_spanish_ci'");
+        $remoteDb = config('database.connections.cargahoraria.database');
+        if (!$remoteDb) return;
+
+        // 1) DELETE lo que ya no exista en TS
+        $sqlDel = "
+            DELETE s
+              FROM materias_docentes_snapshots s
+              LEFT JOIN `{$remoteDb}`.teacher_subjects ts
+                     ON ts.teacher_id = s.teacher_id
+                    AND ts.subject_id = s.subject_id
+                    AND ts.group_id   = s.group_id
+             WHERE s.teacher_id = ?
+               AND s.cuatrimestre_id = ?
+               AND ts.teacher_subject_id IS NULL
+        ";
+        DB::delete($sqlDel, [$teacherId, $cuatrimestreId]);
+
+        // 2) INSERT lo que falte desde TS
+        $sqlIns = "
+            INSERT INTO materias_docentes_snapshots
+                (teacher_id, materia, grupo, programa, unidades,
+                 subject_id, group_id, program_id,
+                 cuatrimestre_id, quarter_name, captured_at, source, created_at, updated_at)
+            SELECT
+                ts.teacher_id,
+                s.subject_name,
+                g.group_name,
+                p.program_name,
+                COALESCE(s.unidades, 1),
+                ts.subject_id,
+                ts.group_id,
+                p.program_id,
+                ?, ?, NOW(), 'teacher_subjects', NOW(), NOW()
+            FROM `{$remoteDb}`.teacher_subjects ts
+            JOIN `{$remoteDb}`.subjects  s ON s.subject_id = ts.subject_id
+            JOIN `{$remoteDb}`.groups    g ON g.group_id   = ts.group_id
+            JOIN `{$remoteDb}`.programs  p ON p.program_id = s.program_id
+            LEFT JOIN materias_docentes_snapshots snap
+                   ON snap.teacher_id      = ts.teacher_id
+                  AND snap.subject_id      = ts.subject_id
+                  AND snap.group_id        = ts.group_id
+                  AND snap.cuatrimestre_id = ?
+            WHERE ts.teacher_id = ?
+              AND snap.id IS NULL
+        ";
+        DB::insert($sqlIns, [$cuatrimestreId, $quarterName, $cuatrimestreId, $teacherId]);
+    }
+
+    /** ¿Existen TS del profe en el rango del cuatri vigente? */
+    private function existeTSenVigente(int $teacherId, object $vigente): bool
+    {
+        $exists = DB::connection('cargahoraria')->table('teacher_subjects as ts')
+            ->leftJoin('groups as g', 'g.group_id', '=', 'ts.group_id')
+            ->where('ts.teacher_id', $teacherId)
+            ->where(function($w) use ($vigente) {
+                $w->whereBetween(DB::raw('COALESCE(ts.fyh_actualizacion, ts.fyh_creacion)'), [$vigente->fecha_inicio, $vigente->fecha_fin])
+                  ->orWhereBetween(DB::raw('COALESCE(g.fyh_actualizacion, g.fyh_creacion)'),   [$vigente->fecha_inicio, $vigente->fecha_fin]);
+            })
+            ->limit(1)
+            ->exists();
+        return (bool)$exists;
     }
 
     public function index(Request $request)
@@ -45,67 +94,65 @@ class GestionAcademicaController extends Controller
             return back()->with('error', 'Este usuario no tiene asignado un teacher_id.');
         }
 
-        // === 1) Catálogo local de cuatrimestres (para alinear nombres y orden)
-        $quartersLocal = DB::table('cuatrimestres')
+        // Vigente por catálogo (solo metadata)
+        $hoy = Carbon::now();
+        $vigente = DB::table('cuatrimestres')
+            ->whereDate('fecha_inicio','<=',$hoy)
+            ->whereDate('fecha_fin','>=',$hoy)
             ->orderBy('fecha_inicio','desc')
-            ->get(['id','nombre','fecha_inicio','fecha_fin']);
+            ->first();
 
-        // === 2) Cuatrimestres que realmente tiene el profe
-        $ch = DB::connection('cargahoraria');
+        // Cuatrimestres del PROFESOR ya en SNAPSHOT (histórico real)
+        $quartersDeProfe = DB::table('materias_docentes_snapshots as m')
+            ->join('cuatrimestres as c', 'c.id', '=', 'm.cuatrimestre_id')
+            ->where('m.teacher_id', $user->teacher_id)
+            ->select('c.id','c.nombre','c.fecha_inicio','c.fecha_fin')
+            ->distinct()
+            ->orderBy('c.fecha_inicio','desc')
+            ->get();
 
-        // 2a) Por schedule_history (nombres normalizados)
-        $normFromSH = $ch->table('schedule_history')
-            ->where('teacher_id', $user->teacher_id)
-            ->whereNotNull('quarter_name_en')
-            ->groupBy('quarter_name_en')
-            ->pluck('quarter_name_en')
-            ->map(fn($n) => $this->qnorm((string)$n))
-            ->unique();
+        // Lista visible: solo snapshots del profe
+        $quartersVisible = $quartersDeProfe->values();
 
-        // 2b) Por teacher_subjects -> derivar nombre de cuatri desde la fecha
-        $rowsTS = $ch->table('teacher_subjects')->where('teacher_id',$user->teacher_id)
-            ->select('fyh_actualizacion','fyh_creacion')->get();
-
-        $quartersFromTS = collect();
-        foreach ($rowsTS as $r) {
-            $dt = $r->fyh_actualizacion ?? $r->fyh_creacion;
-            if (!$dt) continue;
-            $qname = $this->quarterNameFromDate(Carbon::parse($dt));
-            $quartersFromTS->push($this->qnorm($qname));
+        // Si el vigente tiene TS reales y aún no existe snapshot, opcionalmente lo agregamos para que se pueda sincronizar
+        if ($vigente && !$quartersVisible->first(fn($q) => $q->id === $vigente->id)) {
+            if ($this->existeTSenVigente((int)$user->teacher_id, $vigente)) {
+                $quartersVisible->prepend($vigente);
+            }
         }
-        $quartersFromTS = $quartersFromTS->unique();
 
-        // 2c) Local visibles: solo los que matchean por nombre normalizado con SH o TS
-        $quartersVisible = $quartersLocal->filter(function($q) use ($normFromSH, $quartersFromTS) {
-            $norm = $this->qnorm($q->nombre);
-            return $normFromSH->contains($norm) || $quartersFromTS->contains($norm);
-        })->values();
-
-        // Fallback: si no hubo visibles, usar el cuatrimestre "actual" por fechas del catálogo local
         if ($quartersVisible->isEmpty()) {
-            $hoy = Carbon::now();
-            $actual = DB::table('cuatrimestres')
-                ->whereDate('fecha_inicio','<=',$hoy)
-                ->whereDate('fecha_fin','>=',$hoy)
-                ->orderBy('fecha_inicio','desc')->first();
-            if ($actual) $quartersVisible = collect([$actual]);
-            else $quartersVisible = $quartersLocal->take(1);
+            return view('modulos.gestion_academica', [
+                'documentos'   => [],
+                'quarters'     => [],
+                'quarter_name' => null,
+            ]);
         }
 
-        // === 3) Resolver cuatrimestre seleccionado (solo válido si está en visibles)
-        $quarterParam = trim((string)$request->get('quarter_name',''));
+        // *** CLAVE: seleccionar por ID, no por nombre ***
+        $quarterId = (int) $request->get('quarter_id', 0);
         $cuatri = null;
-        if ($quarterParam !== '') {
-            $cuatri = $quartersVisible->first(fn($q) => trim($q->nombre) === $quarterParam);
+
+        if ($quarterId > 0) {
+            $cuatri = $quartersVisible->first(fn($q) => (int)$q->id === $quarterId);
+            if (!$cuatri) {
+                return back()->with('error','El cuatrimestre seleccionado no está disponible para este profesor.');
+            }
+        } else {
+            // Por defecto: el más reciente visible (sin inventar por fechas)
+            $cuatri = $quartersVisible->first();
         }
-        if (!$cuatri) $cuatri = $quartersVisible->first();
 
         $quarter_name = trim($cuatri->nombre);
         [$iniQ, $finQ] = $this->quarterRange($quarter_name);
-        $totalDias = $iniQ->diffInDays($finQ) + 1;
-        $diasTranscurridos = max(1, min($totalDias, $iniQ->diffInDays(Carbon::now()) + 1));
 
-        // === 4) Snapshot local de ese cuatri
+        // Solo sincronizamos si ES el vigente (por ID) y hay TS reales en ese rango
+        $esVigente = $vigente && ((int)$cuatri->id === (int)$vigente->id);
+        if ($esVigente && $this->existeTSenVigente((int)$user->teacher_id, $vigente)) {
+            $this->syncSnapshotsExacto((int)$user->teacher_id, (int)$cuatri->id, $quarter_name);
+        }
+
+        // *** Leer SOLO por cuatrimestre_id (sin OR por nombre, sin fallbacks) ***
         $materias = DB::table('materias_docentes_snapshots')
             ->select('materia','unidades','programa','grupo')
             ->where('teacher_id', $user->teacher_id)
@@ -113,98 +160,10 @@ class GestionAcademicaController extends Controller
             ->orderBy('programa')->orderBy('materia')->orderBy('grupo')
             ->get();
 
-        // === 5) Si no hay snapshot, intentamos SCHEDULE_HISTORY; si sigue vacío, fallback a TEACHER_SUBJECTS
-        if ($materias->isEmpty()) {
-            $qNorm = $this->qnorm($quarter_name);
-            $iniBuf = $iniQ->copy()->subDays(15)->format('Y-m-d H:i:s');
-            $finBuf = $finQ->copy()->addDays(15)->format('Y-m-d H:i:s');
+        // Cálculo de unidad actual (solo para UI)
+        $totalDias = Carbon::parse($cuatri->fecha_inicio)->diffInDays(Carbon::parse($cuatri->fecha_fin)) + 1;
+        $diasTranscurridos = max(1, min($totalDias, Carbon::parse($cuatri->fecha_inicio)->diffInDays(Carbon::now()) + 1));
 
-            // 5a) schedule_history
-            $remotas = $ch->table('schedule_history as sh')
-                ->leftJoin('subjects as s','sh.subject_id','=','s.subject_id')
-                ->leftJoin('programs as p','s.program_id','=','p.program_id')
-                ->leftJoin('groups   as g','sh.group_id','=','g.group_id')
-                ->where('sh.teacher_id',$user->teacher_id)
-                ->where(function($w) use ($qNorm,$iniBuf,$finBuf){
-                    $w->whereRaw("REPLACE(REPLACE(UPPER(COALESCE(sh.quarter_name_en,'')),' ',''),'-','') = ?", [$qNorm])
-                      ->orWhereBetween('sh.fecha_registro', [$iniBuf,$finBuf]);
-                })
-                ->selectRaw("
-                    COALESCE(s.subject_name, sh.subject_name) as materia,
-                    COALESCE(s.unidades, 1)                   as unidades,
-                    COALESCE(p.program_name, sh.program)      as programa,
-                    COALESCE(g.group_name, sh.group_name)     as grupo,
-                    sh.teacher_id                              as teacher_id,
-                    sh.subject_id                              as subject_id,
-                    sh.group_id                                as group_id,
-                    COALESCE(p.program_id, s.program_id)       as program_id
-                ")
-                ->groupBy('materia','unidades','programa','grupo','teacher_id','subject_id','group_id','program_id')
-                ->orderBy('programa')->orderBy('materia')->orderBy('grupo')
-                ->get();
-
-            // 5b) fallback a teacher_subjects si schedule_history no trae nada
-            if ($remotas->isEmpty()) {
-                $remotas = $ch->table('teacher_subjects as ts')
-                    ->join('subjects as s','ts.subject_id','=','s.subject_id')
-                    ->join('programs as p','s.program_id','=','p.program_id')
-                    ->join('groups   as g','ts.group_id','=','g.group_id')
-                    ->where('ts.teacher_id',$user->teacher_id)
-                    ->where(function($w) use ($iniQ,$finQ){
-                        // Mapear por fecha del TS o del group al rango del cuatrimestre seleccionado
-                        $w->whereBetween(DB::raw('COALESCE(ts.fyh_actualizacion, ts.fyh_creacion)'), [$iniQ, $finQ])
-                          ->orWhereBetween(DB::raw('COALESCE(g.fyh_actualizacion, g.fyh_creacion)'), [$iniQ, $finQ]);
-                    })
-                    ->selectRaw("
-                        s.subject_name as materia,
-                        COALESCE(s.unidades,1) as unidades,
-                        p.program_name as programa,
-                        g.group_name   as grupo,
-                        ts.teacher_id  as teacher_id,
-                        s.subject_id   as subject_id,
-                        g.group_id     as group_id,
-                        p.program_id   as program_id
-                    ")
-                    ->groupBy('materia','unidades','programa','grupo','teacher_id','subject_id','group_id','program_id')
-                    ->orderBy('programa')->orderBy('materia')->orderBy('grupo')
-                    ->get();
-            }
-
-            if ($remotas->isNotEmpty()) {
-                foreach ($remotas as $r) {
-                    DB::table('materias_docentes_snapshots')->updateOrInsert(
-                        [
-                            'teacher_id'      => $r->teacher_id,
-                            'materia'         => $r->materia,
-                            'grupo'           => $r->grupo,
-                            'programa'        => $r->programa,
-                            'cuatrimestre_id' => $cuatri->id,
-                        ],
-                        [
-                            'unidades'     => (int)$r->unidades,
-                            'subject_id'   => $r->subject_id,
-                            'group_id'     => $r->group_id,
-                            'program_id'   => $r->program_id,
-                            'quarter_name' => $quarter_name,
-                            'source'       => $remotas === 'schedule_history' ? 'schedule_history' : 'teacher_subjects',
-                            'captured_at'  => now(),
-                            'updated_at'   => now(),
-                            'created_at'   => now(),
-                        ]
-                    );
-                }
-                $materias = $remotas->map(fn($r)=>(object)[
-                    'materia'=>$r->materia,
-                    'unidades'=>(int)$r->unidades,
-                    'programa'=>$r->programa,
-                    'grupo'=>$r->grupo,
-                ]);
-            } else {
-                $materias = collect(); // sin tronar
-            }
-        }
-
-        // === 6) Documentos (igual que tu lógica)
         $documentos = [];
         $VENTANA_EDIT_MIN = config('academico.minutos_edicion', 120);
         $lotesCache = [];
@@ -315,7 +274,7 @@ class GestionAcademicaController extends Controller
 
         return view('modulos.gestion_academica', [
             'documentos'   => $documentos,
-            'quarters'     => $quartersVisible,   // solo los que sí tiene el profe
+            'quarters'     => $quartersVisible,
             'quarter_name' => $quarter_name,
         ]);
     }
