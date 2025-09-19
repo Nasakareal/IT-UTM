@@ -98,8 +98,7 @@
 
                                             @if($submodulo->documento_solicitado)
                                                 <p class="mb-2"><strong>Plantilla base:</strong>
-                                                    <a href="{{ asset('storage/'.$submodulo->documento_solicitado) }}"
-                                                       target="_blank">Descargar plantilla</a>
+                                                   <a href="{{ asset($submodulo->documento_solicitado) }}" target="_blank">Descargar plantilla</a>
                                                 </p>
                                             @endif
                                         </div>
@@ -114,7 +113,7 @@
                                                 data-fecha-apertura="{{ $submodulo->fecha_apertura? $submodulo->fecha_apertura->format('Y-m-d H:i') : '' }}"
                                                 data-fecha-limite="{{ $submodulo->fecha_limite? $submodulo->fecha_limite->format('Y-m-d H:i') : '' }}"
                                                 data-fecha-cierre="{{ $submodulo->fecha_cierre? $submodulo->fecha_cierre->format('Y-m-d H:i') : '' }}"
-                                                data-base="{{ $submodulo->documento_solicitado ? asset('storage/'.$submodulo->documento_solicitado) : '' }}"
+                                                data-base="{{ $submodulo->documento_solicitado ? asset($submodulo->documento_solicitado) : '' }}"
                                                 {{-- ⬇️ solo manda la URL si el oficio tiene firma --}}
                                                 data-acuse="{{ ($archivoOficio && $archivoOficio->firma_sat) ? route('submodulos.generarAcuse',$submodulo->id) : '' }}"
                                                 data-oficio="{{ $archivoOficio ? asset('storage/'.$archivoOficio->ruta) : '' }}"
