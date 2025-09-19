@@ -3,18 +3,6 @@
 @section('title', 'TI-UTM - Revisión de Gestión Académica')
 
 @section('content')
-@if(!empty($debug))
-  <div class="alert alert-secondary py-2 small">
-    <strong>Depuración:</strong>
-    docentes={{ $debug['profesores_count'] ?? 0 }},
-    submódulos={{ $debug['submodulos_count'] ?? 0 }},
-    archivos={{ $debug['archivos_count'] ?? 0 }},
-    snapshot_docs={{ $debug['docentes_con_materias'] ?? 0 }},
-    conn={{ $debug['snap_connection'] ?? '—' }},
-    snapTable={{ !empty($debug['has_snap_table']) ? 'sí' : 'no' }},
-    quarter={{ $debug['cuatrimestreActual'] ?? ($cuatrimestreActual ?? '—') }}
-  </div>
-@endif
 
 <div class="row mb-2 g-2">
     <div class="col-md-8">
@@ -32,19 +20,32 @@
                 </div>
                 <div class="col-md-6">
                     <div class="input-group">
-                        <input type="text"
-                               name="quarter_name"
-                               class="form-control"
-                               value="{{ request('quarter_name', $cuatrimestreActual ?? '') }}"
-                               placeholder="Cuatrimestre (p.ej. MAYO-AGOSTO 2025)">
-                        <button class="btn btn-primary" type="submit">
+                        <div class="col-md-6">
+                          <div class="input-group">
+                            <select name="quarter_name" class="form-select">
+                              <option value="">-- Todos los cuatrimestres --</option>
+                              @foreach($quartersDisponibles ?? [] as $q)
+                                @php
+                                  $sel = trim(request('quarter_name', $cuatrimestreActual ?? '')) === trim($q) ? 'selected' : '';
+                                @endphp
+                                <option value="{{ $q }}" {{ $sel }}>{{ $q }}</option>
+                              @endforeach
+                            </select>
+
+                            <button class="btn btn-primary" type="submit">
+                              <i class="fa-solid fa-filter"></i> Aplicar
+                            </button>
+
+                            @if(request()->has('subseccion_id') || request()->has('quarter_name'))
+                              <a href="{{ route('revision.gestion.academica') }}" class="btn btn-outline-secondary">
+                                Limpiar
+                              </a>
+                            @endif
+                          </div>
+                        </div>
+
                             <i class="fa-solid fa-filter"></i> Aplicar
                         </button>
-                        @if(request()->has('subseccion_id') || request()->has('quarter_name'))
-                            <a href="{{ route('revision.gestion.academica') }}" class="btn btn-outline-secondary">
-                                Limpiar
-                            </a>
-                        @endif
                     </div>
                 </div>
             </div>
@@ -203,41 +204,6 @@
     </div>
 </div>
 
-@if(!empty($materiasPorDocente))
-  <div class="card mt-3" style="border-radius:8px; overflow:hidden;">
-      <div class="card-header bg-light">
-          <h5 class="mb-0">
-              Materias por docente (snapshot / vivo)
-              @if(!empty($cuatrimestreActual))
-                <small class="text-muted"> · {{ $cuatrimestreActual }}</small>
-              @endif
-          </h5>
-      </div>
-      <div class="card-body">
-          @forelse($profesores as $p)
-              @php $lista = $materiasPorDocente[$p->teacher_id] ?? []; @endphp
-              <div class="mb-2">
-                  <strong>{{ $p->nombres }}</strong>
-                  @if(empty($lista))
-                      <span class="text-muted">— sin materias —</span>
-                  @else
-                      <ul class="mb-1">
-                          @foreach($lista as $m)
-                            <li>
-                              {{ $m['materia'] }} — {{ $m['grupo'] }} — {{ $m['programa'] }}
-                              (U: {{ $m['unidades'] }})
-                              <small class="text-muted">[{{ $m['source'] }}]</small>
-                            </li>
-                          @endforeach
-                      </ul>
-                  @endif
-              </div>
-          @empty
-              <div class="text-muted">No hay profesores para listar.</div>
-          @endforelse
-      </div>
-  </div>
-@endif
 @endsection
 
 @section('css')

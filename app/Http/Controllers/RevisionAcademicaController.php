@@ -47,20 +47,33 @@ public function index(Request $request)
         $profesores = (clone $baseQuery)->orderBy('nombres')->get();
     }
 
-    // 2) Resolver cuatrimestre seleccionado
+    // 2) Cuatrimestres disponibles (para <select>) y cuatrimestre actual correcto
+    $quartersDisponibles = Submodulo::whereHas('subsection', fn ($q) => $q->where('modulo_id', 5))
+        ->whereNotNull('quarter_name')
+        ->selectRaw('TRIM(quarter_name) AS quarter_name, MAX(fecha_apertura) AS fa')
+        ->groupBy(DB::raw('TRIM(quarter_name)'))
+        ->orderByDesc('fa')
+        ->pluck('quarter_name');
+
     $cuatrimestreActual = trim((string)$request->input('quarter_name', ''));
+
     if ($cuatrimestreActual === '') {
-        // Si no viene en request, toma el más reciente que exista en submodulos
-        $cuatrimestreActual = Submodulo::whereNotNull('quarter_name')
-            ->orderBy('fecha_apertura','desc')
-            ->value('quarter_name') ?? null;
+        // Más reciente cuya fecha_apertura sea hoy o antes
+        $cuatrimestreActual = Submodulo::whereHas('subsection', fn ($q) => $q->where('modulo_id', 5))
+            ->whereNotNull('quarter_name')
+            ->where('fecha_apertura', '<=', now())
+            ->orderByDesc('fecha_apertura')
+            ->value('quarter_name')
+            ?? ($quartersDisponibles->first() ?: null);
     }
 
-    // 3) Submódulos del módulo 5 + filtro por subsección + quarter_name  👈 CAMBIO
+    // 3) Submódulos del módulo 5 + filtro por subsección + quarter_name
     $query = Submodulo::whereHas('subsection', fn ($q) => $q->where('modulo_id', 5))
         ->with('subsection')
         ->when($request->filled('subseccion_id'), fn($q) => $q->where('subsection_id', $request->subseccion_id))
-        ->when(!empty($cuatrimestreActual), fn($q) => $q->where('quarter_name', $cuatrimestreActual)); // 👈 CAMBIO
+        ->when(!empty($cuatrimestreActual), fn($q) => 
+            $q->whereRaw('TRIM(quarter_name) = ?', [trim($cuatrimestreActual)])
+        );
 
     $submodulos = $query->get();
 
@@ -79,7 +92,7 @@ public function index(Request $request)
     $subseccionesDisponibles = \App\Models\Subsection::where('modulo_id', 5)
         ->orderBy('nombre')->get();
 
-    // 4) Snapshot: si necesitas mostrar materias, lo mantengo igual
+    // 4) Snapshot (igual, pero coherente con el mismo quarter)
     $snapConn = 'cargahoraria';
     if (!\Schema::connection($snapConn)->hasTable('materias_docentes_snapshots')) {
         $snapConn = config('database.default', 'mysql');
@@ -91,7 +104,9 @@ public function index(Request $request)
     if (\Schema::connection($snapConn)->hasTable('materias_docentes_snapshots')) {
         $rowsSnapshot = DB::connection($snapConn)
             ->table('materias_docentes_snapshots')
-            ->when(!empty($cuatrimestreActual), fn($q) => $q->where('quarter_name', $cuatrimestreActual)) // 👈 coherente con el mismo quarter
+            ->when(!empty($cuatrimestreActual), fn($q) => 
+                $q->whereRaw('TRIM(quarter_name) = ?', [trim($cuatrimestreActual)])
+            )
             ->get([
                 'teacher_id','materia','grupo','programa','unidades',
                 'subject_id','group_id','program_id','quarter_name','captured_at','source'
@@ -122,7 +137,7 @@ public function index(Request $request)
         $profesores = collect();
     }
 
-    // 5) Solo archivos de esos profesores y esos submódulos (ya vienen filtrados por quarter)
+    // 5) Solo archivos de esos profesores y esos submódulos
     $archivos = SubmoduloArchivo::whereIn('user_id', $profesores->pluck('id'))
         ->whereIn('submodulo_id', $submodulos->pluck('id'))
         ->get();
@@ -186,10 +201,10 @@ public function index(Request $request)
         'promediosMap',
         'materiasPorDocente',
         'cuatrimestreActual',
+        'quartersDisponibles',
         'debug'
     ));
 }
-
 
     /* ------------------------------------------------------------------ */
     /* 2) SOLO GESTIÓN ACADÉMICA – CON CALIFICACIONES                     */
