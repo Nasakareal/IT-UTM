@@ -19,188 +19,177 @@ class RevisionAcademicaController extends Controller
     /* ------------------------------------------------------------------ */
     /* 1) SUBMÓDULOS – VISTA GENERAL (AGREGADO: mapas de calificaciones)  */
     /* ------------------------------------------------------------------ */
-    public function index(Request $request)
-    {
-        $usuario = auth()->user();
+public function index(Request $request)
+{
+    $usuario = auth()->user();
 
-        /* 1) Áreas del usuario y categorías válidas */
-        $areasUsuario = collect(explode(',', (string)($usuario->area ?? '')))
-            ->map(fn($a) => trim($a))
-            ->filter()
-            ->values()
-            ->all();
-        $categoriasValidas = ['Titular C', 'Titular B', 'Titular A', 'Asociado C'];
+    // 1) Áreas y categorías (sin cambios)
+    $areasUsuario = collect(explode(',', (string)($usuario->area ?? '')))
+        ->map(fn($a) => trim($a))
+        ->filter()
+        ->values()
+        ->all();
+    $categoriasValidas = ['Titular C', 'Titular B', 'Titular A', 'Asociado C'];
 
-        /* 2) Profesores base por área (sin candado de carga viva) */
-        $baseQuery = User::whereNotNull('teacher_id')
-            ->when(!empty($areasUsuario), function ($q) use ($areasUsuario) {
-                $q->where(function ($qq) use ($areasUsuario) {
-                    foreach ($areasUsuario as $area) {
-                        $qq->orWhereRaw('FIND_IN_SET(?, area)', [$area]);
-                    }
-                });
+    $baseQuery = User::whereNotNull('teacher_id')
+        ->when(!empty($areasUsuario), function ($q) use ($areasUsuario) {
+            $q->where(function ($qq) use ($areasUsuario) {
+                foreach ($areasUsuario as $area) {
+                    $qq->orWhereRaw('FIND_IN_SET(?, area)', [$area]);
+                }
             });
+        });
 
-        $profesores = (clone $baseQuery)
-            ->whereIn('categoria', $categoriasValidas)
-            ->orderBy('nombres')
-            ->get();
+    $profesores = (clone $baseQuery)->whereIn('categoria', $categoriasValidas)
+        ->orderBy('nombres')->get();
 
-        if ($profesores->isEmpty()) {
-            // Fallback suave: si por categoría quedó vacío, quitamos categoría (¡pero seguimos en snapshot-only!)
-            $profesores = (clone $baseQuery)->orderBy('nombres')->get();
-        }
-
-        /* 3) Submódulos del módulo 5 (con filtro opcional) */
-        $query = Submodulo::whereHas('subsection', fn ($q) => $q->where('modulo_id', 5))
-            ->with('subsection');
-
-        if ($request->filled('subseccion_id')) {
-            $query->where('subsection_id', $request->subseccion_id);
-        }
-        $submodulos = $query->get();
-
-        $ordenDeseado = [
-            'Presentación del Tutor',
-            '1er Tutoría Grupal',
-            '2da Tutoría Grupal',
-            '3er Tutoría Grupal',
-            'Registro de Proyecto Institucional',
-            'Informe Parcial',
-            'Informe Global',
-        ];
-        $submodulos = $submodulos->sortBy(fn($s) => array_search($s->titulo, $ordenDeseado))->values();
-
-        $subseccionesDisponibles = \App\Models\Subsection::where('modulo_id', 5)
-            ->orderBy('nombre')
-            ->get();
-
-        /* 4) SNAPSHOT ONLY: detectar conexión y leer snapshot */
-        $snapConn = 'cargahoraria';
-        if (!Schema::connection($snapConn)->hasTable('materias_docentes_snapshots')) {
-            $snapConn = config('database.default', 'mysql');
-        }
-
-        $cuatrimestreActual = $request->input('quarter_name');
-        if (!$cuatrimestreActual && Schema::connection($snapConn)->hasTable('materias_docentes_snapshots')) {
-            $cuatrimestreActual = DB::connection($snapConn)
-                ->table('materias_docentes_snapshots')
-                ->orderBy('captured_at', 'desc')
-                ->value('quarter_name');
-        }
-
-        $materiasPorDocente = [];
-        $teacherIdsSnap = collect();
-
-        if (Schema::connection($snapConn)->hasTable('materias_docentes_snapshots')) {
-            $rowsSnapshot = DB::connection($snapConn)
-                ->table('materias_docentes_snapshots')
-                ->when(!empty($cuatrimestreActual), fn($q) => $q->where('quarter_name', $cuatrimestreActual))
-                ->get([
-                    'teacher_id','materia','grupo','programa','unidades',
-                    'subject_id','group_id','program_id','quarter_name','captured_at','source'
-                ]);
-
-            // Limitar profesores a los que EXISTEN en snapshot
-            $teacherIdsSnap = $rowsSnapshot->pluck('teacher_id')->unique()->values();
-            if ($teacherIdsSnap->isNotEmpty()) {
-                $profesores = $profesores->whereIn('teacher_id', $teacherIdsSnap->all())->values();
-            } else {
-                // Si no hay snapshot para ese quarter, deja vacíos (no usamos carga viva)
-                $profesores = collect();
-            }
-
-            // Armar mapa materiasPorDocente exclusivamente desde snapshot
-            foreach ($rowsSnapshot as $r) {
-                $materiasPorDocente[$r->teacher_id][] = [
-                    'materia'      => $r->materia,
-                    'grupo'        => $r->grupo,
-                    'programa'     => $r->programa,
-                    'unidades'     => (int)$r->unidades,
-                    'subject_id'   => (int)$r->subject_id,
-                    'group_id'     => (int)$r->group_id,
-                    'program_id'   => (int)$r->program_id,
-                    'quarter_name' => $r->quarter_name,
-                    'captured_at'  => $r->captured_at,
-                    'source'       => $r->source,
-                ];
-            }
-        } else {
-            // No hay tabla snapshot en ninguna conexión conocida: no mostramos nada y avisamos en debug
-            $profesores = collect();
-        }
-
-        /* 5) Archivos entregados SOLO de los profesores filtrados por snapshot */
-        $archivos = SubmoduloArchivo::whereIn('user_id', $profesores->pluck('id'))
-            ->whereIn('submodulo_id', $submodulos->pluck('id'))
-            ->get();
-
-        $archivoMap = [];
-        foreach ($archivos as $archivo) {
-            $archivoMap[$archivo->user_id][$archivo->submodulo_id] = $archivo;
-        }
-
-        /* 6) Calificaciones (mapas) */
-        $idsVisibles = [];
-        foreach ($archivoMap as $byUser) {
-            foreach ($byUser as $a) {
-                if (!empty($a->id)) $idsVisibles[] = (int)$a->id;
-            }
-        }
-        $idsVisibles = array_values(array_unique($idsVisibles));
-
-        $misCalifsMap = [];
-        if (!empty($idsVisibles)) {
-            $misCalifsMap = CalificacionSubmoduloArchivo::where('evaluador_id', auth()->id())
-                ->whereIn('submodulo_archivo_id', $idsVisibles)
-                ->pluck('calificacion', 'submodulo_archivo_id')
-                ->toArray();
-        }
-
-        $promediosMap = [];
-        if (!empty($idsVisibles)) {
-            $promedios = CalificacionSubmoduloArchivo::select(
-                    'submodulo_archivo_id',
-                    DB::raw('ROUND(AVG(calificacion),2) as avg'),
-                    DB::raw('COUNT(*) as n')
-                )
-                ->whereIn('submodulo_archivo_id', $idsVisibles)
-                ->groupBy('submodulo_archivo_id')
-                ->get();
-
-            foreach ($promedios as $row) {
-                $promediosMap[(int)$row->submodulo_archivo_id] = [
-                    'avg' => (float)$row->avg,
-                    'n'   => (int)$row->n,
-                ];
-            }
-        }
-
-        /* 7) Debug opcional */
-        $debug = [
-            'areasUsuario'          => $areasUsuario,
-            'profesores_count'      => $profesores->count(),
-            'submodulos_count'      => $submodulos->count(),
-            'archivos_count'        => $archivos->count(),
-            'idsVisibles_count'     => count($idsVisibles),
-            'snap_connection'       => $snapConn,
-            'has_snap_table'        => Schema::connection($snapConn)->hasTable('materias_docentes_snapshots'),
-            'cuatrimestreActual'    => $cuatrimestreActual,
-            'teacherIdsSnap_count'  => $teacherIdsSnap->count(),
-        ];
-
-        return view('revision_academica.index', compact(
-            'profesores',
-            'submodulos',
-            'archivoMap',
-            'subseccionesDisponibles',
-            'misCalifsMap',
-            'promediosMap',
-            'materiasPorDocente',
-            'cuatrimestreActual',
-            'debug'
-        ));
+    if ($profesores->isEmpty()) {
+        $profesores = (clone $baseQuery)->orderBy('nombres')->get();
     }
+
+    // 2) Resolver cuatrimestre seleccionado
+    $cuatrimestreActual = trim((string)$request->input('quarter_name', ''));
+    if ($cuatrimestreActual === '') {
+        // Si no viene en request, toma el más reciente que exista en submodulos
+        $cuatrimestreActual = Submodulo::whereNotNull('quarter_name')
+            ->orderBy('fecha_apertura','desc')
+            ->value('quarter_name') ?? null;
+    }
+
+    // 3) Submódulos del módulo 5 + filtro por subsección + quarter_name  👈 CAMBIO
+    $query = Submodulo::whereHas('subsection', fn ($q) => $q->where('modulo_id', 5))
+        ->with('subsection')
+        ->when($request->filled('subseccion_id'), fn($q) => $q->where('subsection_id', $request->subseccion_id))
+        ->when(!empty($cuatrimestreActual), fn($q) => $q->where('quarter_name', $cuatrimestreActual)); // 👈 CAMBIO
+
+    $submodulos = $query->get();
+
+    // Orden deseado (sin cambios)
+    $ordenDeseado = [
+        'Presentación del Tutor',
+        '1er Tutoría Grupal',
+        '2da Tutoría Grupal',
+        '3er Tutoría Grupal',
+        'Registro de Proyecto Institucional',
+        'Informe Parcial',
+        'Informe Global',
+    ];
+    $submodulos = $submodulos->sortBy(fn($s) => array_search($s->titulo, $ordenDeseado))->values();
+
+    $subseccionesDisponibles = \App\Models\Subsection::where('modulo_id', 5)
+        ->orderBy('nombre')->get();
+
+    // 4) Snapshot: si necesitas mostrar materias, lo mantengo igual
+    $snapConn = 'cargahoraria';
+    if (!\Schema::connection($snapConn)->hasTable('materias_docentes_snapshots')) {
+        $snapConn = config('database.default', 'mysql');
+    }
+
+    $materiasPorDocente = [];
+    $teacherIdsSnap = collect();
+
+    if (\Schema::connection($snapConn)->hasTable('materias_docentes_snapshots')) {
+        $rowsSnapshot = DB::connection($snapConn)
+            ->table('materias_docentes_snapshots')
+            ->when(!empty($cuatrimestreActual), fn($q) => $q->where('quarter_name', $cuatrimestreActual)) // 👈 coherente con el mismo quarter
+            ->get([
+                'teacher_id','materia','grupo','programa','unidades',
+                'subject_id','group_id','program_id','quarter_name','captured_at','source'
+            ]);
+
+        $teacherIdsSnap = $rowsSnapshot->pluck('teacher_id')->unique()->values();
+        if ($teacherIdsSnap->isNotEmpty()) {
+            $profesores = $profesores->whereIn('teacher_id', $teacherIdsSnap->all())->values();
+        } else {
+            $profesores = collect(); // sin snapshot para ese quarter
+        }
+
+        foreach ($rowsSnapshot as $r) {
+            $materiasPorDocente[$r->teacher_id][] = [
+                'materia'      => $r->materia,
+                'grupo'        => $r->grupo,
+                'programa'     => $r->programa,
+                'unidades'     => (int)$r->unidades,
+                'subject_id'   => (int)$r->subject_id,
+                'group_id'     => (int)$r->group_id,
+                'program_id'   => (int)$r->program_id,
+                'quarter_name' => $r->quarter_name,
+                'captured_at'  => $r->captured_at,
+                'source'       => $r->source,
+            ];
+        }
+    } else {
+        $profesores = collect();
+    }
+
+    // 5) Solo archivos de esos profesores y esos submódulos (ya vienen filtrados por quarter)
+    $archivos = SubmoduloArchivo::whereIn('user_id', $profesores->pluck('id'))
+        ->whereIn('submodulo_id', $submodulos->pluck('id'))
+        ->get();
+
+    $archivoMap = [];
+    foreach ($archivos as $archivo) {
+        $archivoMap[$archivo->user_id][$archivo->submodulo_id] = $archivo;
+    }
+
+    // 6) Calificaciones (igual)
+    $idsVisibles = [];
+    foreach ($archivoMap as $byUser) {
+        foreach ($byUser as $a) {
+            if (!empty($a->id)) $idsVisibles[] = (int)$a->id;
+        }
+    }
+    $idsVisibles = array_values(array_unique($idsVisibles));
+
+    $misCalifsMap = [];
+    if (!empty($idsVisibles)) {
+        $misCalifsMap = CalificacionSubmoduloArchivo::where('evaluador_id', auth()->id())
+            ->whereIn('submodulo_archivo_id', $idsVisibles)
+            ->pluck('calificacion', 'submodulo_archivo_id')
+            ->toArray();
+    }
+
+    $promediosMap = [];
+    if (!empty($idsVisibles)) {
+        $promedios = CalificacionSubmoduloArchivo::select(
+                'submodulo_archivo_id',
+                DB::raw('ROUND(AVG(calificacion),2) as avg'),
+                DB::raw('COUNT(*) as n')
+            )
+            ->whereIn('submodulo_archivo_id', $idsVisibles)
+            ->groupBy('submodulo_archivo_id')
+            ->get();
+
+        foreach ($promedios as $row) {
+            $promediosMap[(int)$row->submodulo_archivo_id] = [
+                'avg' => (float)$row->avg,
+                'n'   => (int)$row->n,
+            ];
+        }
+    }
+
+    // 7) Debug
+    $debug = [
+        'profesores_count'      => $profesores->count(),
+        'submodulos_count'      => $submodulos->count(),
+        'archivos_count'        => $archivos->count(),
+        'teacherIdsSnap_count'  => $teacherIdsSnap->count(),
+        'cuatrimestreActual'    => $cuatrimestreActual,
+    ];
+
+    return view('revision_academica.index', compact(
+        'profesores',
+        'submodulos',
+        'archivoMap',
+        'subseccionesDisponibles',
+        'misCalifsMap',
+        'promediosMap',
+        'materiasPorDocente',
+        'cuatrimestreActual',
+        'debug'
+    ));
+}
+
 
     /* ------------------------------------------------------------------ */
     /* 2) SOLO GESTIÓN ACADÉMICA – CON CALIFICACIONES                     */
@@ -214,6 +203,7 @@ class RevisionAcademicaController extends Controller
             ->filter()
             ->values();
 
+        // ---------- SNAPSHOT: detectar conexión usable ----------
         $snapConn = 'cargahoraria';
         if (!Schema::connection($snapConn)->hasTable('materias_docentes_snapshots')) {
             $snapConn = config('database.default', 'mysql');
@@ -250,7 +240,7 @@ class RevisionAcademicaController extends Controller
 
         // ---------- Profes con documentos del cuatrimestre ----------
         $profIdsConDocs = DB::table('documentos_subidos')
-            ->when($quarterTrim, fn($q) => $q->whereRaw('TRIM(quarter_name) = ?', [$quarterTrim]))
+            ->when($quarterTrim, fn($q) => $q->whereRaw('TRIM(quarter_name) = ?', [trim($quarterTrim)]))
             ->distinct()
             ->pluck('user_id');
 
@@ -260,7 +250,7 @@ class RevisionAcademicaController extends Controller
         if (Schema::connection($snapConn)->hasTable('materias_docentes_snapshots')) {
             $teacherIdsSnap = DB::connection($snapConn)
                 ->table('materias_docentes_snapshots as mds')
-                ->when($quarterTrim, fn($q) => $q->whereRaw('TRIM(mds.quarter_name) = ?', [$quarterTrim]))
+                ->when($quarterTrim, fn($q) => $q->whereRaw('TRIM(mds.quarter_name) = ?', [trim($quarterTrim)]))
                 ->distinct()
                 ->pluck('mds.teacher_id');
             if ($teacherIdsSnap->isNotEmpty()) {
@@ -315,11 +305,33 @@ class RevisionAcademicaController extends Controller
         $grupoFiltro          = $request->grupo;
         $profesorSeleccionado = $profesorId ? User::find($profesorId) : null;
 
+        // ---------- Resolver teacher_id real del profesor seleccionado (si hay) ----------
+        $teacherIdSeleccionado = null;
+        if ($profesorSeleccionado) {
+            if (Schema::hasColumn('users', 'teacher_id') && !empty($profesorSeleccionado->teacher_id)) {
+                $teacherIdSeleccionado = (int)$profesorSeleccionado->teacher_id;
+            } elseif (Schema::hasColumn('users', 'docente_id') && !empty($profesorSeleccionado->docente_id)) {
+                $teacherIdSeleccionado = (int)$profesorSeleccionado->docente_id;
+            }
+        }
+
+        // ---------- Resolver cuatrimestre_id en cargahoraria por nombre (sin COLLATE) ----------
+        $cuatrimestreId = null;
+        if ($quarterTrim && config('database.connections.cargahoraria.database')) {
+            if (Schema::connection('cargahoraria')->hasTable('cuatrimestres')) {
+                $cuatrimestreId = DB::connection('cargahoraria')
+                    ->table('cuatrimestres')
+                    ->whereRaw('TRIM(nombre) = ?', [trim($quarterTrim)])
+                    ->value('id');
+            }
+        }
+
         // ---------- Asignaciones del cuatrimestre (base para combos y "pendientes") ----------
-        // 1) De snapshots (si existen para el cuatri)
+
+        // 1) Intentar desde SNAPSHOT si existe la tabla
         $asignaciones = collect();
-        if ($teacherIdsSnap->isNotEmpty()) {
-            $asignaciones = DB::connection($snapConn)
+        if (Schema::connection($snapConn)->hasTable('materias_docentes_snapshots')) {
+            $snapQuery = DB::connection($snapConn)
                 ->table('materias_docentes_snapshots as mds')
                 ->select([
                     'mds.teacher_id',
@@ -327,34 +339,51 @@ class RevisionAcademicaController extends Controller
                     'mds.grupo',
                     DB::raw('COALESCE(mds.unidades, 3) as unidades'),
                 ])
-                ->when($quarterTrim, fn($q) => $q->whereRaw('TRIM(mds.quarter_name) = ?', [$quarterTrim]))
-                ->get();
+                ->when($quarterTrim, fn($q) => $q->whereRaw('TRIM(mds.quarter_name) = ?', [trim($quarterTrim)]));
+
+            if ($teacherIdSeleccionado) {
+                $snapQuery->where('mds.teacher_id', $teacherIdSeleccionado);
+            }
+
+            $asignaciones = $snapQuery->get();
         }
 
-        // 2) Si NO hay snapshots de ese cuatri, usar cargahoraria.teacher_subjects JOIN subjects, groups, cuatrimestres
-        if ($asignaciones->isEmpty() && DB::connection($snapConn)->getDatabaseName() === 'cargahoraria') {
+        // 2) Fallback REAL a cargahoraria por cuatrimestre_id (sin comparar nombres de BD)
+        if ($asignaciones->isEmpty() && config('database.connections.cargahoraria.database')) {
             if (
                 Schema::connection('cargahoraria')->hasTable('teacher_subjects') &&
                 Schema::connection('cargahoraria')->hasTable('subjects') &&
                 Schema::connection('cargahoraria')->hasTable('groups') &&
                 Schema::connection('cargahoraria')->hasTable('cuatrimestres')
             ) {
-                $asignaciones = DB::connection('cargahoraria')
+                $q = DB::connection('cargahoraria')
                     ->table('teacher_subjects as ts')
                     ->join('subjects as s', 's.subject_id', '=', 'ts.subject_id')
                     ->join('groups as g', 'g.group_id', '=', 'ts.group_id')
                     ->join('cuatrimestres as c', 'c.id', '=', 'g.cuatrimestre_id')
-                    ->whereRaw('TRIM(c.nombre) = ?', [$quarterTrim]) // No recuerdo si es 'nombre' o 'quarter_name'
                     ->select([
                         'ts.teacher_id',
                         DB::raw('s.subject_name as materia'),
                         DB::raw('g.group_name   as grupo'),
                         DB::raw('COALESCE(s.unidades, 3) as unidades')
-                    ])
-                    ->get();
+                    ]);
+
+                if (!is_null($cuatrimestreId)) {
+                    $q->where('g.cuatrimestre_id', $cuatrimestreId);
+                } elseif ($quarterTrim) {
+                    // Último recurso: por nombre, con TRIM (sin COLLATE)
+                    $q->whereRaw('TRIM(c.nombre) = ?', [trim($quarterTrim)]);
+                }
+
+                if ($teacherIdSeleccionado) {
+                    $q->where('ts.teacher_id', $teacherIdSeleccionado);
+                }
+
+                $asignaciones = $q->get();
             }
         }
 
+        // ---------- Mapear teacher_id -> users.id ----------
         $teacherIdToUserId = collect();
         if ($asignaciones->isNotEmpty()) {
             $teacherIds = $asignaciones->pluck('teacher_id')->unique()->values();
@@ -370,19 +399,19 @@ class RevisionAcademicaController extends Controller
             }
         }
 
-        // Filtrar asignaciones por profesor seleccionado (si corresponde) y por área del usuario autenticado
-        $asignaciones = $asignaciones->map(function ($a) use ($teacherIdToUserId) {
-            $a->user_id = $teacherIdToUserId[$a->teacher_id] ?? null;
+        // Filtrar asignaciones por profesor seleccionado (si corresponde)
+        $asignaciones = $asignaciones->map(function ($a) use ($teacherIdToUserId, $profesorSeleccionado) {
+            $a->user_id = $teacherIdToUserId[$a->teacher_id] ?? ($profesorSeleccionado->id ?? null);
             return $a;
         })->filter(function ($a) use ($profesorSeleccionado) {
             return $profesorSeleccionado ? ($a->user_id === ($profesorSeleccionado->id ?? null)) : true;
-        });
+        })->values();
 
         // ---------- Tipos de documento "esperados" ----------
         $tiposDoc = collect();
         if (Schema::hasTable('documentos_requeridos')) {
             $tiposDoc = DB::table('documentos_requeridos')
-                ->when($quarterTrim, fn($q) => $q->whereRaw('TRIM(quarter_name) = ?', [$quarterTrim]))
+                ->when($quarterTrim, fn($q) => $q->whereRaw('TRIM(quarter_name) = ?', [trim($quarterTrim)]))
                 ->pluck('tipo_documento')
                 ->unique()
                 ->values();
@@ -399,7 +428,7 @@ class RevisionAcademicaController extends Controller
 
         // ---------- Documentos SUBIDOS (los reales) ----------
         $docsQuery = DB::table('documentos_subidos as ds')
-            ->when($quarterTrim, fn($q) => $q->whereRaw('TRIM(ds.quarter_name) = ?', [$quarterTrim]))
+            ->when($quarterTrim, fn($q) => $q->whereRaw('TRIM(ds.quarter_name) = ?', [trim($quarterTrim)]))
             ->when($profesorSeleccionado, fn($q) => $q->where('ds.user_id', $profesorSeleccionado->id))
             ->when($materiaFiltro, fn($q) => $q->where('ds.materia', $materiaFiltro))
             ->when($grupoFiltro, fn($q) => $q->where('ds.grupo', $grupoFiltro))
@@ -528,17 +557,17 @@ class RevisionAcademicaController extends Controller
         $gruposDesdeAsig   = $asignaciones->pluck('grupo');
 
         $materiasDesdeDocs = DB::table('documentos_subidos')
-            ->when($quarterTrim, fn($q) => $q->whereRaw('TRIM(quarter_name) = ?', [$quarterTrim]))
+            ->when($quarterTrim, fn($q) => $q->whereRaw('TRIM(quarter_name) = ?', [trim($quarterTrim)]))
             ->when($profesorSeleccionado, fn($q) => $q->where('user_id', $profesorSeleccionado->id))
             ->pluck('materia');
 
         $gruposDesdeDocs = DB::table('documentos_subidos')
-            ->when($quarterTrim, fn($q) => $q->whereRaw('TRIM(quarter_name) = ?', [$quarterTrim]))
+            ->when($quarterTrim, fn($q) => $q->whereRaw('TRIM(quarter_name) = ?', [trim($quarterTrim)]))
             ->when($profesorSeleccionado, fn($q) => $q->where('user_id', $profesorSeleccionado->id))
             ->pluck('grupo');
 
         $unidadesDesdeDocs = DB::table('documentos_subidos')
-            ->when($quarterTrim, fn($q) => $q->whereRaw('TRIM(quarter_name) = ?', [$quarterTrim]))
+            ->when($quarterTrim, fn($q) => $q->whereRaw('TRIM(quarter_name) = ?', [trim($quarterTrim)]))
             ->when($profesorSeleccionado, fn($q) => $q->where('user_id', $profesorSeleccionado->id))
             ->pluck('unidad');
 

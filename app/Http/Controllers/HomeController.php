@@ -9,6 +9,7 @@ use App\Models\Seccion;
 use App\Models\DocumentoSubido;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Carbon\Carbon;
 
 class HomeController extends Controller
@@ -25,10 +26,43 @@ class HomeController extends Controller
 
         // 🔸 1. Lógica original: Submódulos pendientes
         if (!$user->hasAnyRole(['Administrador', 'Subdirector'])) {
+
+            // Detecta cuatrimestre activo por fechas
+            $hoy = now();
+            $cuatri = DB::table('cuatrimestres')
+                ->whereDate('fecha_inicio', '<=', $hoy)
+                ->whereDate('fecha_fin', '>=', $hoy)
+                ->select('nombre', 'fecha_inicio', 'fecha_fin')
+                ->first();
+
+            // Fallback por si faltara el registro (divide por meses)
+            if ($cuatri) {
+                $qStart = Carbon::parse($cuatri->fecha_inicio)->startOfDay();
+                $qEnd   = Carbon::parse($cuatri->fecha_fin)->endOfDay();
+                $qName  = $cuatri->nombre;
+            } else {
+                $y = (int)$hoy->format('Y');
+                $m = (int)$hoy->format('n');
+                if ($m >= 1 && $m <= 4) {
+                    $qStart = Carbon::create($y, 1, 1)->startOfDay();
+                    $qEnd   = Carbon::create($y, 4, 30)->endOfDay();
+                    $qName  = "ENERO-ABRIL {$y}";
+                } elseif ($m >= 5 && $m <= 8) {
+                    $qStart = Carbon::create($y, 5, 1)->startOfDay();
+                    $qEnd   = Carbon::create($y, 8, 31)->endOfDay();
+                    $qName  = "MAYO-AGOSTO {$y}";
+                } else {
+                    $qStart = Carbon::create($y, 9, 1)->startOfDay();
+                    $qEnd   = Carbon::create($y, 12, 31)->endOfDay();
+                    $qName  = "SEPTIEMBRE-DICIEMBRE {$y}";
+                }
+            }
+
             $documentosPendientes = Submodulo::whereNotNull('fecha_limite')
                 ->whereHas('categoriasPermitidas', function ($q) use ($user) {
                     $q->where('categoria', $user->categoria);
                 })
+                // NO entregados por el usuario
                 ->where(function ($query) use ($user) {
                     $query->whereDoesntHave('submoduloUsuarios', function ($q) use ($user) {
                             $q->where('user_id', $user->id)
@@ -39,9 +73,21 @@ class HomeController extends Controller
                               ->where('estatus', 'pendiente');
                         });
                 })
+                // Abiertos a la fecha
                 ->where(function ($query) {
                     $query->whereNull('fecha_apertura')
                           ->orWhere('fecha_apertura', '<=', now());
+                })
+                // 🔥 Solo del CUATRIMESTRE ACTUAL:
+                ->where(function ($q) use ($qStart, $qEnd, $qName) {
+                    // por rango de fechas del cuatri
+                    $q->whereBetween('fecha_apertura', [$qStart, $qEnd])
+                      ->orWhereBetween('fecha_cierre', [$qStart, $qEnd]);
+
+                    // y si existe la columna quarter_name, también por nombre exacto
+                    if (Schema::hasColumn('submodulos', 'quarter_name')) {
+                        $q->orWhere('quarter_name', $qName);
+                    }
                 })
                 ->get();
         }

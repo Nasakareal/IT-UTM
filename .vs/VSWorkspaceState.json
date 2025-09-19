@@ -6,8 +6,9 @@
     "\\app\\Http\\Controllers",
     "\\resources",
     "\\resources\\views",
-    "\\resources\\views\\modulos",
+    "\\resources\\views\\revision_academica",
     "\\routes"
   ],
+  "SelectedNode": "\\resources\\views\\revision_academica\\index.blade.php",
   "PreviewInSolutionExplorer": false
 }
