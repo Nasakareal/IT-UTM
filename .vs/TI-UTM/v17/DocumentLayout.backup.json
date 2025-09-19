@@ -32,7 +32,7 @@
               "RelativeDocumentMoniker": "resources\\views\\modulos\\show.blade.php",
               "ToolTip": "C:\\wamp64\\www\\TI-UTM\\resources\\views\\modulos\\show.blade.php",
               "RelativeToolTip": "resources\\views\\modulos\\show.blade.php",
-              "ViewState": "AgIAAGUAAAAAAAAAAAAAAGUAAABeAAAAAAAAAA==",
+              "ViewState": "AgIAAEQAAAAAAAAAAAAAAGQAAACSAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002338|",
               "WhenOpened": "2025-09-19T20:09:44.313Z",
               "EditorCaption": ""
@@ -47,8 +47,7 @@
               "RelativeToolTip": "app\\Http\\Controllers\\RevisionAcademicaController.php",
               "ViewState": "AgIAAJ8AAAAAAAAAAAAkwM8AAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002338|",
-              "WhenOpened": "2025-09-19T19:59:20.836Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-19T19:59:20.836Z"
             },
             {
               "$type": "Document",
@@ -60,8 +59,7 @@
               "RelativeToolTip": "resources\\views\\revision_academica\\index.blade.php",
               "ViewState": "AgIAAA8AAAAAAAAAAAAAAC8AAAAhAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002338|",
-              "WhenOpened": "2025-09-19T19:58:45.6Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-09-19T19:58:45.6Z"
             }
           ]
         }

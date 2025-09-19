@@ -33,15 +33,23 @@
             opacity:.15; z-index:-1;
         }
 
-        /* Barra superior fija (por debajo del modal BS4) */
+        /* ===== Top bar responsive ===== */
         .top-bar{
             width:100%; position:fixed; top:0; left:0; z-index:990; /* < 1040 (backdrop) */
             display:flex; justify-content:space-between; align-items:center;
             padding:15px 20px; background:#009688; color:#fff; font-weight:bold; font-size:18px;
         }
-        .top-bar a{ color:inherit; text-decoration:none; margin-left:15px; font-weight:bold }
+        .top-bar a{ color:inherit; text-decoration:none; font-weight:bold }
         .top-bar a:hover{ text-decoration:underline }
+
         .top-bar .menu{ display:flex; align-items:center; gap:15px }
+        .top-bar .menu a{ margin-left:0 } /* evitamos empuje lateral, ya usamos gap */
+
+        .menu-toggle{
+            display:none; /* visible sólo en móvil (via media query) */
+            background:transparent; border:0; color:#fff;
+            padding:6px 10px; border-radius:8px;
+        }
 
         /* Contenedor principal */
         .container-content{
@@ -58,6 +66,54 @@
         /* Asegurar layering correcto del modal BS4 por si algo externo lo altera */
         .modal{ z-index:1060 !important; }
         .modal-backdrop{ z-index:1050 !important; }
+
+        /* ====== Breakpoints ====== */
+
+        /* <= 992px (tablets) */
+        @media (max-width: 992px){
+          .top-bar{ padding:12px 14px; font-size:16px; }
+          .top-bar .menu a{ font-size:15px; }
+          .container-content{ width:92%; margin-top:80px; padding:20px; }
+        }
+
+        /* <= 768px (móvil) */
+        @media (max-width: 768px){
+          .top-bar{ padding:10px 12px; font-size:15px; }
+          .menu-toggle{ display:inline-flex; align-items:center; justify-content:center; }
+          .top-bar .menu{
+            display:none; /* oculto por defecto en móvil */
+            position:fixed;
+            top:56px;                         /* bajo la barra */
+            left:10px; right:10px;
+            background:#ffffff;
+            color:#000;
+            border-radius:12px;
+            box-shadow:0 8px 20px rgba(0,0,0,.15);
+            padding:10px;
+            flex-direction:column;
+            gap:8px;
+            z-index:1000;
+          }
+          .top-bar .menu a{
+            color:#000;
+            width:100%;
+            padding:10px 12px;
+            border-radius:8px;
+          }
+          .top-bar .menu a:hover{
+            background:#f3f4f6;
+            text-decoration:none;
+          }
+          .top-bar .menu.open{ display:flex; } /* se muestra cuando .open */
+          .container-content{ width:94%; margin-top:76px; padding:16px; }
+        }
+
+        /* <= 360px (muy chico) */
+        @media (max-width: 360px){
+          .top-bar{ font-size:14px; }
+          .top-bar .menu a{ font-size:14px; padding:9px 10px; }
+          .container-content{ margin-top:72px; }
+        }
     </style>
 
     @yield('styles')
@@ -70,7 +126,14 @@
         <div>
             <a href="{{ route('home') }}"><i class="bi bi-house-door"></i> Inicio</a>
         </div>
-        <div class="menu">
+
+        <!-- Botón hamburguesa (sólo móvil) -->
+        <button class="menu-toggle d-lg-none" aria-controls="topMenu" aria-expanded="false" aria-label="Abrir menú">
+            <i class="bi bi-list" style="font-size:1.6rem;line-height:1"></i>
+        </button>
+
+        <!-- Menú -->
+        <div class="menu" id="topMenu">
             <a href="{{ route('correspondencias.index') }}"><i class="bi bi-envelope"></i> Correspondencia</a>
             <a href="{{ route('certificados.subir') }}"><i class="bi bi-award"></i> .P12</a>
             <a href="{{ route('tutoriales.index') }}"><i class="bi bi-journal-code"></i> Tutoriales</a>
@@ -159,6 +222,35 @@
         var css = '.modal{z-index:1060!important}.modal-backdrop{z-index:1050!important}.top-bar{z-index:990!important}';
         var s   = document.createElement('style'); s.textContent = css; document.head.appendChild(s);
       })();
+
+      // ====== Navbar móvil: toggle hamburguesa ======
+      document.addEventListener('DOMContentLoaded', function(){
+        var btn  = document.querySelector('.menu-toggle');
+        var menu = document.getElementById('topMenu');
+        if(!btn || !menu) return;
+
+        btn.addEventListener('click', function(){
+          var isOpen = menu.classList.toggle('open');
+          btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        });
+
+        // Cierra al tocar fuera
+        document.addEventListener('click', function(e){
+          if(!menu.classList.contains('open')) return;
+          if(!menu.contains(e.target) && !btn.contains(e.target)){
+            menu.classList.remove('open');
+            btn.setAttribute('aria-expanded', 'false');
+          }
+        });
+
+        // Cierra al navegar
+        menu.querySelectorAll('a').forEach(function(a){
+          a.addEventListener('click', function(){
+            menu.classList.remove('open');
+            btn.setAttribute('aria-expanded', 'false');
+          });
+        });
+      });
     </script>
 </body>
 </html>
