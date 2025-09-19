@@ -40,6 +40,7 @@ class Submodulo extends Model
 
     public function categoriasPermitidas()
     {
-        return $this->hasMany(CategoriaSubmodulo::class);
+        return $this->hasMany(\App\Models\CategoriaSubmodulo::class, 'submodulo_id');
     }
+
 }
