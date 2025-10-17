@@ -160,7 +160,7 @@ class SubmoduloController extends Controller
         // 🔹 Validación condicional
         $rules = [
             'submodulo_id'   => ['required', 'exists:submodulos,id'],
-            'oficio_entrega' => ['nullable','file','mimes:pdf,doc,docx','max:8048'],
+            'oficio_entrega' => ['nullable','file','mimes:pdf,doc,docx','max:16048'],
         ];
 
       if ($accion === 'firmar') {
