@@ -211,13 +211,10 @@
         @php session()->forget('mostrar_aviso'); @endphp
     @endif
 
-    <!-- Parche universal para modales BS4: mover al <body> y evitar stacking issues -->
     <script>
-      // Mueve cualquier modal al <body> cuando se abra (evita contenedores con z-index/transform)
       $(document).on('show.bs.modal', '.modal', function () {
         $(this).appendTo('body');
       });
-      // Sanity check: forzar layering correcto (por si alguna vista lo pisa)
       (function(){
         var css = '.modal{z-index:1060!important}.modal-backdrop{z-index:1050!important}.top-bar{z-index:990!important}';
         var s   = document.createElement('style'); s.textContent = css; document.head.appendChild(s);
