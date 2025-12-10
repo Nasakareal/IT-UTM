@@ -16,11 +16,9 @@ class CalificacionDocumentoController extends Controller
 {
     public function index(Request $request)
     {
-        // 1) Progreso del cuatri (0..1) y etapa/tutorías (1..3)
         $progresoCuatri = $this->progresoCuatri();
         $tutoriaEtapa   = $this->unidadIndexFor(3);
 
-        // 2) Bloques de tipos
         $tiposEstandar = [
             'Reporte de Evaluación Continua por Unidad de Aprendizaje (SIGO)',
             'Informe de Estudiantes No Acreditados',
@@ -46,13 +44,6 @@ class CalificacionDocumentoController extends Controller
             '3er Tutoría Grupal' => 3,
         ];
 
-        // nombres normalizados de los especiales (minúsculas, sin acentos)
-        $especialesNorm = [
-            $this->quitarAcentos(mb_strtolower('Presentación de la Asignatura')),
-            $this->quitarAcentos(mb_strtolower('Planeación didáctica')),
-        ];
-
-        // 3) Profes con carga
         $teacherIdsConCarga = DB::connection('cargahoraria')
             ->table('teacher_subjects')
             ->pluck('teacher_id')
@@ -66,10 +57,8 @@ class CalificacionDocumentoController extends Controller
         $teacherIdsBase = $profesores->pluck('teacher_id')->all();
         $userIdsBase    = $profesores->pluck('id')->all();
 
-        // user_id -> teacher_id
-        $userToTeacher = $profesores->pluck('teacher_id','id'); // [user_id => teacher_id]
+        $userToTeacher = $profesores->pluck('teacher_id','id');
 
-        // 4) Materias por profe (esperados de docs “normales” = #materias)
         $materiasPorTeacher = DB::connection('cargahoraria')
             ->table('teacher_subjects')
             ->select('teacher_id', DB::raw('COUNT(DISTINCT CONCAT(subject_id,"-",group_id)) as total_materias'))
@@ -77,7 +66,6 @@ class CalificacionDocumentoController extends Controller
             ->groupBy('teacher_id')
             ->pluck('total_materias','teacher_id');
 
-        // 4.1) LÍMITE POR UNIDAD
         $allowedByUPerTeacher = DB::connection('cargahoraria')
             ->table('teacher_subjects as ts')
             ->join('subjects as s','s.subject_id','=','ts.subject_id')
@@ -98,7 +86,6 @@ class CalificacionDocumentoController extends Controller
                 return $allowed;
             });
 
-        // 5) Unidades por materia -> unidad vigente por profe (mediana)
         $unidadesPorTeacher = DB::connection('cargahoraria')
             ->table('teacher_subjects as ts')
             ->join('subjects as s', 's.subject_id','=','ts.subject_id')
@@ -120,7 +107,6 @@ class CalificacionDocumentoController extends Controller
                 return (int) $actuales[$mid];
             });
 
-        // === Fechas por tutoría (por título) ===
         $fechasTutor = DB::table('submodulos as sm')
             ->join('subsections as ss','ss.id','=','sm.subsection_id')
             ->where('ss.modulo_id',5)
@@ -135,19 +121,16 @@ class CalificacionDocumentoController extends Controller
                 return $acc;
             }, []);
 
-        // 6) Promedio por documento normal (por documento_id)
         $avgPorDocumento = DB::table('calificacion_documentos')
             ->select('documento_id', DB::raw('AVG(calificacion) as prom_item'))
             ->groupBy('documento_id');
 
-        // Traemos documentos (SIN subject_id)
         $rowsDocs = DB::table('documentos_subidos as ds')
             ->leftJoinSub($avgPorDocumento,'pdoc','pdoc.documento_id','=','ds.id')
             ->whereIn('ds.user_id',$userIdsBase)
             ->select('ds.id','ds.user_id','ds.unidad','ds.tipo_documento','pdoc.prom_item')
             ->get();
 
-        // 7) TUTORÍAS — igual que antes
         $promPorSA = DB::table('calificacion_submodulo_archivos')
             ->select('submodulo_archivo_id', DB::raw('AVG(calificacion) as prom_por_sa'))
             ->groupBy('submodulo_archivo_id');
@@ -179,7 +162,6 @@ class CalificacionDocumentoController extends Controller
             ->groupBy('x.profesor_id','x.submodulo_titulo')
             ->get();
 
-        // 8) Agrupar ENTREGADOS / PROMEDIOS aplicando los LÍMITES por UNIDAD
         $entPorTipo   = [];
         $promPorTipo  = [];
         $buckets      = [];
@@ -189,8 +171,17 @@ class CalificacionDocumentoController extends Controller
             $tipo = trim($row->tipo_documento ?? '');
             if ($tipo === '') continue;
 
+            $tipoNorm = $this->quitarAcentos(mb_strtolower($tipo));
+            $esPresentacion = strpos($tipoNorm, 'presentacion de la asignatura') !== false;
+            $esPlaneacion   = strpos($tipoNorm, 'planeacion didactica') !== false;
+            $esEspecialTipo = $esPresentacion || $esPlaneacion;
+
             $u = (int)($row->unidad ?? 1);
             if ($u < 1) $u = 1;
+
+            if ($esEspecialTipo && $u !== 1) {
+                continue;
+            }
 
             $buckets[$uid][$tipo][$u] = $buckets[$uid][$tipo][$u] ?? [];
             $buckets[$uid][$tipo][$u][] = $row->prom_item;
@@ -205,14 +196,7 @@ class CalificacionDocumentoController extends Controller
                 $sum = 0.0;
                 $n   = 0;
 
-                $tipoNorm   = $this->quitarAcentos(mb_strtolower($tipo));
-                $esEspecial = in_array($tipoNorm, $especialesNorm, true);
-
                 foreach ($byU as $u => $vals) {
-                    if ($esEspecial && $u !== 1) {
-                        continue;
-                    }
-
                     $cap = 0;
                     if ($u <= 3) {
                         $cap = (int)($allowed[$u] ?? 0);
@@ -248,7 +232,6 @@ class CalificacionDocumentoController extends Controller
             }
         }
 
-        // Tutorías (entregados válidos por ventana y promedio total sin ventana)
         foreach ($rowsSubs as $row) {
             $uid  = (int)$row->profesor_id;
             $tipo = $this->mapearTutorias($row->submodulo_titulo);
@@ -271,7 +254,6 @@ class CalificacionDocumentoController extends Controller
             }
         }
 
-        // 9) Armar salida por profesor
         $hoy = Carbon::now('America/Mexico_City');
         $resumenPorDocumento = [];
 
@@ -284,7 +266,6 @@ class CalificacionDocumentoController extends Controller
 
             $detallesTipos = [];
 
-            // Especiales + Estándar (esperados = #materias)
             foreach (array_merge($especiales, $tiposEstandar) as $tipo) {
                 $esperados  = $totalMaterias;
                 $entregados = (int)($entPorTipo[$uid][$tipo] ?? 0);
@@ -304,7 +285,6 @@ class CalificacionDocumentoController extends Controller
                 ];
             }
 
-            // Tutorías
             foreach ($generalesTutor as $tipo) {
                 $req           = $unidadRequeridaPorTipo[$tipo] ?? null;
                 $habilitaEtapa = is_null($req) || ($tutoriaEtapa >= $req);
@@ -372,8 +352,6 @@ class CalificacionDocumentoController extends Controller
     {
         return Excel::download(new CalificacionesExport, 'calificaciones.xlsx');
     }
-
-    // ===================== Helpers =====================
 
     private function progresoCuatri(): float
     {
