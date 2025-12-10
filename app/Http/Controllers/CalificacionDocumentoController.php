@@ -46,6 +46,12 @@ class CalificacionDocumentoController extends Controller
             '3er Tutoría Grupal' => 3,
         ];
 
+        // nombres normalizados de los especiales (minúsculas, sin acentos)
+        $especialesNorm = [
+            $this->quitarAcentos(mb_strtolower('Presentación de la Asignatura')),
+            $this->quitarAcentos(mb_strtolower('Planeación didáctica')),
+        ];
+
         // 3) Profes con carga
         $teacherIdsConCarga = DB::connection('cargahoraria')
             ->table('teacher_subjects')
@@ -199,7 +205,8 @@ class CalificacionDocumentoController extends Controller
                 $sum = 0.0;
                 $n   = 0;
 
-                $esEspecial = in_array($tipo, $especiales, true);
+                $tipoNorm   = $this->quitarAcentos(mb_strtolower($tipo));
+                $esEspecial = in_array($tipoNorm, $especialesNorm, true);
 
                 foreach ($byU as $u => $vals) {
                     if ($esEspecial && $u !== 1) {
@@ -241,6 +248,7 @@ class CalificacionDocumentoController extends Controller
             }
         }
 
+        // Tutorías (entregados válidos por ventana y promedio total sin ventana)
         foreach ($rowsSubs as $row) {
             $uid  = (int)$row->profesor_id;
             $tipo = $this->mapearTutorias($row->submodulo_titulo);
@@ -276,6 +284,7 @@ class CalificacionDocumentoController extends Controller
 
             $detallesTipos = [];
 
+            // Especiales + Estándar (esperados = #materias)
             foreach (array_merge($especiales, $tiposEstandar) as $tipo) {
                 $esperados  = $totalMaterias;
                 $entregados = (int)($entPorTipo[$uid][$tipo] ?? 0);
@@ -295,6 +304,7 @@ class CalificacionDocumentoController extends Controller
                 ];
             }
 
+            // Tutorías
             foreach ($generalesTutor as $tipo) {
                 $req           = $unidadRequeridaPorTipo[$tipo] ?? null;
                 $habilitaEtapa = is_null($req) || ($tutoriaEtapa >= $req);

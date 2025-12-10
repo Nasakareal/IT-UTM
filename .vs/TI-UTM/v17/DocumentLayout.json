@@ -32,7 +32,7 @@
               "RelativeDocumentMoniker": "app\\Http\\Controllers\\CalificacionDocumentoController.php",
               "ToolTip": "C:\\wamp64\\www\\TI-UTM\\app\\Http\\Controllers\\CalificacionDocumentoController.php",
               "RelativeToolTip": "app\\Http\\Controllers\\CalificacionDocumentoController.php",
-              "ViewState": "AgIAAIIBAAAAAAAAAAAkwLIBAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAIwBAAAAAAAAAAAkwLwBAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002338|",
               "WhenOpened": "2025-12-10T02:46:48.429Z",
               "EditorCaption": ""
@@ -47,8 +47,7 @@
               "RelativeToolTip": "routes\\web.php",
               "ViewState": "AgIAANUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002338|",
-              "WhenOpened": "2025-12-10T02:46:35.726Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-10T02:46:35.726Z"
             },
             {
               "$type": "Document",
@@ -60,8 +59,7 @@
               "RelativeToolTip": "resources\\views\\settings\\calificaciones\\index.blade.php",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABEAAAAkAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.002338|",
-              "WhenOpened": "2025-12-10T02:46:15.554Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-10T02:46:15.554Z"
             }
           ]
         }
