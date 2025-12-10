@@ -6,8 +6,10 @@
     "\\app\\Http\\Controllers",
     "\\resources",
     "\\resources\\views",
-    "\\resources\\views\\revision_academica"
+    "\\resources\\views\\settings",
+    "\\resources\\views\\settings\\calificaciones",
+    "\\routes"
   ],
-  "SelectedNode": "\\app\\Http\\Controllers\\RevisionAcademicaController.php",
+  "SelectedNode": "\\app\\Http\\Controllers\\CalificacionDocumentoController.php",
   "PreviewInSolutionExplorer": false
 }

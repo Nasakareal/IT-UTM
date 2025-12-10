@@ -174,25 +174,22 @@ class CalificacionDocumentoController extends Controller
             ->get();
 
         // 8) Agrupar ENTREGADOS / PROMEDIOS aplicando los LÍMITES por UNIDAD
-        $entPorTipo   = []; // [user_id][tipo] => entero (después de aplicar topes por unidad)
-        $promPorTipo  = []; // [user_id][tipo] => ['suma'=>..., 'n'=>...]
-        $buckets      = []; // [user_id][tipo][unidad] => array de prom_item (puede traer null)
+        $entPorTipo   = [];
+        $promPorTipo  = [];
+        $buckets      = [];
 
-        // Guardamos en buckets por unidad
         foreach ($rowsDocs as $row) {
             $uid  = (int)$row->user_id;
             $tipo = trim($row->tipo_documento ?? '');
             if ($tipo === '') continue;
 
-            // Unidad del documento (si viene null, tratamos como U1 para no perder evidencia)
             $u = (int)($row->unidad ?? 1);
             if ($u < 1) $u = 1;
 
             $buckets[$uid][$tipo][$u] = $buckets[$uid][$tipo][$u] ?? [];
-            $buckets[$uid][$tipo][$u][] = $row->prom_item; // puede ser null
+            $buckets[$uid][$tipo][$u][] = $row->prom_item;
         }
 
-        // Aplicamos los topes por unidad contra los buckets
         foreach ($buckets as $uid => $tipos) {
             $tid = (int)($userToTeacher[$uid] ?? 0);
             $allowed = $allowedByUPerTeacher[$tid] ?? [1=>0,2=>0,3=>0];
@@ -202,23 +199,25 @@ class CalificacionDocumentoController extends Controller
                 $sum = 0.0;
                 $n   = 0;
 
-                // Recorremos unidades presentes en los docs
+                $esEspecial = in_array($tipo, $especiales, true);
+
                 foreach ($byU as $u => $vals) {
-                    // ¿cuántos podemos contar en esta unidad?
+                    if ($esEspecial && $u !== 1) {
+                        continue;
+                    }
+
                     $cap = 0;
                     if ($u <= 3) {
                         $cap = (int)($allowed[$u] ?? 0);
                     } else {
-                        $cap = 0; // U4+ no cuentan por regla del cliente
+                        $cap = 0;
                     }
 
                     if ($cap <= 0) continue;
 
-                    // contamos hasta $cap entregas de esta unidad
                     $cant = min(count($vals), $cap);
                     $ent += $cant;
 
-                    // Para promedio: solo las "cant" primeras con calificación (no-null)
                     $tomados = 0;
                     foreach ($vals as $v) {
                         if ($tomados >= $cant) break;
@@ -242,7 +241,6 @@ class CalificacionDocumentoController extends Controller
             }
         }
 
-        // Tutorías (entregados válidos por ventana y promedio total sin ventana)
         foreach ($rowsSubs as $row) {
             $uid  = (int)$row->profesor_id;
             $tipo = $this->mapearTutorias($row->submodulo_titulo);
@@ -254,10 +252,8 @@ class CalificacionDocumentoController extends Controller
             }
             if (!$permitidoEtapa) continue;
 
-            // Entregados válidos (para cumplimiento)
             $entPorTipo[$uid][$tipo] = ($entPorTipo[$uid][$tipo] ?? 0) + (int)$row->entregados_validos;
 
-            // Promedio total (mostrar si hay calificación aunque esté fuera de ventana)
             if (!is_null($row->prom_item_total)) {
                 if (!isset($promPorTipo[$uid][$tipo])) {
                     $promPorTipo[$uid][$tipo] = ['suma'=>0.0,'n'=>0];
@@ -280,7 +276,6 @@ class CalificacionDocumentoController extends Controller
 
             $detallesTipos = [];
 
-            // Especiales + Estándar (esperados = #materias)
             foreach (array_merge($especiales, $tiposEstandar) as $tipo) {
                 $esperados  = $totalMaterias;
                 $entregados = (int)($entPorTipo[$uid][$tipo] ?? 0);
@@ -300,7 +295,6 @@ class CalificacionDocumentoController extends Controller
                 ];
             }
 
-            // Tutorías
             foreach ($generalesTutor as $tipo) {
                 $req           = $unidadRequeridaPorTipo[$tipo] ?? null;
                 $habilitaEtapa = is_null($req) || ($tutoriaEtapa >= $req);
@@ -310,11 +304,9 @@ class CalificacionDocumentoController extends Controller
 
                 $esperados  = ($habilitaEtapa && $abrio) ? 1 : 0;
 
-                // Entregados válidos (dentro de ventana)
                 $entregados = (int)($entPorTipo[$uid][$tipo] ?? 0);
                 $entregados = $esperados > 0 ? min($entregados, $esperados) : 0;
 
-                // Promedio (si hubo calificación en cualquier momento)
                 $sumaN = $promPorTipo[$uid][$tipo]['suma'] ?? 0.0;
                 $nN    = $promPorTipo[$uid][$tipo]['n']    ?? 0;
                 $prom  = $nN > 0 ? round($sumaN / $nN, 2) : null;
@@ -377,8 +369,8 @@ class CalificacionDocumentoController extends Controller
     {
         [$ini, $fin, , $hoy] = $this->rangoCuatriActual();
 
-        $totalDias = $ini->diffInDays($fin) + 1;   // inclusivo
-        $pasados   = $ini->diffInDays($hoy) + 1;   // inclusivo
+        $totalDias = $ini->diffInDays($fin) + 1;
+        $pasados   = $ini->diffInDays($hoy) + 1;
         $pasados   = max(0, min($pasados, $totalDias));
 
         if ($totalDias <= 0) return 0.0;
