@@ -134,16 +134,6 @@ class CalificacionDocumentoController extends Controller
             ->joinSub($ultimosIds, 'u', 'u.id', '=', 'ds.id')
             ->leftJoinSub($avgPorDocumento,'pdoc','pdoc.documento_id','=','ds.id')
             ->whereIn('ds.user_id',$userIdsBase)
-            ->where(function ($q) use ($especiales) {
-                $q->whereNotIn('ds.tipo_documento', $especiales)
-                  ->orWhere(function ($q2) use ($especiales) {
-                      $q2->whereIn('ds.tipo_documento', $especiales)
-                         ->where(function ($q3) {
-                             $q3->whereNull('ds.unidad')
-                                ->orWhere('ds.unidad', 1);
-                         });
-                  });
-            })
             ->select('ds.id','ds.user_id','ds.unidad','ds.tipo_documento','pdoc.prom_item')
             ->get();
 
@@ -187,8 +177,17 @@ class CalificacionDocumentoController extends Controller
             $tipo = trim($row->tipo_documento ?? '');
             if ($tipo === '') continue;
 
+            $tipoNorm = $this->quitarAcentos(mb_strtolower($tipo));
+            $esPresentacion = strpos($tipoNorm, 'presentacion de la asignatura') !== false;
+            $esPlaneacion   = strpos($tipoNorm, 'planeacion didactica') !== false;
+            $esEspecialTipo = $esPresentacion || $esPlaneacion;
+
             $u = (int)($row->unidad ?? 1);
             if ($u < 1) $u = 1;
+
+            if ($esEspecialTipo && $u !== 1) {
+                continue;
+            }
 
             $buckets[$uid][$tipo][$u] = $buckets[$uid][$tipo][$u] ?? [];
             $buckets[$uid][$tipo][$u][] = $row->prom_item;
