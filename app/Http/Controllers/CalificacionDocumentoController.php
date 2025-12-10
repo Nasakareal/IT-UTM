@@ -134,7 +134,21 @@ class CalificacionDocumentoController extends Controller
             ->joinSub($ultimosIds, 'u', 'u.id', '=', 'ds.id')
             ->leftJoinSub($avgPorDocumento,'pdoc','pdoc.documento_id','=','ds.id')
             ->whereIn('ds.user_id',$userIdsBase)
+            ->whereNotIn('ds.tipo_documento', $especiales)
             ->select('ds.id','ds.user_id','ds.unidad','ds.tipo_documento','pdoc.prom_item')
+            ->get();
+
+        $especialRows = DB::table('documentos_subidos as ds')
+            ->leftJoinSub($avgPorDocumento,'pdoc','pdoc.documento_id','=','ds.id')
+            ->whereIn('ds.user_id',$userIdsBase)
+            ->whereIn('ds.tipo_documento',$especiales)
+            ->where(function($q){
+                $q->whereNull('ds.unidad')->orWhere('ds.unidad',1);
+            })
+            ->select('ds.id','ds.user_id','ds.tipo_documento','ds.unidad','pdoc.prom_item')
+            ->orderBy('ds.user_id')
+            ->orderBy('ds.tipo_documento')
+            ->orderBy('ds.id')
             ->get();
 
         $promPorSA = DB::table('calificacion_submodulo_archivos')
@@ -177,17 +191,8 @@ class CalificacionDocumentoController extends Controller
             $tipo = trim($row->tipo_documento ?? '');
             if ($tipo === '') continue;
 
-            $tipoNorm = $this->quitarAcentos(mb_strtolower($tipo));
-            $esPresentacion = strpos($tipoNorm, 'presentacion de la asignatura') !== false;
-            $esPlaneacion   = strpos($tipoNorm, 'planeacion didactica') !== false;
-            $esEspecialTipo = $esPresentacion || $esPlaneacion;
-
             $u = (int)($row->unidad ?? 1);
             if ($u < 1) $u = 1;
-
-            if ($esEspecialTipo && $u !== 1) {
-                continue;
-            }
 
             $buckets[$uid][$tipo][$u] = $buckets[$uid][$tipo][$u] ?? [];
             $buckets[$uid][$tipo][$u][] = $row->prom_item;
@@ -231,6 +236,53 @@ class CalificacionDocumentoController extends Controller
                 }
 
                 if ($n > 0) {
+                    if (!isset($promPorTipo[$uid][$tipo])) $promPorTipo[$uid][$tipo] = ['suma'=>0.0,'n'=>0];
+                    $promPorTipo[$uid][$tipo]['suma'] += $sum;
+                    $promPorTipo[$uid][$tipo]['n']    += $n;
+                }
+            }
+        }
+
+        $especialPick = [];
+
+        foreach ($especialRows as $row) {
+            $uid  = (int)$row->user_id;
+            $tipo = $row->tipo_documento;
+            $id   = (int)$row->id;
+            $prom = $row->prom_item;
+
+            if (!isset($especialPick[$uid])) $especialPick[$uid] = [];
+            if (!isset($especialPick[$uid][$tipo])) {
+                $especialPick[$uid][$tipo] = [
+                    'last_id'        => $id,
+                    'last_prom'      => $prom,
+                    'last_calif_id'  => !is_null($prom) ? $id : null,
+                    'last_calif_prom'=> !is_null($prom) ? $prom : null,
+                ];
+            } else {
+                if ($id > $especialPick[$uid][$tipo]['last_id']) {
+                    $especialPick[$uid][$tipo]['last_id']   = $id;
+                    $especialPick[$uid][$tipo]['last_prom'] = $prom;
+                }
+                if (!is_null($prom)) {
+                    if ($especialPick[$uid][$tipo]['last_calif_id'] === null ||
+                        $id > $especialPick[$uid][$tipo]['last_calif_id']) {
+                        $especialPick[$uid][$tipo]['last_calif_id']   = $id;
+                        $especialPick[$uid][$tipo]['last_calif_prom'] = $prom;
+                    }
+                }
+            }
+        }
+
+        foreach ($especialPick as $uid => $porTipo) {
+            foreach ($porTipo as $tipo => $data) {
+                if ($data['last_calif_id'] !== null) {
+                    $ent = 1;
+                    $sum = (float)$data['last_calif_prom'];
+                    $n   = 1;
+
+                    $entPorTipo[$uid][$tipo] = ($entPorTipo[$uid][$tipo] ?? 0) + $ent;
+
                     if (!isset($promPorTipo[$uid][$tipo])) $promPorTipo[$uid][$tipo] = ['suma'=>0.0,'n'=>0];
                     $promPorTipo[$uid][$tipo]['suma'] += $sum;
                     $promPorTipo[$uid][$tipo]['n']    += $n;
