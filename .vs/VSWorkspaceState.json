@@ -10,5 +10,6 @@
     "\\resources\\views\\settings\\calificaciones",
     "\\routes"
   ],
+  "SelectedNode": "\\app\\Http\\Controllers\\RevisionAcademicaController.php",
   "PreviewInSolutionExplorer": false
 }

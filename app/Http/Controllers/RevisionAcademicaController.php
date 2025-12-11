@@ -134,18 +134,37 @@ public function index(Request $request)
         }
     }
 
+    // -------------------------
+    // PROFESORES + CATEGORÍA
+    // -------------------------
     $profesores = collect();
     if ($teacherIdsVisibles->isNotEmpty()) {
         $idsUsers = collect();
         if (\Schema::hasColumn('users', 'teacher_id')) {
-            $idsUsers = $idsUsers->merge(User::whereIn('teacher_id', $teacherIdsVisibles)->pluck('id'));
+            $idsUsers = $idsUsers->merge(
+                User::whereIn('teacher_id', $teacherIdsVisibles)->pluck('id')
+            );
         }
         if (\Schema::hasColumn('users', 'docente_id')) {
-            $idsUsers = $idsUsers->merge(User::whereIn('docente_id', $teacherIdsVisibles)->pluck('id'));
+            $idsUsers = $idsUsers->merge(
+                User::whereIn('docente_id', $teacherIdsVisibles)->pluck('id')
+            );
         }
         $idsUsers = $idsUsers->unique()->values();
 
+        // categorías permitidas
+        $categoriasPermitidas = [
+            'Titular C',
+            'Titular A',
+            'Titular B',
+            'Asociado C',
+        ];
+
         $profesores = User::whereIn('id', $idsUsers)
+            ->when(
+                \Schema::hasColumn('users', 'categoria'),
+                fn($q) => $q->whereIn('categoria', $categoriasPermitidas)
+            )
             ->orderBy('nombres')
             ->get();
     }
